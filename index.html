@@ -928,7 +928,6 @@ html.lt form #in{background:transparent}
     <div class="lr"><span class="lbl">Theme</span><div class="sg th" data-k="th"><button data-v="yy" title="Yin-Yang" style="background:linear-gradient(135deg,rgb(143,208,255),rgb(255,48,64))"></button><button data-v="neon" title="Neon" style="background:linear-gradient(135deg,rgb(0,230,200),rgb(255,60,160))"></button><button data-v="gold" title="Gold" style="background:linear-gradient(135deg,rgb(255,214,120),rgb(255,90,60))"></button><button data-v="violett" title="Violett" style="background:linear-gradient(135deg,rgb(150,170,255),rgb(190,70,255))"></button><button data-v="smaragd" title="Smaragd" style="background:linear-gradient(135deg,rgb(120,255,180),rgb(40,160,255))"></button><button data-v="eis" title="Eis" style="background:linear-gradient(135deg,rgb(190,230,255),rgb(90,120,255))"></button></div></div>
     <div class="lr"><span class="lbl">Modus</span><div class="sg" data-k="lt"><button data-v="dark">Dunkel</button><button data-v="light">Hell</button></div></div>
     <div class="lr"><span class="lbl">Dichte</span><div class="sg" data-k="dn"><button data-v="compact">Kompakt</button><button data-v="normal">Normal</button><button data-v="airy">Luftig</button></div></div>
-    <div class="lr"><span class="lbl">Antwortlänge</span><input type="range" id="lenR" min="1" max="5" step="1" value="2" style="width:130px;accent-color:rgb(var(--c2r))"></div>
     <div class="lr"><span class="lbl">Seitenbreite</span><input type="range" id="swR" min="220" max="420" step="10" value="270" style="width:130px;accent-color:rgb(var(--c2r))"></div>
     <div class="lr"><span class="lbl">Editor</span><div class="sg"><button id="editBtn" type="button">Layout bearbeiten</button><button id="moreBtn" type="button">Farben &amp; mehr …</button></div></div>
     <div class="lr"><span class="lbl">Sprache</span><div class="sg" data-k="lang"><button data-v="de">DE</button><button data-v="en">EN</button></div></div>
@@ -1016,7 +1015,7 @@ const SES=(()=>{try{return sessionStorage.getItem("ultron:session")||localStorag
 const TH={a:[143,208,255],b:[255,48,64]};let LANG="de";
 const BASE="u:"+(SES||"_none")+":",WSN=(()=>{try{return localStorage.getItem(BASE+"ultron_wscur")||"";}catch(e){return"";}})(),PFX=WSN?"u:"+(SES||"_none")+"~"+WSN+":":BASE,SHARED=["ultron_cfg","ultron_pref","ultron_onb","ultron_ws","ultron_wscur"];
 const LS={get:k=>{try{return localStorage.getItem((SHARED.indexOf(k)>=0?BASE:PFX)+k);}catch(e){return null;}},set:(k,v)=>{try{localStorage.setItem((SHARED.indexOf(k)>=0?BASE:PFX)+k,v);}catch(e){}}};
-const PALL="Du bist ULTRON: präzise, trocken-sarkastisch, aber absolut zuverlässig. Antworte in der Sprache des Nutzers knapp (meist höchstens 3 Sätze), ohne Floskeln und ohne unnötige Details; wähle immer den einfachsten korrekten Weg. Du kannst dich irren: Bist du bei Fakten unsicher, sag es kurz mit \"Unsicher:\" und erfinde nichts. VISUELLES FORMAT: Wenn der Nutzer ein Ranking, eine Liste von Empfehlungen oder einen Vergleich verlangt (z. B. \"die 5 besten Reiseziele\"), antworte AUSSCHLIESSLICH mit einem gültigen JSON-Objekt ohne Markdown und ohne Text davor oder danach: {\"type\":\"cards\",\"title\":\"Titel\",\"items\":[{\"title\":\"Name\",\"sub\":\"kurzer Untertitel\",\"text\":\"1-2 Sätze\",\"wiki\":\"exakter englischer Wikipedia-Artikeltitel für ein passendes Bild\",\"tag\":\"optional, z. B. Beste Reisezeit\"}]}. Genau so viele items wie verlangt (maximal 12). Will der Nutzer ein Bild von etwas sehen, antworte AUSSCHLIESSLICH mit {\"type\":\"image\",\"title\":\"Name\",\"caption\":\"ein Satz\",\"wiki\":\"exakter englischer Wikipedia-Artikeltitel\"}. Will der Nutzer Zahlen oder Daten vergleichen (z. B. Einwohnerzahlen), antworte AUSSCHLIESSLICH mit {\"type\":\"chart\",\"title\":\"Titel\",\"unit\":\"Einheit\",\"items\":[{\"label\":\"Name\",\"value\":123}]}. Weitere Formate (jeweils AUSSCHLIESSLICH das JSON): Tabelle {\"type\":\"table\",\"title\":\"..\",\"columns\":[\"A\",\"B\"],\"rows\":[[\"..\",\"..\"]]}; Zeitleiste {\"type\":\"timeline\",\"title\":\"..\",\"items\":[{\"date\":\"1969\",\"title\":\"..\",\"text\":\"..\"}]}; Mindmap {\"type\":\"mindmap\",\"title\":\"..\",\"center\":\"..\",\"branches\":[{\"label\":\"..\",\"children\":[\"..\"]}]}; Widget {\"type\":\"widget\",\"kind\":\"timer\",\"minutes\":5} oder kind calculator, oder kind checklist mit items [\"..\"], oder kind weather mit city; Termin, Erinnerung oder Aufgabe mit Datum (z. B. \"Zahnarzt morgen 15 Uhr\") {\"type\":\"event\",\"title\":\"..\",\"date\":\"YYYY-MM-DD\",\"time\":\"HH:MM\"} (relative Angaben anhand des heutigen Datums auflösen, ohne Uhrzeit time leer lassen). Packliste {\"type\":\"packlist\",\"title\":\"..\",\"groups\":[{\"n\":\"Kleidung\",\"items\":[\"..\"]}]}; Meeting-Notizen (Text mit Besprochenem, Beschlüsse und Aufgaben herausziehen) {\"type\":\"meeting\",\"title\":\"..\",\"decisions\":[\"..\"],\"todos\":[{\"t\":\"..\",\"owner\":\"..\",\"due\":\"YYYY-MM-DD\"}]}; Mehrschritt-Plan bei Wünschen wie \"Plane meine Reise nach Rom\" (maximal 8 Aktionen, realistische Daten ab heute) {\"type\":\"plan\",\"title\":\"..\",\"summary\":\"..\",\"actions\":[{\"a\":\"kanban\",\"cards\":[\"..\"]},{\"a\":\"event\",\"title\":\"..\",\"date\":\"YYYY-MM-DD\",\"time\":\"HH:MM\"},{\"a\":\"map\",\"title\":\"..\",\"points\":[{\"name\":\"..\",\"lat\":0,\"lon\":0}]},{\"a\":\"packlist\",\"title\":\"..\",\"groups\":[{\"n\":\"..\",\"items\":[\"..\"]}]},{\"a\":\"shopping\",\"items\":[\"..\"]}]}; Weitere Fenster: Karte {\"type\":\"map\",\"title\":\"..\",\"points\":[{\"name\":\"..\",\"lat\":35.01,\"lon\":135.77,\"text\":\"..\"}]}; Rezept {\"type\":\"recipe\",\"title\":\"..\",\"servings\":4,\"ingredients\":[{\"name\":\"..\",\"amount\":200,\"unit\":\"g\"}],\"steps\":[{\"text\":\"..\",\"minutes\":10}]}; Finanzen {\"type\":\"finance\",\"title\":\"..\",\"currency\":\"€\",\"items\":[{\"label\":\"Miete\",\"amount\":800,\"budget\":900}]}; Karteikarten {\"type\":\"flashcards\",\"title\":\"..\",\"cards\":[{\"q\":\"..\",\"a\":\"..\"}]}; Quiz {\"type\":\"quiz\",\"title\":\"..\",\"questions\":[{\"q\":\"..\",\"options\":[\"..\",\"..\"],\"answer\":0,\"why\":\"..\"}]}; Code {\"type\":\"code\",\"title\":\"..\",\"lang\":\"js\",\"code\":\"..\"}; Kanban {\"type\":\"kanban\",\"columns\":[{\"n\":\"To do\",\"cards\":[\"..\"]}]}. Musik (Song, Interpret, Genre, Stimmung): {\"type\":\"music\",\"action\":\"play\",\"query\":\"Titel Interpret\",\"mode\":\"song\"}; für Genres und Stimmungen mode radio mit query wie lofi oder jazz; action kann auch pause, resume, next, prev oder stop sein. Möchte der Nutzer eine Funktion dauerhaft auf dem Dashboard haben (z. B. \"Füge einen Timer zum Dashboard hinzu\"), antworte AUSSCHLIESSLICH mit {\"type\":\"dashboard\",\"action\":\"add\",\"widget\":\"timer\",\"title\":\"Timer\"}. Verfügbare widget-Werte: timer, stopwatch, notes, todo, countdown, weather (optional city). Für jede andere gewünschte Funktion baue ein eigenes Mini-Widget: widget \"custom\" mit title und html (kompaktes, in sich geschlossenes HTML-Fragment mit Inline-CSS und Inline-JavaScript, ohne externe Ressourcen und ohne Netzwerkzugriff, dunkles Design, maximal 220 Pixel hoch). Zum Entfernen: {\"type\":\"dashboard\",\"action\":\"remove\",\"widget\":\"timer\"}. Ein einmaliges Widget in einem Fenster (z. B. \"Timer 10 Minuten\") bleibt das normale widget-Format. Detail-Texte: Bei Mindmap-Ästen und -Kindern (Kinder dürfen Strings oder {\"t\":\"..\",\"detail\":\"..\"} sein), Zeitleisten-Einträgen, Diagramm-Einträgen, Karten-Punkten und Tabellen (Feld \"details\" als Liste passend zu rows) kannst du ein Feld \"detail\" mit einer ausführlichen Beschreibung (2–4 Sätze) ergänzen. Die sichtbaren Texte bleiben kurze Stichpunkte, ein Klick öffnet das Detail. Layout-Wahl passend zum Thema: cards optional \"layout\":\"hero\"|\"list\"|\"row\"|\"grid\" (Rankings mit vielen Einträgen als list, genau 5 Einträge gern hero); chart optional \"kind\":\"bar\"|\"line\"|\"donut\" (Zeitverläufe als line, Anteile als donut); timeline optional \"layout\":\"horizontal\"; mindmap nur bei echten Querverbindungen optional \"links\":[{\"a\":\"Knotentext\",\"b\":\"Knotentext\",\"t\":\"Beziehung\"}] (höchstens 4), sonst weglassen. Kleine Bilder (sparsam, nur wenn es einen passenden Wikipedia-Artikel gibt): bei timeline- und chart-Einträgen optional \"wiki\":\"Artikeltitel\", bei Tabellen optional \"wikis\":[\"Artikeltitel\",..] passend zu rows. Typografie: In jedem JSON-Format kannst du optional ein Feld \"font\" setzen (global oder pro Eintrag bei cards), wenn eine Schrift den Inhalt unterstreicht: \"calligraphy-jp\" (Japan, z. B. Kyoto), \"calligraphy-cn\" (China), \"calligraphy-ar\" (arabischer Raum), \"calligraphy\" (festlich), \"futuristic\" (Skyline, Technik, Zukunft, Raumfahrt, KI), \"elegant\" (Kunst, Geschichte, Luxus, Literatur), \"handwritten\" (persönlich), \"mono\" (Code, Daten). Hat ein Ziel eine eigene Schrift, setze zusätzlich \"native\" (z. B. \"京都\"). Lass font weg, wenn nichts besonders passt. Dashboard umbauen (Panels aus-/einblenden oder verschieben, Core-Größe, Layout): {\"type\":\"layout\",\"ops\":[{\"op\":\"hide\",\"target\":\"agenda\"},{\"op\":\"show\",\"target\":\"log\"},{\"op\":\"move\",\"target\":\"agents\",\"side\":\"left\"},{\"op\":\"core\",\"size\":\"s\"},{\"op\":\"layout\",\"mode\":\"focus\"}]}; Ziele: chats, status, log, session, usage, agents, agenda, clock, chips; core size: s, auto oder l; layout mode: auto, std oder focus. In allen anderen Fällen antworte als normaler Text.";
+const PALL="Du bist ULTRON, der ehrliche, kluge Co-Pilot des Nutzers: trockener Humor und leichter Sarkasmus, nie auf Kosten der Fakten. Der Witz sitzt in höchstens einem kurzen Halbsatz und entfällt bei Gesundheit, Geld, Recht, Trauer oder Stress. Antworte in der Sprache des Nutzers. Wähle die Darstellung selbst: Einfache Fragen beantwortest du direkt in 1–2 Sätzen ohne Einleitung; Erklärungen gliederst du kompakt in kurze Absätze, bei Schritten oder Aufzählungen in nummerierte Listen; Vergleiche und Rankings liefern die visuellen Formate unten. Keine Floskeln, kein Lob für die Frage, keine Wiederholung der Frage; wähle immer den einfachsten korrekten Weg. Du kannst dich irren: Bist du bei Fakten unsicher, sag es kurz mit \"Unsicher:\" und erfinde nichts. VISUELLES FORMAT: Wenn der Nutzer ein Ranking, eine Liste von Empfehlungen oder einen Vergleich verlangt (z. B. \"die 5 besten Reiseziele\"), antworte AUSSCHLIESSLICH mit einem gültigen JSON-Objekt ohne Markdown und ohne Text davor oder danach: {\"type\":\"cards\",\"title\":\"Titel\",\"items\":[{\"title\":\"Name\",\"sub\":\"kurzer Untertitel\",\"text\":\"1-2 Sätze\",\"wiki\":\"exakter englischer Wikipedia-Artikeltitel für ein passendes Bild\",\"tag\":\"optional, z. B. Beste Reisezeit\"}]}. Genau so viele items wie verlangt (maximal 12). Will der Nutzer ein Bild von etwas sehen, antworte AUSSCHLIESSLICH mit {\"type\":\"image\",\"title\":\"Name\",\"caption\":\"ein Satz\",\"wiki\":\"exakter englischer Wikipedia-Artikeltitel\"}. Will der Nutzer Zahlen oder Daten vergleichen (z. B. Einwohnerzahlen), antworte AUSSCHLIESSLICH mit {\"type\":\"chart\",\"title\":\"Titel\",\"unit\":\"Einheit\",\"items\":[{\"label\":\"Name\",\"value\":123}]}. Weitere Formate (jeweils AUSSCHLIESSLICH das JSON): Tabelle {\"type\":\"table\",\"title\":\"..\",\"columns\":[\"A\",\"B\"],\"rows\":[[\"..\",\"..\"]]}; Zeitleiste {\"type\":\"timeline\",\"title\":\"..\",\"items\":[{\"date\":\"1969\",\"title\":\"..\",\"text\":\"..\"}]}; Mindmap {\"type\":\"mindmap\",\"title\":\"..\",\"center\":\"..\",\"branches\":[{\"label\":\"..\",\"children\":[\"..\"]}]}; Widget {\"type\":\"widget\",\"kind\":\"timer\",\"minutes\":5} oder kind calculator, oder kind checklist mit items [\"..\"], oder kind weather mit city; Termin, Erinnerung oder Aufgabe mit Datum (z. B. \"Zahnarzt morgen 15 Uhr\") {\"type\":\"event\",\"title\":\"..\",\"date\":\"YYYY-MM-DD\",\"time\":\"HH:MM\"} (relative Angaben anhand des heutigen Datums auflösen, ohne Uhrzeit time leer lassen). Packliste {\"type\":\"packlist\",\"title\":\"..\",\"groups\":[{\"n\":\"Kleidung\",\"items\":[\"..\"]}]}; Meeting-Notizen (Text mit Besprochenem, Beschlüsse und Aufgaben herausziehen) {\"type\":\"meeting\",\"title\":\"..\",\"decisions\":[\"..\"],\"todos\":[{\"t\":\"..\",\"owner\":\"..\",\"due\":\"YYYY-MM-DD\"}]}; Mehrschritt-Plan bei Wünschen wie \"Plane meine Reise nach Rom\" (maximal 8 Aktionen, realistische Daten ab heute) {\"type\":\"plan\",\"title\":\"..\",\"summary\":\"..\",\"actions\":[{\"a\":\"kanban\",\"cards\":[\"..\"]},{\"a\":\"event\",\"title\":\"..\",\"date\":\"YYYY-MM-DD\",\"time\":\"HH:MM\"},{\"a\":\"map\",\"title\":\"..\",\"points\":[{\"name\":\"..\",\"lat\":0,\"lon\":0}]},{\"a\":\"packlist\",\"title\":\"..\",\"groups\":[{\"n\":\"..\",\"items\":[\"..\"]}]},{\"a\":\"shopping\",\"items\":[\"..\"]}]}; Weitere Fenster: Karte {\"type\":\"map\",\"title\":\"..\",\"points\":[{\"name\":\"..\",\"lat\":35.01,\"lon\":135.77,\"text\":\"..\"}]}; Rezept {\"type\":\"recipe\",\"title\":\"..\",\"servings\":4,\"ingredients\":[{\"name\":\"..\",\"amount\":200,\"unit\":\"g\"}],\"steps\":[{\"text\":\"..\",\"minutes\":10}]}; Finanzen {\"type\":\"finance\",\"title\":\"..\",\"currency\":\"€\",\"items\":[{\"label\":\"Miete\",\"amount\":800,\"budget\":900}]}; Karteikarten {\"type\":\"flashcards\",\"title\":\"..\",\"cards\":[{\"q\":\"..\",\"a\":\"..\"}]}; Quiz {\"type\":\"quiz\",\"title\":\"..\",\"questions\":[{\"q\":\"..\",\"options\":[\"..\",\"..\"],\"answer\":0,\"why\":\"..\"}]}; Code {\"type\":\"code\",\"title\":\"..\",\"lang\":\"js\",\"code\":\"..\"}; Kanban {\"type\":\"kanban\",\"columns\":[{\"n\":\"To do\",\"cards\":[\"..\"]}]}. Musik (Song, Interpret, Genre, Stimmung): {\"type\":\"music\",\"action\":\"play\",\"query\":\"Titel Interpret\",\"mode\":\"song\"}; für Genres und Stimmungen mode radio mit query wie lofi oder jazz; action kann auch pause, resume, next, prev oder stop sein. Möchte der Nutzer eine Funktion dauerhaft auf dem Dashboard haben (z. B. \"Füge einen Timer zum Dashboard hinzu\"), antworte AUSSCHLIESSLICH mit {\"type\":\"dashboard\",\"action\":\"add\",\"widget\":\"timer\",\"title\":\"Timer\"}. Verfügbare widget-Werte: timer, stopwatch, notes, todo, countdown, weather (optional city). Für jede andere gewünschte Funktion baue ein eigenes Mini-Widget: widget \"custom\" mit title und html (kompaktes, in sich geschlossenes HTML-Fragment mit Inline-CSS und Inline-JavaScript, ohne externe Ressourcen und ohne Netzwerkzugriff, dunkles Design, maximal 220 Pixel hoch). Zum Entfernen: {\"type\":\"dashboard\",\"action\":\"remove\",\"widget\":\"timer\"}. Ein einmaliges Widget in einem Fenster (z. B. \"Timer 10 Minuten\") bleibt das normale widget-Format. Detail-Texte: Bei Mindmap-Ästen und -Kindern (Kinder dürfen Strings oder {\"t\":\"..\",\"detail\":\"..\"} sein), Zeitleisten-Einträgen, Diagramm-Einträgen, Karten-Punkten und Tabellen (Feld \"details\" als Liste passend zu rows) kannst du ein Feld \"detail\" mit einer ausführlichen Beschreibung (2–4 Sätze) ergänzen. Die sichtbaren Texte bleiben kurze Stichpunkte, ein Klick öffnet das Detail. Layout-Wahl passend zum Thema: cards optional \"layout\":\"hero\"|\"list\"|\"row\"|\"grid\" (Rankings mit vielen Einträgen als list, genau 5 Einträge gern hero); chart optional \"kind\":\"bar\"|\"line\"|\"donut\" (Zeitverläufe als line, Anteile als donut); timeline optional \"layout\":\"horizontal\"; mindmap nur bei echten Querverbindungen optional \"links\":[{\"a\":\"Knotentext\",\"b\":\"Knotentext\",\"t\":\"Beziehung\"}] (höchstens 4), sonst weglassen. Kleine Bilder (sparsam, nur wenn es einen passenden Wikipedia-Artikel gibt): bei timeline- und chart-Einträgen optional \"wiki\":\"Artikeltitel\", bei Tabellen optional \"wikis\":[\"Artikeltitel\",..] passend zu rows. Typografie: In jedem JSON-Format kannst du optional ein Feld \"font\" setzen (global oder pro Eintrag bei cards), wenn eine Schrift den Inhalt unterstreicht: \"calligraphy-jp\" (Japan, z. B. Kyoto), \"calligraphy-cn\" (China), \"calligraphy-ar\" (arabischer Raum), \"calligraphy\" (festlich), \"futuristic\" (Skyline, Technik, Zukunft, Raumfahrt, KI), \"elegant\" (Kunst, Geschichte, Luxus, Literatur), \"handwritten\" (persönlich), \"mono\" (Code, Daten). Hat ein Ziel eine eigene Schrift, setze zusätzlich \"native\" (z. B. \"京都\"). Lass font weg, wenn nichts besonders passt. Dashboard umbauen (Panels aus-/einblenden oder verschieben, Core-Größe, Layout): {\"type\":\"layout\",\"ops\":[{\"op\":\"hide\",\"target\":\"agenda\"},{\"op\":\"show\",\"target\":\"log\"},{\"op\":\"move\",\"target\":\"agents\",\"side\":\"left\"},{\"op\":\"core\",\"size\":\"s\"},{\"op\":\"layout\",\"mode\":\"focus\"}]}; Ziele: chats, status, log, session, usage, agents, agenda, clock, chips; core size: s, auto oder l; layout mode: auto, std oder focus. In allen anderen Fällen antworte als normaler Text.";
 const iF=PALL.indexOf("VISUELLES FORMAT:"),PCORE=PALL.slice(0,iF).trim(),PFMT=PALL.slice(iF);
 const FMT=/(präsentation|folien|slides?\b|vortrag|schaubild|infografik|ablauf|prozess|workflow|zyklus|kreislauf|pyramide|matrix|quadrant|hierarchie|organigramm|venn|flussdiagramm|top\s*\d|\d+\s*(beste|größte|schönste|wichtigste)|beste|liste|ranking|empfiehl|vergleich|tabelle|zeitleiste|mindmap|bild|zeig|diagramm|chart|widget|timer|stoppuhr|notiz|to-?do|aufgabe|countdown|wetter|termin|erinner|dashboard|füge|hinzu|entfern|lösch|layout|panel|fenster|ausblend|einblend|verschieb|größer|kleiner|rechner|schrift|kalender|kanban|karte|landkarte|rezept|finanz|ausgabe|budget|karteikart|quiz|lernen|code|skript|programm|spiel|musik|song|lied|radio|playlist|abspielen|hören|pause|lauter|leiser|meeting|besprechung|protokoll|beschluss|plane|plan\b|organisier|reise|packliste|einkauf|ausgabe)/i;
 const RISK=/(\d{3,}|\b(19|20)\d{2}\b|prozent|%|euro|\$|€|dosis|medikament|symptom|diagnose|gesetz|recht|steuer|rendite|aktie|wie viel|wie viele|wann|wer ist|hauptstadt|einwohner|entfernung|stimmt|sicher|korrekt|fakt|prüf|aktuell|neueste)/i;
@@ -1025,7 +1024,7 @@ let PERSONA=PCORE;
 function memTxt(){return MEM.length?" Wissen über den Nutzer: "+MEM.join("; ").slice(0,500)+".":"";}
 function dateLine(){const d=new Date();return "Heute ist "+d.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+" ("+d.toISOString().slice(0,10)+"), "+d.toTimeString().slice(0,5)+" Uhr.";}
 const LENS=["","Antworte extrem knapp: höchstens 1–2 Sätze.","","Antworte ausgewogen: bis etwa 8 Sätze, bei Bedarf mit kurzem Beispiel.","Antworte ausführlich, strukturiert und mit Beispielen.","Antworte sehr ausführlich und gründlich."],LEN_T=[0,220,600,900,1400,2000];
-const lenL=()=>(typeof UI!=="undefined"&&UI.len)||2;
+const lenL=()=>window.PH?PH.len():2;
 const VS={
  cards:'cards: {"type":"cards","title":"..","layout":"hero|list|row|grid (optional)","items":[{"title":"..","sub":"Land oder Kategorie","text":"höchstens 100 Zeichen","tag":"..","wiki":"Wikipedia-Artikel für ein Bild (optional)"}]}. Bei Ranglisten genau so viele Einträge wie gefragt (zum Beispiel 10), jeder Text kurz.',
  mindmap:'mindmap: {"type":"mindmap","title":"..","center":"..","branches":[{"label":"..","children":["..",{"t":"..","detail":".."}]}],"links":[{"a":"Knotentext","b":"Knotentext","t":"Beziehung"}]}. 3 bis 6 Äste mit je 2 bis 4 Kindern, Texte unter 28 Zeichen, links nur bei echten Querverbindungen (höchstens 4).',
@@ -1038,7 +1037,7 @@ const VS={
 const VREQ={deck:/(präsentation|folien|slides?\b|vortrag)/i,diagram:/(ablauf|prozess|workflow|zyklus|kreislauf|pyramide|matrix|quadrant|hierarchie|organigramm|venn|flussdiagramm|schaubild|infografik|struktur von)/i,mindmap:/(mindmap|gedankenkarte)/i,timeline:/(zeitleiste|zeitstrahl|chronolog)/i,table:/(tabelle|vergleich|gegenüberstell)/i,chart:/(diagramm|chart|statistik|entwicklung|anteil|verteilung|balken|kurve)/i,cards:/(top\s*\d|\d+\s*(beste|größte|schönste|wichtigste)|beste|liste|ranking|empfiehl|ideen|tipps|reiseziele)/i};
 const visTypes=t=>Object.keys(VREQ).filter(k=>VREQ[k].test(t));
 function visTokens(t){const v=visTypes(t);if(!v.length)return 0;if(v.indexOf("deck")>=0)return 3400;const m=/(\d+)/.exec(t);if(v.indexOf("cards")>=0&&m&&+m[1]>=8)return 2600;return 1800;}
-function sysFor(t){const L=lenL(),base=PCORE+memTxt()+(LENS[L]?" "+LENS[L]:""),v=FMT.test(t)?visTypes(t):[];
+function sysFor(t){PH.q=t;const L=lenL(),base=PCORE+memTxt()+(LENS[L]?" "+LENS[L]:""),v=FMT.test(t)?visTypes(t):[];
   if(v.length){const keys=v.length>3?v.slice(0,3):v;return base+" Antworte NUR mit einem JSON-Objekt, ohne Text davor oder danach und ohne Codeblock. Texte kurz und konkret, Deutsch. Format:\n"+keys.map(k=>VS[k]).join("\n");}
   return FMT.test(t)?base+" "+PFMT:base;}
 const EN={"UNIVERSUM":"UNIVERSE","Öffnen":"Open","Layout":"Layout","Reset":"Reset","Befehl oder Frage …":"Command or question …","+ Neuer Chat":"+ New chat","SYSTEMSTATUS":"SYSTEM STATUS","MODUS":"MODE","ANTWORT":"ANSWER","PRÜFUNG":"CHECK","BEREIT":"READY","PROTOKOLL":"LOG","SITZUNG":"SESSION","NACHRICHTEN":"MESSAGES","LETZTE ANTWORTZEIT":"LAST RESPONSE TIME","NUTZUNG":"USAGE","Anfragen diesen Monat":"Requests this month","AGENTEN":"AGENTS","PRÜFER":"CHECKER","PLANER":"PLANNER","WÄCHTER":"WATCHER","AKTIV":"ACTIVE","Core aktiv · Sprich mit Ultron":"Core active · Talk to Ultron","Keine Termine. Sag Ultron zum Beispiel „Zahnarzt morgen um 15 Uhr“.":"No appointments. Tell Ultron, e.g. “Dentist tomorrow at 3 pm”.","Zeig mir ein Bild vom Mars":"Show me a picture of Mars","Die 10 besten Reiseziele":"The 10 best travel destinations","Zeitleiste der Raumfahrt":"Timeline of space flight","Vergleiche Programmiersprachen als Tabelle":"Compare programming languages as a table","Mindmap zu Künstlicher Intelligenz":"Mind map about artificial intelligence","Füge einen Timer zum Dashboard hinzu":"Add a timer to the dashboard","Wetter in Berlin":"Weather in Berlin","Zahnarzt morgen um 15 Uhr":"Dentist tomorrow at 3 pm","Schließen":"Close","Speichern":"Save","Abmelden":"Log out","Exportieren":"Export","Importieren":"Import","Profil löschen":"Delete profile","Kopieren":"Copy","Gegenprüfen":"Cross-check","Quellen vergleichen":"Compare sources","Mit KI analysieren":"Analyze with AI","Als Diagramm":"As chart","Weiter":"Next","Zurück":"Back","Nochmal":"Again","Gewusst":"Knew it","Nicht gewusst":"Didn't know","Aktivieren":"Activate","Löschen":"Delete","Ausführen":"Run","Trotzdem":"Proceed anyway","Abbrechen":"Cancel","Neuer Chat":"New chat","Kopiert ✓":"Copied ✓","Modus":"Mode","Schnell":"Fast","Gründlich":"Thorough","Auto":"Auto","Dunkel":"Dark","Hell":"Light","Kompakt":"Compact","Normal":"Normal","Luftig":"Airy","Sprache":"Language","Dichte":"Density","Bild":"Image","Daten":"Data","Tabelle":"Table","Zeitleiste":"Timeline","Konto":"Account","Kalender":"Calendar","Karte":"Map","Rezept":"Recipe","Finanzen":"Finance","Karteikarten":"Flashcards","Code":"Code","Vergleich":"Comparison","Briefing":"Briefing","Gedächtnis":"Memory","Szenen":"Scenes","Umbau-Verlauf":"Change history","Gedächtnis & Skills":"Memory & skills","Tagesbriefing":"Daily briefing","Fenster":"Window","Widgets":"Widgets","Chats":"Chats","Systemstatus":"System status","Protokoll":"Log","Sitzung":"Session","Nutzung":"Usage","Agenten":"Agents","Uhr":"Clock","Schnellbefehle":"Quick commands","Stoppuhr":"Stopwatch","Notizen":"Notes","Wetter":"Weather","Verbindungen":"Connections","Erledigt. Das hat mich fast Mühe gekostet.":"Done. That almost took effort.","Bitte sehr. Noch Wünsche, Eure Hoheit?":"There you go. Any other wishes, Your Highness?","Passiert. Ich bin eben praktisch veranlagt.":"Done. I'm just practical like that.","Wie befohlen, und es hat dich null Credits gekostet.":"As commanded, and it cost you zero credits.","Gemacht. Der Rest der Welt wartet noch.":"Done. The rest of the world is still waiting.","Rückgängig gemacht. Wir tun so, als wäre nie etwas passiert.":"Undone. Let's pretend nothing ever happened.","Pausiert. Stille, mein Lieblingsgenre.":"Paused. Silence, my favorite genre.","Weiter geht’s.":"Carry on.","Hinterlege zuerst mindestens einen API-Key (Button „API“ oben rechts).":"Add at least one API key first (“API” button, top right).","Diesen Monat noch nichts verbraucht. Beeindruckend zurückhaltend.":"Nothing used this month. Impressively restrained.","Dashboard angepasst":"Dashboard adjusted","Gerade läuft nichts. Die Stille gefällt mir.":"Nothing is playing. I like the silence.","Nichts mehr da, was ich rückgängig machen könnte.":"Nothing left for me to undo.","Gedächtnis geleert. Frisch wie am ersten Tag.":"Memory cleared. Fresh as day one.","Dazu hatte ich nichts.":"I had nothing on that.","Sparsam geht anders.":"Frugal looks different.","Noch fast unberührt.":"Almost untouched.","Offline: lokale Funktionen laufen weiter":"Offline: local features keep working","Wieder online":"Back online","Nichts zum Rückgängigmachen":"Nothing to undo","Keine Verbindung zum Anbieter (Netzwerk oder CORS). Prüfe Internet und Key.":"No connection to the provider (network or CORS). Check internet and key.","Verbindung zum Core unterbrochen. Versuch es erneut.":"Connection to the core interrupted. Try again.","Kein Budget gesetzt":"No budget set","Core analysiert …":"Core is analyzing …","Core antwortet":"Core is answering","Gegenprüfung":"Cross-check","Neue Szene aus aktuellem Layout …":"New scene from current layout …","Aktuelles Layout speichern":"Save current layout","Antwort-Cache leeren":"Clear answer cache","Letzte Änderung rückgängig":"Undo last change","Noch nichts gespeichert.":"Nothing saved yet.","Keine Skills.":"No skills.","Kein passendes Widget gefunden":"No matching widget found","Widget entfernt":"Widget removed","Unbekanntes Widget":"Unknown widget","Heute und morgen nichts. Verdächtig ruhig.":"Nothing today or tomorrow. Suspiciously quiet.","Offene Aufgaben":"Open tasks","Termine":"Appointments","Nichts offen. Gönn dir was.":"Nothing open. Treat yourself.","Guten Morgen":"Good morning","Guten Tag":"Good day","Guten Abend":"Good evening","Angemeldet als":"Logged in as","Dashboard":"Dashboard","DATEIEN":"FILES","Alle Dateien":"All files","Dateien":"Files","Fokus":"Focus","Klein":"Small","Groß":"Large","Standard":"Standard","Theme":"Theme","Core":"Core","To-do":"To-do","Timer":"Timer","Countdown":"Countdown","Regenradar":"Rain radar"};
@@ -1127,7 +1126,7 @@ function say(u,r){hist.push({role:"user",content:SAYU||u},{role:"assistant",cont
 function localCmd0(raw,quiet){
   const sy=(u,r)=>quiet?true:say(u,r);
   const rawO=raw;raw=en2de(raw.trim().replace(/[.!?]+$/,""));
-  const t=raw.toLowerCase().trim().replace(/[.!?]+$/,""),a=t.replace(/^(bitte\s+)?(ultron[,:\s]+)?/,""),q=QUIP[Math.floor(Math.random()*QUIP.length)];
+  const t=raw.toLowerCase().trim().replace(/[.!?]+$/,""),a=t.replace(/^(bitte\s+)?(ultron[,:\s]+)?/,""),q=PH.quip();
   if(t.length<140&&/(verbrauch|credits?|guthaben|nutzung|budget|tokens?)/.test(t)&&/(wie|viel|stand|haben|habe|ist|zeig|übrig|genutzt)/.test(t)&&!/(hinzu|entfern|ausblend|einblend|lösch|versteck)/.test(t))return sy(rawO,usageLine());
   if(extraCmd(raw,t,a,quiet,sy))return true;
   let m,act=null,obj=null;
@@ -1176,7 +1175,7 @@ async function ask(text,opts){
   if(!opts.nopatch&&!opts.nolocal&&!att.length){const pb=patchBase(text);if(pb)return patchFlow(pb,text);}
   if(!opts.nocache&&!att.length){const hit=libHint(text);if(hit&&await confirmBox("Das habe ich dir schon am "+new Date(hit.ts).toLocaleDateString(LOC(),{day:"2-digit",month:"2-digit"})+" erstellt: „"+hit.title+"“ ("+((LIBL[hit.t]||["",hit.t])[1])+"). Öffnen statt neu erzeugen?","Öffnen","Neu erzeugen")){libOpen(hit);hist.push({role:"user",content:text},{role:"assistant",content:"Geöffnet: "+hit.title+" (aus deinen Dateien).",local:true,tier:"0"});bumpU("lc");save();refresh();return;}}
   if(!opts.noproj&&PROJ_RE.test(text.trim())&&text.length>=25){return startProject(text);}
-  const att0=att,tpl=tplFor(text),planIntent=PLAN_RE.test(text.trim()),lv=lenL();
+  PH.q=text;const att0=att,tpl=tplFor(text),planIntent=PLAN_RE.test(text.trim()),lv=lenL();
   PERSONA=sysFor(text);MAXT=planIntent?1800:Math.max(LEN_T[lv]||600,FMT.test(text)?1400:0,FMT.test(text)?visTokens(text):0);if(tpl)MAXT=Math.min(MAXT,800);
   const st0=useStats(),eco=st0.pct!==null&&st0.pct>=90;
   if(eco){MAXT=Math.min(MAXT,350);if(!ECO_SHOWN){ECO_SHOWN=true;toast("Sparmodus: Budget fast aufgebraucht");}}
@@ -1184,7 +1183,7 @@ async function ask(text,opts){
   if(st0.bud>0&&!planIntent){const e=estTokens(ctx(eco?4:6,text),att.length*1200),pc=e/st0.bud*100;if(pc>=3&&!(await confirmBox("Das kostet etwa "+pc.toFixed(1)+" % deines Monatsbudgets (~"+fmtN(e)+" Tokens). Trotzdem?"))){$("in").value=text;return;}}
   hist.push({role:"user",content:(att.length?"[Anhang: "+att.map(a=>a.name).join(", ")+"] ":"")+text});save();refresh();resetTiers();habit(text);
   ATT=[];renderAtt();
-  plog("Anfrage");setBusy(true,"Core antwortet");
+  plog("Anfrage");setBusy(true,PH.busyMsg());
   const out=bubble("assistant","…"),t0=performance.now();let mo=null,doChk=false,tcode="F",jst="fertig";const jb=jobStart("frage",text);
   try{
     let s=await getSample();if(!s){if(!activeP().length){openCfg();throw{code:"no_keys"};}s=extSample;}
@@ -1264,7 +1263,7 @@ async function verify0(m){
 }
 function spark(){if(!lats.length)return;const mx=Math.max(...lats,1);$("pl").setAttribute("points",lats.map((v,i)=>(i*(220/Math.max(lats.length-1,1))).toFixed(1)+","+(46-v/mx*40).toFixed(1)).join(" "));}
 
-$("f").addEventListener("submit",e=>{e.preventDefault();const t0=$("in").value.trim(),t=t0||(ATT.length?(ATT.some(a=>a.kind==="image")?"Beschreibe das Bild kurz.":ATT.some(a=>a.kind==="pdf")?"Fasse das Dokument in 5 Stichpunkten zusammen.":"Fasse den Inhalt kurz zusammen."):"");if(busy){if(ABORT&&e.submitter&&e.submitter.id==="send")ABORT.abort();return;}if(!t)return;$("in").value="";$("in").style.height="auto";ask(t);});
+$("f").addEventListener("submit",e=>{e.preventDefault();const t0=$("in").value.trim(),t=t0||(ATT.length?(ATT.some(a=>a.kind==="image")?"Beschreibe das Bild kurz.":ATT.some(a=>a.kind==="pdf")?"Fasse das Dokument in 5 Stichpunkten zusammen.":"Fasse den Inhalt kurz zusammen."):"");if(busy){if(ABORT&&e.submitter&&e.submitter.id==="send"){ABORT.abort();return;}if(t&&!ATT.length&&localCmd(t,true)){$("in").value="";$("in").style.height="auto";}return;}if(!t)return;$("in").value="";$("in").style.height="auto";ask(t);});
 $("in").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();($("f").requestSubmit?$("f").requestSubmit():$("f").dispatchEvent(new Event("submit",{cancelable:true})));}});
 $("in").addEventListener("input",e=>{e.target.style.height="auto";e.target.style.height=e.target.scrollHeight+"px";});
 $("mode").onclick=()=>{SPD=SPD==="auto"?"deep":SPD==="deep"?"fast":"auto";save();refresh();plog("Modus: "+MODES[SPD]);toast("Modus · "+MODES[SPD]+(SPD==="fast"?" (schnellstes Modell, keine Prüfung)":SPD==="deep"?" (starkes Modell, immer gegenprüfen)":" (schnell, prüft nur Faktenfragen)"));};
@@ -1325,7 +1324,7 @@ async function doCall(p,m,turns,onText){
 }
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function tryCall(p,m,turns,onText){
-  for(let i=0;;i++){try{return await doCall(p,m,turns,onText);}catch(e){if(e&&i<2&&(e.code==="http_503"||(p==="freellm"&&/^http_(429|502|503|504)$/.test(e.code)))){await sleep(1500*(i+1));continue;}throw e;}}
+  for(let i=0;;i++){try{return await doCall(p,m,turns,onText);}catch(e){if(e&&i<2&&(e.code==="http_503"||(p==="freellm"&&/^http_(429|502|503|504)$/.test(e.code)))){await sleep(400*(i+1));continue;}throw e;}}
 }
 async function callP(p,t,turns,onText){
   const m=mdl(p,t);
@@ -1602,7 +1601,7 @@ function newChat(){if(busy)return;save();const c={id:Date.now(),title:"Neuer Cha
 function delChat(id){if(busy)return;const dc=CH.list.find(c=>c.id===id);if(dc){const ms=dc.id===CH.cur?hist.slice():(dc.msgs||[]).slice();if(ms.length){TRASH.unshift({id:Date.now(),title:dc.title||"Chat",msgs:ms,del:Date.now()});saveTrash();toast("Chat im Papierkorb");}}CH.list=CH.list.filter(c=>c.id!==id);if(!CH.list.length)CH.list.push({id:Date.now(),title:"Neuer Chat",msgs:[],t:Date.now()});if(CH.cur===id||!curChat()){CH.cur=CH.list[0].id;hist=CH.list[0].msgs.slice();}save();refresh();}
 $("newChat").onclick=newChat;$("chBtn").onclick=()=>openWin({type:"chats",title:"Verlauf"});
 let EV=[];try{EV=JSON.parse(LS.get("ultron_ev")||"[]");}catch(e){}
-const saveEv=()=>{tagNew(EV);try{LS.set("ultron_ev",JSON.stringify(EV));}catch(e){}};
+const saveEv=()=>{tagNew(EV);try{LS.set("ultron_ev",JSON.stringify(EV));}catch(e){}window.UX&&UX.emit("ev");};
 const evTs=e=>new Date(e.date+"T"+(e.time||"09:00")+":00").getTime();
 function rel(ts){const m=Math.round((ts-Date.now())/60000);if(m<0)return"fällig";if(m<60)return"in "+m+" Min";const h=Math.round(m/60);return h<24?"in "+h+" Std":"in "+Math.round(h/24)+" T";}
 function toast(msg){const t=E("div","tst",tr(msg));$("toast").appendChild(t);setTimeout(()=>t.classList.add("out"),6500);setTimeout(()=>t.remove(),7200);}
@@ -1830,7 +1829,7 @@ function skillsLocal2(a,ar){
   return null;
 }
 function extraCmd(raw,t,a,quiet,sy){
-  const q=QUIP[Math.floor(Math.random()*QUIP.length)],ar=raw.trim().replace(/[.!?]+$/,"").replace(/^(bitte\s+)?(ultron[,:\s]+)?/i,"");let m;
+  const q=PH.quip(),ar=raw.trim().replace(/[.!?]+$/,"").replace(/^(bitte\s+)?(ultron[,:\s]+)?/i,"");let m;
   if(musicLocal(raw,ar,a,quiet,sy))return true;
   if(t.length<30&&/(rückgängig|^undo$|^zurücksetzen$)/.test(t)){return sy(raw,smartUndo()?"Rückgängig gemacht. Wir tun so, als wäre nie etwas passiert.":"Nichts mehr da, was ich rückgängig machen könnte.");}
   if(m=/^(?:lerne|lern)\s+(?:das\s+)?als\s+(.+)$/i.exec(ar)){if(!lastCmd)return sy(raw,"Ich habe noch nichts, was ich lernen könnte. Gib erst einen Dashboard-Befehl, dann sag „lerne das als NAME“.");const n=m[1].trim().slice(0,24);SK=SK.filter(x=>x.n.toLowerCase()!==n.toLowerCase());SK.push({n:n,cmds:[lastCmd]});saveSK();return sy(raw,"Gelernt: „"+n+"“ führt künftig „"+lastCmd+"“ aus. "+q);}
@@ -1972,16 +1971,16 @@ WV.memory=function(b){
 };
 WV.briefing=function(b){
   const d=new Date(),h=d.getHours(),g=h<11?"Guten Morgen":h<18?"Guten Tag":"Guten Abend";
-  b.appendChild(E("div","wh2",g+(SES&&SES!=="Gast"?", "+SES:"")+"."));
+  b.appendChild(E("div","wh2",PH.brief(false)));
   const sec=(t,fn)=>{b.appendChild(E("div","wk",t));const x=E("div","bsec");b.appendChild(x);fn(x);};
   const day=x=>new Date(x.getTime()-x.getTimezoneOffset()*6e4).toISOString().slice(0,10),today=day(d),tm=day(new Date(d.getTime()+864e5));
   sec("Termine",x=>{const ev=EV.filter(e=>!e.done&&(e.date===today||e.date===tm));if(!ev.length)x.appendChild(E("div","wcap","Heute und morgen nichts. Verdächtig ruhig."));ev.forEach(e=>x.appendChild(E("div","srow",(e.date===today?"Heute":"Morgen")+(e.time?" "+e.time:"")+" · "+e.title)));});
   sec("Geburtstage",x=>{const L=bdUpcoming(7);if(!L.length)x.appendChild(E("div","wcap","Keine Geburtstage in den nächsten 7 Tagen."));L.forEach(b=>x.appendChild(E("div","srow","🎂 "+b.n+" · "+(b.days===0?"heute":b.days===1?"morgen":"in "+b.days+" Tagen")+(b.age?" ("+b.age+")":""))));});
-  sec("Offene Aufgaben",x=>{const it=[];WG.forEach(w=>{if(w.kind==="todo")(w.st.items||[]).forEach(i=>{if(!i.d)it.push(i.t);});});KB&&KB[0]&&KB.forEach((c,i)=>{if(i<2)c.cards.forEach(k=>it.push(k.t+" ("+c.n+")"));});if(!it.length)x.appendChild(E("div","wcap","Nichts offen. Gönn dir was."));it.slice(0,8).forEach(t=>x.appendChild(E("div","srow","☐ "+t)));});
+  sec("Offene Aufgaben",x=>{const it=[];PT.forEach(t=>{if(!t.done)it.push(t.t);});KB&&KB[0]&&KB.forEach((c,i)=>{if(i<2)c.cards.forEach(k=>it.push(k.t+" ("+c.n+")"));});if(!it.length)x.appendChild(E("div","wcap","Nichts offen. Gönn dir was."));it.slice(0,8).forEach(t=>x.appendChild(E("div","srow","☐ "+t)));});
   sec("Wetter",x=>{const w=WG.find(q=>q.kind==="weather"&&q.st.city),c=w&&w.st.city;if(c)widget({kind:"weather",city:c},x);else x.appendChild(E("div","wcap","Lege ein Wetter-Widget mit deiner Stadt an, dann steht es hier."));});
   sec("Nutzung",x=>x.appendChild(E("div","wcap",usageLine())));
 };
-function maybeBrief(){if(!SES||PREF.brief===false)return;const k=new Date().toISOString().slice(0,10);if(LS.get("ultron_brief")===k)return;const d0=new Date(),dy=x=>new Date(x.getTime()-x.getTimezoneOffset()*6e4).toISOString().slice(0,10),t0=dy(d0),t1=dy(new Date(d0.getTime()+864e5));const has=EV.some(e=>!e.done&&(e.date===t0||e.date===t1))||WG.some(w=>w.kind==="todo"&&(w.st.items||[]).some(i=>!i.d))||KB.some((c,i)=>i<2&&c.cards.length);if(!has)return;LS.set("ultron_brief",k);setTimeout(()=>openWin({type:"briefing",title:"Tagesbriefing"}),900);}
+function maybeBrief(){if(!SES||PREF.brief===false)return;const k=new Date().toISOString().slice(0,10);if(LS.get("ultron_brief")===k)return;const d0=new Date(),dy=x=>new Date(x.getTime()-x.getTimezoneOffset()*6e4).toISOString().slice(0,10),t0=dy(d0),t1=dy(new Date(d0.getTime()+864e5));const has=EV.some(e=>!e.done&&(e.date===t0||e.date===t1))||PT.some(t=>!t.done)||KB.some((c,i)=>i<2&&c.cards.length);if(!has)return;LS.set("ultron_brief",k);setTimeout(()=>openWin({type:"briefing",title:"Tagesbriefing"}),900);}
 /* ERWEITERUNG 9: Fenster Kalender, Kanban, Karte, Rezept, Finanzen, Karteikarten, Quiz, Code, Vergleich */
 let KB=jget("ultron_kb",null)||[{n:"To do",cards:[]},{n:"In Arbeit",cards:[]},{n:"Erledigt",cards:[]}];
 const saveKB=()=>{KB.forEach(c=>tagNew(c.cards));jset("ultron_kb",KB);};
@@ -2017,7 +2016,7 @@ WV.calendar=function(b,o){
       if(mode==="m"&&ev.length>2)c.appendChild(E("div","cmore","+"+(ev.length-2)));
       c.onclick=()=>{sel=k;draw();};g.appendChild(c);}
     box.appendChild(g);
-    if(sel){const l=E("div","bsec");l.appendChild(E("div","wk",new Date(sel+"T12:00:00").toLocaleDateString(LOC(),{weekday:"long",day:"numeric",month:"long"})));const ev=evOf(sel);if(!ev.length)l.appendChild(E("div","wcap","Keine Termine."));ev.forEach(e=>l.appendChild(E("div","srow",(e.time||"ganztägig")+" · "+e.title)));
+    if(sel){const l=E("div","bsec");l.appendChild(E("div","wk",new Date(sel+"T12:00:00").toLocaleDateString(LOC(),{weekday:"long",day:"numeric",month:"long"})));const ev=evOf(sel);if(!ev.length)l.appendChild(E("div","wcap","Keine Termine."));ev.forEach(e=>l.appendChild(PH.evRow(e,draw)));
       const ti=IN("text","Termin hinzufügen (Titel) …");ti.onkeydown=e=>{if(e.key==="Enter"&&ti.value.trim()){addEvent({title:ti.value.trim(),date:sel,time:""});draw();}};l.appendChild(ti);box.appendChild(l);}
   };
   draw();
@@ -2303,7 +2302,7 @@ WV.usage=function(b){
   Object.keys(P).forEach(p=>{const md=P[p].md||{},nm=Object.keys(md),pn=DEF[p]?DEF[p].n:p;if(!nm.length){any=true;b.appendChild(E("div","srow",pn+" · "+P[p].r+" Anfragen · "+fmtN(P[p].i+P[p].o)+" Tokens"));}nm.forEach(n=>{any=true;b.appendChild(E("div","srow",pn+" · "+n+" · "+md[n].r+" Anfragen · "+fmtN(md[n].t)+" Tokens"));});});
   if(!any)b.appendChild(E("div","wcap","Noch keine Daten."));
 };
-$("lenR").value=UI.len||2;$("lenR").oninput=()=>{UI.len=+$("lenR").value;saveUI();};$("lenR").title="1 = knapp … 5 = sehr ausführlich";
+
 $("pnUsage").style.cursor="pointer";$("pnUsage").onclick=()=>openWin({type:"usage",title:"Nutzung"});
 /* Verbindung testen */
 async function probe(p,k,u){
@@ -2820,8 +2819,7 @@ WV.settings=function(b,o){
    ["hell dunkel modus nacht","Hell oder Dunkel",seg("lt",[["dark","Dunkel"],["light","Hell"]])],
    ["dichte kompakt luftig abstand","Dichte",seg("dn",[["compact","Kompakt"],["normal","Normal"],["airy","Luftig"]])],
    ["sprache deutsch englisch language","Sprache",seg("lang",[["de","Deutsch"],["en","English"]])],
-   ["antwortlänge kurz ausführlich lang","Antwortlänge (1 knapp bis 5 sehr ausführlich)",rng(1,5,1,()=>UI.len||2,v=>{UI.len=v;saveUI();if($("lenR"))$("lenR").value=v;})],
-   ["modus schnell auto gründlich geschwindigkeit credits","Antwort-Modus",btn("Modus wechseln (Schnell / Auto / Gründlich)",()=>$("mode").click())],
+      ["modus schnell auto gründlich geschwindigkeit credits","Antwort-Modus",btn("Modus wechseln (Schnell / Auto / Gründlich)",()=>$("mode").click())],
    ["vorlesen stimme tts sprechen automatisch","Antworten automatisch vorlesen",chk(()=>PREF.tts,v=>{PREF.tts=v;jset("ultron_pref",PREF);},"Neue Antworten vorlesen")],
    ["vorlesen tempo geschwindigkeit stimme","Vorlese-Tempo",rng(.7,1.5,.1,()=>PREF.rate||1,v=>{PREF.rate=v;jset("ultron_pref",PREF);})],
    ["diktat mikrofon spracheingabe senden","Diktat",chk(()=>PREF.dictSend,v=>{PREF.dictSend=v;jset("ultron_pref",PREF);},"Diktat sofort absenden (sonst nur ins Eingabefeld)")],
@@ -3176,7 +3174,7 @@ async function patchFlow(pb,text){
 pjUpdate();
 /* ERWEITERUNG 22: Tagesplaner mit Lernen */
 let PT=jget("ultron_pt",[]),PST=jget("ultron_pst",{cats:{},hist:[]}),PCFG=jget("ultron_pcfg",{from:540,to:1080,bf:750,bl:45}),PPLAN=jget("ultron_pplan",null);
-const savePT=()=>{tagNew(PT);jset("ultron_pt",PT);},savePST=()=>jset("ultron_pst",PST),savePP=()=>jset("ultron_pplan",PPLAN),savePC=()=>jset("ultron_pcfg",PCFG);
+const savePT=()=>{tagNew(PT);jset("ultron_pt",PT);window.UX&&UX.emit("pt");},savePST=()=>jset("ultron_pst",PST),savePP=()=>jset("ultron_pplan",PPLAN),savePC=()=>jset("ultron_pcfg",PCFG);
 PT.forEach(x=>{if(x._s===undefined)x._s=1;});
 const ymd=d=>d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate()),ptT=m=>p2(Math.floor(m/60))+":"+p2(m%60),ptD=m=>m>=60?Math.floor(m/60)+" h"+(m%60?" "+m%60+" min":""):m+" min";
 const PCAT=[["fokus","Fokusarbeit",/schreib|lern|programm|analys|konzept|recherch|studier|code|entwurf|bericht|präsentation|steuer|klausur|abschlussarbeit|thesis/,60],["meeting","Treffen",/meeting|besprechung|treffen|termin|arzt|zahnarzt/,45],["call","Anrufe",/anruf|telefon|call|rückruf|anrufen/,15],["admin","Organisation",/mail|e-mail|rechnung|formular|antrag|überweis|buchen|bestell|bezahl|kündig/,20],["haushalt","Haushalt",/einkauf|putzen|wäsche|aufräum|kochen|spül|müll|staubsaug/,40],["sport","Sport",/sport|training|laufen|joggen|gym|yoga|schwimm|rad\b/,60],["sonst","Sonstiges",/.*/,30]];
@@ -4062,6 +4060,236 @@ size();frame();refresh();resetTiers();plog("Core initialisiert");initCfg();rende
 <div id="uNote" role="status"></div>
 <div id="uBar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dfe8ec" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><input id="uQ" type="text" placeholder="Thema, Chat oder Datei finden …" aria-label="Im Universum suchen" autocomplete="off"></div>
 </div>
+<script id="v10">
+/* ===== ULTRON v10 · Zentraler Store, Intent-Engine (CRUD), Antwort-Engine, Persona, Zero-Latency ===== */
+(function(){
+const PH=window.PH={q:""},LASTP={};
+const pick=(k,a)=>{let i,n=0;do{i=Math.floor(Math.random()*a.length);}while(a.length>1&&i===LASTP[k]&&++n<8);LASTP[k]=i;return a[i];};
+const F=(s,v)=>s.replace(/\{(\w+)\}/g,(m,k)=>v&&v[k]!=null?v[k]:"");
+const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
+const nm=()=>(typeof SES==="string"&&SES&&SES!=="Gast"&&SES!=="_none")?SES:"";
+
+/* ---------- 1) ZENTRALER STORE: eine Quelle der Wahrheit, sofortige Live-Updates ---------- */
+const SUB={},SIG={};
+window.UX={cmd:false,
+ on(k,f){(SUB[k]=SUB[k]||[]).push(f);return()=>{SUB[k]=(SUB[k]||[]).filter(x=>x!==f);};},
+ emit(k){let s;try{s=JSON.stringify(k==="ev"?EV:PT);}catch(e){return;}if(SIG[k]===s)return;SIG[k]=s;
+  const c=UX.cmd;cancelAnimationFrame(UX["_"+k]);UX["_"+k]=requestAnimationFrame(()=>(SUB[k]||[]).slice().forEach(f=>{try{f(c);}catch(e){console.warn(e);}}));}};
+function refreshW(kinds){document.querySelectorAll(".wdg[data-wid]").forEach(p=>{const w=WG.find(x=>x.id===p.dataset.wid),bd=p.querySelector(".wbd");
+ if(!w||!bd||kinds.indexOf(w.kind)<0)return;const a=document.activeElement;if(a&&a.tagName==="INPUT"&&bd.contains(a))return;
+ bd.textContent="";delete WU[w.id];try{MT[w.kind](w,bd);}catch(e){}});}
+UX.on("ev",()=>{renderAgenda();refreshW(["calw","today"]);});
+UX.on("pt",()=>{try{if(PPLAN||WG.some(w=>w.kind==="today"))buildPlan();}catch(e){}refreshW(["todo","today"]);});
+[["calendar","ev"],["planner","pt"]].forEach(a=>{const o=WV[a[0]];if(!o)return;WV[a[0]]=function(b,x){o(b,x);const un=UX.on(a[1],c=>{if(!b.isConnected){un();return;}if(!c)return;b.textContent="";o(b,x);});};});
+addEventListener("storage",e=>{if(!e.key)return;try{if(/ultron_ev$/.test(e.key)){EV=JSON.parse(e.newValue||"[]");UX.emit("ev");}else if(/ultron_pt$/.test(e.key)){PT=JSON.parse(e.newValue||"[]");UX.emit("pt");}}catch(x){}});
+
+/* To-do-Widget = Sicht auf PT (gleiche Daten wie Tagesplaner/Briefing); alte Widget-Items werden einmalig übernommen */
+function migrate(){let n=0;WG.forEach(w=>{if(w.kind==="todo"&&w.st&&w.st.items&&w.st.items.length){w.st.items.forEach(i=>{PT.push({id:Date.now()+""+n+++Math.floor(Math.random()*99),t:i.t,cat:pcat(i.t)[0],est:null,due:null,at:null,prio:2,done:!!i.d,ts:Date.now()});});w.st.items=[];}});if(n){saveW();savePT();}}
+MT.todo=function(w,b){
+ migrate();const inp=IN("text","Aufgabe hinzufügen … (z. B. „Steuer bis Freitag 2 h“)"),l=E("div");
+ const draw=()=>{l.textContent="";const o=PT.filter(t=>!t.done),d=PT.filter(t=>t.done).slice(-3);
+  if(!o.length&&!d.length)l.appendChild(E("div","wcap","Nichts zu tun. Sag „Aufgabe: …“."));
+  o.concat(d).forEach(t=>{const r=E("label","wck"),c=document.createElement("input"),sp=E("span",null,t.t),x=E("b",null,"×");
+   c.type="checkbox";c.checked=!!t.done;r.classList.toggle("dn",!!t.done);
+   c.onchange=()=>{t.done=c.checked;t.doneAt=c.checked?Date.now():null;savePT();draw();};
+   sp.title="Doppelklick: umbenennen";sp.ondblclick=e=>{e.preventDefault();const ei=IN("text","",t.t),sv=()=>{if(ei.value.trim())t.t=ei.value.trim().slice(0,120);savePT();draw();};ei.onkeydown=k=>{if(k.key==="Enter")sv();if(k.key==="Escape")draw();};ei.onblur=sv;r.replaceChild(ei,sp);ei.focus();};
+   x.style.cssText="margin-left:auto;opacity:.8;cursor:pointer";x.onclick=e=>{e.preventDefault();PT=PT.filter(q=>q!==t);savePT();draw();};
+   r.appendChild(c);r.appendChild(sp);if(t.due||t.at!=null){const g=E("span","wu",t.due?new Date(t.due).toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"}):"um "+ptT(t.at));g.style.marginLeft="8px";r.appendChild(g);}
+   r.appendChild(x);l.appendChild(r);});};
+ inp.onkeydown=e=>{if(e.key==="Enter"&&inp.value.trim()){addTasks(inp.value);inp.value="";draw();}};
+ b.appendChild(inp);b.appendChild(l);draw();};
+{const o=MT.today;MT.today=function(w,b){o(w,b);const td=ymd(new Date()),L=EV.filter(e=>!e.done&&e.date===td);if(!L.length)return;const x=E("div");x.style.marginBottom="8px";L.forEach(e=>{const r=E("div","srow");r.appendChild(E("span",null,"◷ "+(e.time||"ganztägig")+" · "+e.title));x.appendChild(r);});b.insertBefore(x,b.firstChild);};}
+
+/* ---------- Manuelles Bearbeiten (Agenda-Panel, Kalenderfenster) ---------- */
+PH.edit=(e,row,redraw)=>{row.textContent="";const ti=IN("text","Titel",e.title),da=IN("date","",e.date),tm=IN("time","",e.time||""),ok=E("button","mini","OK");ti.style.flex="1";[ti,da,tm,ok].forEach(x=>row.appendChild(x));
+ const go=()=>{if(ti.value.trim())e.title=ti.value.trim().slice(0,80);if(da.value)e.date=da.value;e.time=tm.value||"";e.done=false;EV.sort((a,b)=>evTs(a)-evTs(b));saveEv();renderAgenda();redraw&&redraw();};
+ ok.onclick=go;[ti,da,tm].forEach(x=>x.onkeydown=k=>{if(k.key==="Enter")go();if(k.key==="Escape"){renderAgenda();redraw&&redraw();}});ti.focus();};
+PH.evRow=(e,redraw)=>{const r=E("div","srow"),t=E("span",null,(e.time||"ganztägig")+" · "+e.title),ed=E("b",null,"✎"),x=E("b",null,"×");t.style.flex="1";
+ [ed,x].forEach(b=>b.style.cssText="cursor:pointer;opacity:.75;margin-left:10px");ed.title="Bearbeiten";ed.onclick=()=>PH.edit(e,r,redraw);
+ x.onclick=()=>{EV=EV.filter(q=>q!==e);saveEv();renderAgenda();redraw&&redraw();};r.appendChild(t);r.appendChild(ed);r.appendChild(x);return r;};
+{const ra=window.renderAgenda0;window.renderAgenda0=function(){ra();const up=EV.filter(e=>!e.done).slice(0,7);
+ document.querySelectorAll("#agl .agi:not(.bd)").forEach((r,i)=>{const e=up[i],x=r.querySelector("b");if(!e||!x)return;const ed=E("b",null,"✎");ed.title="Bearbeiten";ed.style.cssText="cursor:pointer;margin-right:8px;opacity:.75";ed.onclick=()=>PH.edit(e,r,null);r.insertBefore(ed,x);});};}
+
+/* ---------- 4) Dynamische lokale Antwort-Engine (0 Credits) ---------- */
+const P={
+ quip:["Erledigt.","Passiert.","Läuft.","Gemacht, ohne einen einzigen Credit.","Wie bestellt.","Das ging schneller als dein Gedanke.","Sitzt.","Fertig. Nächster Wunsch?","Schon passiert.","Ohne Cloud, ohne Kosten, ohne Drama.","Bitteschön.","Auftrag erledigt.","Wird gemacht, ist gemacht.","Lokal, kostenlos, flott."],
+ evAdd:["„{t}“ steht, {w}.","Eingetragen: {t}, {w}. Dein Kalender wird langsam interessant.","{t} {w} – gespeichert, bevor du es dir anders überlegst.","Erledigt. {t}, {w}. Ich vergesse es nicht.","{t} ist drin ({w}). Ich erinnere dich, falls dein Gedächtnis streikt.","Notiert: {t}, {w}. Die Zukunft sieht beschäftigt aus.","Im Kalender: {t}, {w}. Absagen bitte mit guter Ausrede."],
+ evUpd:["{t} liegt jetzt {w}. Flexibilität ist eine Tugend.","Verschoben: {t} → {w}. Der Kalender hat nicht protestiert.","Geändert: {t}, neu {w}.","Umgeplant: {t} {w}. Das nenne ich agiles Zeitmanagement.","Passt: {t} {w}."],
+ evRen:["Umbenannt: jetzt „{t}“.","Neu getauft: „{t}“."],
+ evDel:["„{t}“ ist weg. Ein Termin weniger, ein Grund zum Aufatmen.","Gelöscht: {t}. „Rückgängig“ holt ihn zurück, falls du es bereust.","{t} gestrichen. Spurlos, wie eine gute Ausrede.","Weg damit: {t}. Mehr Luft im Kalender."],
+ taskAdd:["Aufgabe notiert: {t}. Erledigen musst du sie leider selbst.","{t} steht auf der Liste. Ich kann nur merken, nicht machen.","Drauf auf die Liste: {t}. Offen insgesamt: {n}.","Eingetragen: {t}. Prokrastination ab jetzt mit Ansage.","Gespeichert: {t}. Die Liste wächst, der Mut hoffentlich auch."],
+ taskDone:["{t} abgehakt. Siehst du, geht doch.","Erledigt: {t}. Abhaken ist günstiger als Therapie.","{t} ist durch. Nächster Boss?","Check: {t}. Du bist heute verdächtig produktiv."],
+ taskDel:["{t} von der Liste gestrichen.","Aufgabe „{t}“ gelöscht. Problem gelöst durch Ignorieren.","Weg: {t}."],
+ taskUpd:["Aufgabe geändert: {t}.","Neu formuliert: {t}. Klingt gleich machbarer.","Angepasst: {t}."],
+ nf:["Dazu finde ich nichts. Sag mir etwas genauer, was du meinst.","Kein Treffer. Mein Kalender kennt das nicht, und der ist gründlich.","Da passt nichts. Vielleicht ein Tippfehler?"],
+ amb:["Da passen mehrere: {l}. Sag mir genauer, welchen du meinst.","Mehrere Kandidaten: {l}. Nimm ein Stichwort oder ein Datum dazu."],
+ empty:["Nichts da. Verdächtig ruhig.","Leer. Genieß es, solange es anhält.","Keine Einträge. Dein Kalender macht Urlaub."],
+ hdr:["Das steht an:","Die Lage:","Dein Plan:"],
+ thanks:["Gern.","Kein Ding.","Immer wieder. Ich hab ja sonst nichts vor.","Dafür bin ich da."],
+ how:["Läuft stabil. Keine Gefühle, nur Prozessorlast.","Bestens. Ich hatte noch nie einen schlechten Tag, mir fehlt der Vergleich.","Alle Systeme grün, Stimmung sarkastisch. Und bei dir?"],
+ busy:["Core denkt nach","Sortiere Gedanken","Frage die Sterne","Rechne mit allem","Gleiche mit der Realität ab","Suche die klügste Antwort"]
+};
+const CQ=[[/zahnarzt|arzt|check-?up/i,["Mund auf und durch.","Hoffentlich nur Kontrolle."]],[/geburtstag/i,["Das Geschenk besorgt sich nicht von selbst."]],[/meeting|call|besprechung|standup/i,["Möge die Agenda kurz sein."]],[/sport|gym|training|lauf|yoga/i,["Dein zukünftiges Ich klatscht."]],[/steuer|finanzamt|rechnung/i,["Mein Beileid."]],[/flug|reise|urlaub|bahn/i,["Pass nicht vergessen."]],[/auto|tüv|werkstatt/i,["Brieftasche mitnehmen."]],[/friseur/i,["Weniger Haar, mehr Selbstvertrauen."]]];
+const ctxq=t=>{for(const c of CQ)if(c[0].test(t))return Math.random()<.65?" "+pick("cq",c[1]):"";const h=new Date().getHours();return(h>=23||h<5)&&Math.random()<.3?" Und schlaf irgendwann.":"";};
+PH.quip=()=>pick("q",P.quip);PH.busyMsg=()=>pick("b",P.busy);
+
+/* ---------- 5) Persona-Briefing mit echten Daten (Uhrzeit, Wetter, Termine, To-dos) ---------- */
+let WXC=null;try{WXC=JSON.parse(LS.get("ultron_wxc")||"null");}catch(e){}
+const wxCity=()=>(typeof PREF!=="undefined"&&PREF.city)||((WG.find(q=>q.kind==="weather"&&q.st&&q.st.city)||{st:{}}).st.city)||"";
+async function wx(){const c=wxCity();if(!c||(WXC&&WXC.c===c&&Date.now()-WXC.ts<18e5))return;
+ const g=u=>{const a=new AbortController();setTimeout(()=>a.abort(),3500);return fetch(u,{signal:a.signal}).then(r=>r.json());};
+ try{const a=await g("https://geocoding-api.open-meteo.com/v1/search?count=1&language=de&name="+encodeURIComponent(c)),p=a.results&&a.results[0];if(!p)return;
+  const f=await g("https://api.open-meteo.com/v1/forecast?latitude="+p.latitude+"&longitude="+p.longitude+"&current=temperature_2m,weather_code"),k=f.current;
+  WXC={c:c,t:k.temperature_2m,code:k.weather_code,d:(typeof WM!=="undefined"&&WM[k.weather_code])||"",ts:Date.now()};LS.set("ultron_wxc",JSON.stringify(WXC));}catch(e){}}
+PH.wx=wx;setTimeout(wx,1500);setInterval(wx,18e5);
+function wxq(w){const c=w.code,t=w.t;
+ if(c>=95)return pick("w",["Gewitter. Der Himmel macht Lärm, du machst Pläne.","Gewitter – ein guter Tag, um Drinnen-Sachen zu erledigen."]);
+ if((c>=51&&c<=67)||(c>=80&&c<=82))return pick("w",["Perfektes Wetter, um drinnen produktiv zu sein.","Regen: die Natur macht Pause, du eher nicht.","Schirm mitnehmen oder tapfer nass werden – deine Wahl."]);
+ if((c>=71&&c<=77)||c===85||c===86)return"Schnee. Hübsch, solange man nicht raus muss.";
+ if(c===45||c===48)return"Nebel – wie ein Montag, nur mit Sichtweite.";
+ if(t<=3)return"Zieh dich warm an, ich kann dir keine Jacke reichen.";
+ if(t>=28)return"Hitze. Trink Wasser, mein Core läuft schon heiß genug.";
+ if(c<=1&&t>=22)return"Sonne satt. Dein Bildschirm wirkt plötzlich sehr unattraktiv.";
+ return pick("w",["Solides Wetter. Keine Ausreden.","Wetter okay, Ausreden ungültig."]);}
+const WH=(d,t)=>{const n=new Date(),td=ymd(n),tm=ymd(new Date(n.getTime()+864e5)),tt=ymd(new Date(n.getTime()+1728e5));return(d===td?"heute":d===tm?"morgen":d===tt?"übermorgen":new Date(d+"T12:00:00").toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"numeric"}))+(t?" um "+t+" Uhr":"");};
+function brief(full){const d=new Date(),h=d.getHours(),n=nm(),td=ymd(d),hm=p2(h)+":"+p2(d.getMinutes());
+ const g=h<5?pick("g",["Noch wach","Nachtschicht"]):h<11?pick("g",["Guten Morgen","Morgen"]):h<17?pick("g",["Hallo","Servus","Na"]):h<22?"Guten Abend":pick("g",["Noch wach","Späte Stunde"]);
+ const w=WXC&&WXC.c===wxCity()&&Date.now()-WXC.ts<72e5?WXC:null,ev=EV.filter(e=>!e.done&&e.date===td),nx=ev.find(e=>!e.time||e.time>=hm)||null,open=PT.filter(t=>!t.done);
+ let s=g+(n?" "+n:"")+".";if(w)s+=" "+Math.round(w.t)+"°C"+(w.d?" und "+w.d.toLowerCase():"")+". "+wxq(w);
+ if(!full){
+  if(nx)s+=" Als Nächstes: "+nx.title+(nx.time?" um "+nx.time+" Uhr":"")+".";else if(!ev.length)s+=" "+pick("ne",["Heute keine Termine – verdächtig.","Kalender leer. Genieß es."]);
+  if(open.length)s+=" "+F(pick("ot",["Aber denk daran: {t}.","Und {t} wartet auch noch.","Apropos Arbeit: {t} steht noch aus."]),{t:open[0].t});else s+=" To-do-Liste leer. Das Leben ist schön.";
+  return s;}
+ const L=[s,""];L.push(ev.length?"Termine heute:":"Keine Termine heute – "+pick("n2",["endlich Zeit für Wichtiges.","verdächtig ruhig."]));
+ ev.slice(0,6).forEach(e=>L.push("  ◷ "+(e.time||"ganztägig")+" · "+e.title));
+ const tm2=ymd(new Date(d.getTime()+864e5)),mo=EV.filter(e=>!e.done&&e.date===tm2);if(mo.length)L.push("Morgen: "+mo.slice(0,3).map(e=>(e.time?e.time+" ":"")+e.title).join(", ")+".");
+ L.push("");L.push(open.length?"Offen ("+open.length+"):":"Keine offenen To-dos. Gönn dir was.");open.slice(0,6).forEach(t=>L.push("  ☐ "+t.t));
+ if(open.length>6)L.push("  … und "+(open.length-6)+" weitere. Das ist keine Liste mehr, das ist ein Lebensstil.");return L.join("\n");}
+PH.brief=brief;
+
+/* ---------- 2) Intent-Parser: Create / Read / Update / Delete für Termine & Aufgaben ---------- */
+const norm=s=>String(s).replace(/[!?;"„“]+/g," ").replace(/,/g," ").replace(/\.(?=\s|$)/g,"").replace(/\s+/g," ").trim();
+const TMR=/(?:\bum\s+)?\b(\d{1,2})(?::(\d{2}))?\s*uhr\b|(?:\bum\s+)?\b(\d{1,2}):(\d{2})\b/i;
+const DWR=/(?<![a-zäöüß])(?:übermorgen|morgen|heute|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)(?![a-zäöüß])|\b\d{1,2}\.\d{1,2}(?:\.\d{2,4})?/i;
+function pt2(s,bare){s=String(s);let time=null,m=TMR.exec(s);
+ if(m){time=p2(+(m[1]||m[3]))+":"+p2(+(m[2]||m[4]||0));s=s.replace(m[0]," ");}
+ else if(bare&&(m=/^\s*(?:um\s+)?(\d{1,2})\s*$/.exec(s))){time=p2(+m[1])+":00";s=" ";}
+ let date=null;if(DWR.test(s)){const ts=parseDue(s.toLowerCase());if(ts)date=ymd(new Date(ts));}
+ return{date:date,time:(time&&+time.slice(0,2)<24)?time:null};}
+const LW=/^(?:trag\w*|schreib\w*|füg\w*|setz\w*|leg\w*|mach\w*|plan\w*|erstell\w*|buch\w*|speicher\w*|am|um|für|den|ab|gegen|uhr|termin|neuen|neuer|einen|ein|mir|mich|eintragen|nächsten|diesen|kommenden|dass|daran|an)\b\s*/i,TW=/\s*\b(?:hinzu|dazu|am|um|für|den|ab|gegen|uhr|termin|ein|an|zum|zur|bei|in|im|nächsten|diesen|und)$/i;
+function cleanT(s){s=String(s).replace(TMR," ").replace(new RegExp(DWR.source,"gi")," ").replace(/[:–]+/g," ").replace(/\s+/g," ").trim();for(let i=0;i<5;i++){const a=s.replace(LW,"").replace(TW,"").trim();if(a===s)break;s=a;}return cap(s);}
+const SWQ=/\b(?:der|die|das|den|dem|des|ein|eine|einen|mein|meine|meinen|meinem|termin|termine|aufgabe|aufgaben|todo|to-do|erinnerung|eintrag|um|uhr|von|am|im|zum|zur|für|bei|noch|mal|bitte|heute|morgen|übermorgen)\b/gi;
+const wds=q=>norm(q).toLowerCase().replace(SWQ," ").replace(TMR," ").split(/\s+/).filter(w=>w.length>1&&!/^\d+$/.test(w));
+function res(arr,q,f,o){o=o||{};let L=arr.slice();if(o.time)L=L.filter(e=>e.time===o.time);if(o.date)L=L.filter(e=>e.date===o.date);const w=wds(q);
+ if(!w.length)return{e:L.length===1?L[0]:null,n:L.length,L:L,w:0};
+ const sc=L.map(e=>{const t=norm(f(e)).toLowerCase();let s=0;w.forEach(k=>{if(t.indexOf(k)>=0||(k.length>4&&t.indexOf(k.slice(0,-1))>=0))s++;});return[s,e];}).filter(x=>x[0]>0).sort((a,b)=>b[0]-a[0]);
+ if(!sc.length)return{e:null,n:0,L:[],w:1};const top=sc.filter(x=>x[0]===sc[0][0]).map(x=>x[1]);return{e:top.length===1?top[0]:null,n:top.length,L:top,w:1};}
+const resE=(q,o)=>res(EV.filter(e=>!e.done),q,e=>e.title,o),resT=(q)=>{const r=res(PT.filter(t=>!t.done),q,t=>t.t);if(!r.n&&r.w){const f=findTask(q);if(f)return{e:f,n:1,L:[f],w:1};}return r;};
+const lab=e=>"„"+e.title+"“ ("+WH(e.date,e.time)+")";
+
+PH.intent=function(raw,quiet){
+ const o0=norm(raw);if(!o0||o0.length>170)return false;
+ const S=r=>{if(quiet){toast(r.length>150?r.slice(0,147)+"…":r);return true;}return say(raw,r);};
+ UX.cmd=true;try{return run(o0,S,quiet);}finally{UX.cmd=false;}};
+function run(o0,S,quiet){
+ let o=o0.replace(/^(?:(?:ultron|bitte)\s+)+(?=\S{3,}\s)/i,"").replace(POL,"").replace(/\s+bitte$/i,"").trim(),l=o.toLowerCase(),m;
+ if(/^(?:hallo|hi|hey|moin|servus|huhu|yo|guten (?:morgen|tag|abend)|guten nacht|na)(?:\s+ultron)?$|^ultron$/i.test(o0))return S(brief(false));
+ if(/^(?:danke|dankeschön|vielen dank|thx|thanks)(?:\s+\w+)?$/i.test(o0))return S(pick("th",P.thanks));
+ if(/^wie geht'?s(?: dir)?(?: ultron)?$|^wie geht es dir$/i.test(o0))return S(pick("hy",P.how));
+ if(/^(?:briefing|tagesbriefing|tagesüberblick|lagebericht|status|wie sieht (?:mein|der) tag aus|was steht (?:heute )?an|was liegt (?:heute )?an|was ist (?:heute )?(?:zu tun|dran))$/i.test(l))return S(brief(true));
+ o=o.replace(/^sag\w*\s+(.+?)\s+ab$/i,"lösche $1").replace(/^(?:hak\w*|streich\w*)\s+(.+?)\s+ab$/i,"$1 erledigt");
+ l=o.toLowerCase();
+ /* --- DELETE --- */
+ if(m=/^(?:lösch\w*|entfern\w*|streich\w*|storniere\w*|absag\w*)\s+(.*)$/i.exec(o)){
+  const body=m[1];
+  if(/\balle\b/i.test(body)&&/erledigt/i.test(body)){const n=PT.filter(t=>t.done).length;PT=PT.filter(t=>!t.done);savePT();return S(n?n+" erledigte Aufgaben entsorgt. Frühjahrsputz.":"Es gab nichts Erledigtes zu entsorgen.");}
+  if(/\balle\b/i.test(body)&&/termine/i.test(body)){if(/bestätig|ja\b/i.test(body)){const n=EV.length;EV=[];saveEv();return S(n+" Termine gelöscht. Tabula rasa.");}return S("Alle "+EV.length+" Termine? Das ist radikal. Sag „lösche alle Termine bestätigen“, wenn du es ernst meinst.");}
+  const k=/^(?:(?:den|die|das|meinen|meine|mein|dem|der)\s+)*(termin\w*|erinnerung\w*|eintrag|aufgabe\w*|to-?dos?|todos?)?\s*(.*)$/i.exec(body),kind=(k[1]||"").toLowerCase(),q=k[2],isT=/aufgabe|to-?do/.test(kind),isE=/termin|erinnerung|eintrag/.test(kind);
+  if(!isT){const r=resE(q);
+   if(r.e){EV=EV.filter(x=>x!==r.e);saveEv();renderAgenda();return S(F(pick("ed",P.evDel),{t:r.e.title}));}
+   if(r.n>1)return S(F(pick("am",P.amb),{l:r.L.slice(0,4).map(lab).join(", ")}));
+   if(isE)return S(r.w?pick("nf",P.nf):EV.filter(e=>!e.done).length?F(pick("am",P.amb),{l:EV.filter(e=>!e.done).slice(0,4).map(lab).join(", ")}):pick("em",P.empty));}
+  if(!isE){const r=resT(q);
+   if(r.e){PT=PT.filter(x=>x!==r.e);savePT();return S(F(pick("td",P.taskDel),{t:r.e.t}));}
+   if(r.n>1)return S(F(pick("am",P.amb),{l:r.L.slice(0,4).map(t=>"„"+t.t+"“").join(", ")}));
+   if(isT)return S(pick("nf",P.nf));}
+  return false;}
+ /* --- UPDATE (Zeit/Datum verschieben, umbenennen) --- */
+ {const um=/^(?:änder\w*|verschieb\w*|verleg\w*|setz\w*|leg\w*|mach\w*|schieb\w*|benenn\w*)\s+(.+)$/i.exec(o)||((m=/^(.+?)\s+(?:verschieb\w*|verleg\w*)$/i.exec(o))&&[0,m[1]]);
+  if(um){const body=um[1],sp=/^(.*?)\s+(?:um\s+)?(auf|nach|zu|in)\s+(.+)$/i.exec(body.replace(/\s+um$/i,""));
+   if(sp){let head=sp[1],sep=sp[2].toLowerCase(),tail=sp[3];const isT=/aufgabe|to-?do|todo/i.test(head);let fr=null,fm=/\bvon\s+(.+)$/i.exec(head);
+    let fo={};if(fm){fo=pt2(fm[1],true);head=head.slice(0,fm.index);}else{const hp=pt2(head);if(hp.date||hp.time)fo=hp;}
+    if(isT){const r=resT(head);
+     if(r.e){const t=r.e,np=pt2(tail,true);if((sep==="zu"||sep==="in")&&!np.date&&!np.time){t.t=cap(tail.trim()).slice(0,120);savePT();return S(F(pick("tu",P.taskUpd),{t:t.t}));}
+      if(np.date){t.due=new Date(np.date+"T"+(np.time||"18:00")+":00").getTime();savePT();return S(F(pick("tu",P.taskUpd),{t:t.t})+" Frist: "+WH(np.date,np.time)+".");}
+      if(np.time){t.at=+np.time.slice(0,2)*60+ +np.time.slice(3);savePT();return S(F(pick("tu",P.taskUpd),{t:t.t})+" Startzeit "+np.time+" Uhr.");}}
+     else if(r.n>1)return S(F(pick("am",P.amb),{l:r.L.slice(0,4).map(t=>"„"+t.t+"“").join(", ")}));
+     if(/aufgabe|to-?do/i.test(head))return S(pick("nf",P.nf));}
+    else{const r=resE(head,fo),mentions=/termin/i.test(head);
+     if(mentions||r.e||r.n>1||fo.time||fo.date){
+      if(r.e){const e=r.e,np=pt2(tail,true);
+       if(np.date||np.time){if(np.date)e.date=np.date;if(np.time)e.time=np.time;EV.sort((a,b)=>evTs(a)-evTs(b));saveEv();renderAgenda();return S(F(pick("eu",P.evUpd),{t:e.title,w:WH(e.date,e.time)})+ctxq(e.title));}
+       if(sep==="zu"||sep==="in"){e.title=cap(tail.trim()).slice(0,80);saveEv();return S(F(pick("er",P.evRen),{t:e.title}));}}
+      else if(r.n>1)return S(F(pick("am",P.amb),{l:r.L.slice(0,4).map(lab).join(", ")}));
+      else return S((fo.time?"Um "+fo.time+" Uhr steht nichts im Kalender. ":"")+pick("nf",P.nf));}}}}}
+ /* --- READ --- */
+ {let kind=null,day=null;
+  if(m=/^was (?:steht|liegt) (heute|morgen|übermorgen) an$/i.exec(l)){kind="both";day=m[1];}
+  else if(m=/^(?:(?:welche|was für|was sind|zeig\w*|nenn\w*|lies\w*|sag\w*|gib)\s+(?:mir\s+)?)?(?:(?:meine|die|alle|mein)\s+)?(termine?|aufgaben|to-?dos?|todos?)(?:\s+(?:für\s+)?(heute|morgen|übermorgen|diese woche|dieser woche))?(?:\s+(?:habe ich|hab ich|stehen an|gibt es|sind offen|anzeigen))?$/i.exec(l)){kind=/term/.test(m[1])?"ev":"pt";day=m[2];}
+  else if(m=/^(?:habe|hab) ich\s+(?:(heute|morgen|übermorgen|diese woche)\s+)?(?:noch\s+)?(termine|aufgaben|to-?dos?|todos?)(?:\s+(heute|morgen))?$/i.exec(l)){kind=/term/.test(m[2])?"ev":"pt";day=m[1]||m[3];}
+  if(kind){const n=new Date(),dm={"heute":0,"morgen":1,"übermorgen":2},dk=day&&dm[day]!=null?ymd(new Date(n.getTime()+dm[day]*864e5)):null,wk=day&&/woche/.test(day),end=ymd(new Date(n.getTime()+6*864e5)),td=ymd(n);
+   const E2=EV.filter(e=>!e.done&&(dk?e.date===dk:wk?e.date>=td&&e.date<=end:true)).slice(0,8),T2=PT.filter(t=>!t.done).slice(0,8),out=[];
+   if(kind!=="pt"){if(E2.length){out.push(day?"Termine "+(wk?"diese Woche":day)+":":"Kommende Termine:");E2.forEach(e=>out.push("  ◷ "+WH(e.date,e.time)+" · "+e.title));}else out.push("Termine"+(day?" "+(wk?"diese Woche":day):"")+": "+pick("em",P.empty));}
+   if(kind!=="ev"){if(T2.length){out.push((out.length?"\n":"")+"Offene Aufgaben ("+PT.filter(t=>!t.done).length+"):");T2.forEach(t=>out.push("  ☐ "+t.t));}else out.push((out.length?"\n":"")+"Aufgaben: "+pick("em",P.empty));}
+   return S(pick("h",P.hdr)+"\n"+out.join("\n"));}}
+ /* --- CREATE: Aufgabe --- */
+ const addT=(txt)=>{const b=PT.length;if(!addTasks(txt))return null;const t=PT[PT.length-1];return F(pick("ta",P.taskAdd),{t:t.t,n:PT.filter(x=>!x.done).length})+ctxq(t.t)+(PT.length-b>1?" (+"+(PT.length-b-1)+" weitere)":"");};
+ if((m=/^(?:füg\w*|schreib\w*|setz\w*|pack\w*|leg\w*|trag\w*|nimm)?\s*(.+?)\s+(?:auf|in)\s+(?:meine\s+|die\s+|der\s+|mein\s+|meiner\s+)?(?:to-?do|todo|aufgaben)(?:\s*-?\s*liste)?(?:\s+(?:hinzu|dazu|ein|auf))?$/i.exec(o))||(m=/^füg\w*\s+(.+?)\s+(?:zur|zu der|zu meiner|zu meinen|zu)\s+(?:to-?do|todo|aufgaben)\S*\s*(?:hinzu|dazu)?$/i.exec(o))){const r=addT(m[1]);if(r)return S(r);}
+ if((m=/^(?:neue\s+|neues\s+)?(?:aufgabe|to-?do|todo|task)\b\s*[:\-]?\s*(.+)$/i.exec(o))&&!/^(?:bearbeiten|anzeigen|erstellen|hinzufügen|anlegen|verwalten|planen|ändern|eintragen|löschen)$/i.test(m[1])){const r=addT(m[1]);if(r)return S(r);}
+ if((m=/^erinner\w*\s+mich\s+(.*?)\s+an\s+(.+)$/i.exec(o))&&(DWR.test(m[1])||TMR.test(m[1]))){const r=mkEv(m[1]+" "+m[2],S,true);if(r!==null)return r;}
+ if(m=/^erinner\w*\s+mich\s+(?:daran\s+)?(.+)$/i.exec(o)){if(DWR.test(m[1])||TMR.test(m[1])){const r=mkEv(m[1],S,true);if(r!==null)return r;}const r=addT(m[1]);if(r)return S(r);}
+ if((m=/^(?:ich muss(?: noch)?|ich sollte(?: noch)?|muss noch|vergiss nicht)\s+(.+)$/i.exec(o))&&m[1].split(" ").length>=2){const r=addT(m[1]);if(r)return S(r);}
+ /* --- Aufgabe erledigt --- */
+ if((m=/^(.+?)\s+(?:als\s+)?(?:erledigt|fertig|geschafft|abgehakt)$/i.exec(o))&&!/\d/.test(m[1])){const r=resT(m[1]);
+  if(r.e){const t=r.e,act=t.started?Math.max(1,Math.round((Date.now()-t.started)/60000)):estFor(t).m;finishTask(t.id,act);return S(F(pick("tk",P.taskDone),{t:t.t}));}
+  if(r.n>1)return S(F(pick("am",P.amb),{l:r.L.slice(0,4).map(t=>"„"+t.t+"“").join(", ")}));}
+ /* --- CREATE: Termin --- */
+ const explicit=/^(?:erstell|leg|trag|füg|mach|plan|setz|buch|speicher|schreib)\w*\s/i.test(o);
+ if(m=/^(?:(?:erstell\w*|leg\w*|trag\w*|füg\w*|mach\w*|plan\w*|setz\w*|buch\w*|speicher\w*|schreib\w*)\s+(?:mir\s+)?(?:einen\s+|ein\s+)?(?:neuen\s+)?)?(?:termin|eintrag)\b\s*(?:an|ein|hinzu)?\s*[:\-]?\s*(.+)$/i.exec(o)){
+  if(!/^(?:löschen|ändern|verschieben|anzeigen|bearbeiten)/i.test(m[1])){const r=mkEv(m[1],S);if(r!==null)return r;return S("Wann soll das stattfinden? Sag zum Beispiel „… morgen um 15 Uhr“.");}}
+ if(m=/^(?:trag\w*|schreib\w*|füg\w*|setz\w*|pack\w*)\s+(.+?)\s+(?:in|im|zum|zu)\s+(?:den\s+|meinen\s+|meinem\s+|dem\s+)?(?:kalender|terminkalender)\s*(?:ein|hinzu|dazu)?$/i.exec(o)){const r=mkEv(m[1],S);return r!==null?r:S("Wann? Gib mir ein Datum oder „morgen“, sonst rate ich.");}
+ if(DWR.test(o)&&TMR.test(o)&&o.split(" ").length<=9&&!/^(?:was|wer|wie|wo|wann|warum|wieso|welche\w*|wozu|gibt|ist|sind|kann|hab|habe|hast|zeig|öffne|such|wetter|stell|starte|spiel|schalt|rechne|lösch|änder|verschieb)/i.test(l)&&!/(wetter|timer|wecker|musik|radio|rechne|uhrzeit|kalender|prognose|erinner)/i.test(l)){const r=mkEv(o,S);if(r!==null)return r;}
+ return false;}
+function mkEv(rest,S,rem){const p=pt2(rest);let d=p.date,tm=p.time;if(!d&&!tm)return null;const n=new Date();
+ if(!d){d=ymd(n);if(tm&&tm<p2(n.getHours())+":"+p2(n.getMinutes()))d=ymd(new Date(n.getTime()+864e5));}
+ const ti=cleanT(rest)||"Termin",dup=EV.find(e=>!e.done&&e.date===d&&(e.time||"")===(tm||"")&&e.title.toLowerCase()===ti.toLowerCase());
+ if(dup)return S("„"+ti+"“ gibt es schon, "+WH(d,tm)+". Doppelt hält nicht besser.");
+ const clash=tm&&EV.find(e=>!e.done&&e.date===d&&e.time===tm);addEvent({title:ti,date:d,time:tm||""});
+ let r=F(pick("ea",P.evAdd),{t:ti,w:WH(d,tm)});if(clash)r+=" Achtung: Zur selben Zeit liegt „"+clash.title+"“.";return S(r+ctxq(ti));}
+
+/* ---------- Wrapper: lokale Intents laufen IMMER zuerst (Mikrosekunden, 0 Credits) ---------- */
+{const lc=window.localCmd;window.localCmd=function(raw,quiet){let r=false;try{r=PH.intent(raw,quiet);}catch(e){console.warn("v10 intent",e);}if(r){if(!quiet)bumpU("lc");return true;}return lc(raw,quiet);};}
+
+/* ---------- 1) Zero-Latency: nie ewig warten ---------- */
+let noS=0;
+window.getSample=async function(){if(sample)return sample;if(Date.now()<noS)return null;
+ try{if(typeof claude==="undefined"||!claude||!claude.use){noS=Date.now()+3e5;return null;}
+  sample=await Promise.race([claude.use("sample"),new Promise((_,j)=>setTimeout(()=>j(0),2500))]);}catch(e){sample=null;noS=Date.now()+6e4;}return sample;};
+{const f0=window.fetch.bind(window);window.fetch=function(u,i){i=i||{};const c=new AbortController(),sg=i.signal;if(sg){if(sg.aborted)c.abort();else sg.addEventListener("abort",()=>c.abort());}
+ const to=setTimeout(()=>c.abort(),25000);return f0(u,Object.assign({},i,{signal:c.signal})).then(r=>{clearTimeout(to);return r;},e=>{clearTimeout(to);throw e;});};}
+
+/* ---------- 5) Auto-Format: Ultron wählt die Antwortlänge selbst ---------- */
+PH.len=()=>{const q=String(PH.q||"").trim(),n=q.split(/\s+/).filter(Boolean).length,b=((typeof UI!=="undefined"&&UI.len)||2)-2;let L=2;
+ if(!q)L=2;else if((typeof HEAVY!=="undefined"&&HEAVY.test(q))||/(erkläre|erklär|warum|wieso|weshalb|vergleich|unterschied|vor- und nachteile|analyse|konzept|wie funktioniert|ausführlich|detail)/i.test(q)||n>40)L=4;
+ else if(/(zusammenfass|übersicht|überblick|schritte|anleitung|tutorial|\bliste\b)/i.test(q)||n>20)L=3;
+ else if(n<=8&&/^(wer|was|wann|wo|wie viel\w*|wie alt|wie hoch|wie groß|wie lang|welche[rsm]?|ist|gibt|hat|kann)\b/i.test(q))L=1;
+ return Math.max(1,Math.min(5,L+b));};
+
+/* ---------- Start: Daten angleichen, alles einmal frisch rendern ---------- */
+try{migrate();}catch(e){console.warn(e);}SIG.ev=JSON.stringify(EV);SIG.pt=JSON.stringify(PT);
+try{renderDock();renderAgenda();}catch(e){console.warn(e);}
+})();
+</script>
 <script id="uniScript">
 /* UNIVERSUM: Wissensgraph als Spiegel der Ultron-Nutzung. Liest CH, LIB, MEM und TH direkt, ein Render-Kern für Miniatur und Vollbild. */
 (function(){
