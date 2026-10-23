@@ -3124,10 +3124,10 @@ function wsRow(c){
 }
 /* Rückgängig überall (Daten) */
 let UNDO=[],REDO=[],LASTSNAP=null,UNDOBUSY=false,DT=null;
-const dsnap=()=>JSON.stringify({PT:PT,PST:PST,EV:EV,EXP:EXP,BUD:BUD,SHOP:SHOP,PACK:PACK,KB:KB,BDAY:BDAY,LIB:LIB,SK:SK,MEM:MEM,PROJ:PROJ});
+const dsnap=()=>JSON.stringify({PT:PT,PST:PST,EV:EV,EXP:EXP,BUD:BUD,SHOP:SHOP,PACK:PACK,KB:KB,BDAY:BDAY,LIB:LIB,SK:SK,MEM:MEM,PROJ:PROJ,SER:window.SER||[]});
 function dcommit(){if(UNDOBUSY)return;let n;try{n=dsnap();}catch(e){return;}if(LASTSNAP===null){LASTSNAP=n;return;}if(n!==LASTSNAP){UNDO.push({s:LASTSNAP,ts:Date.now()});if(UNDO.length>30)UNDO.shift();REDO=[];LASTSNAP=n;}}
 function drestore(str){
-  UNDOBUSY=true;try{const o=JSON.parse(str);if(o.PT){PT=o.PT;PST=o.PST;savePT();savePST();}EV=o.EV;saveEv();EXP=o.EXP;BUD=o.BUD;saveEXP();SHOP=o.SHOP;saveSHOP();PACK=o.PACK;savePACK();KB=o.KB;saveKB();BDAY=o.BDAY;jset("ultron_bday",BDAY);LIB=o.LIB;saveLib();SK=o.SK;saveSK();MEM=o.MEM;jset("ultron_mem",MEM);PROJ=o.PROJ;saveProj();LASTSNAP=str;renderAgenda();renderLib();if(!$("wl").hidden&&LASTWIN)openWin(LASTWIN);}finally{UNDOBUSY=false;}
+  UNDOBUSY=true;try{const o=JSON.parse(str);if(o.PT){PT=o.PT;PST=o.PST;savePT();savePST();}EV=o.EV;saveEv();EXP=o.EXP;BUD=o.BUD;saveEXP();SHOP=o.SHOP;saveSHOP();PACK=o.PACK;savePACK();KB=o.KB;saveKB();BDAY=o.BDAY;jset("ultron_bday",BDAY);LIB=o.LIB;saveLib();SK=o.SK;saveSK();MEM=o.MEM;jset("ultron_mem",MEM);PROJ=o.PROJ;saveProj();if(o.SER&&window.SERV)window.SERV(o.SER);LASTSNAP=str;renderAgenda();renderLib();if(!$("wl").hidden&&LASTWIN)openWin(LASTWIN);}finally{UNDOBUSY=false;}
 }
 function dundo(){const x=UNDO.pop();if(!x)return false;REDO.push({s:LASTSNAP});drestore(x.s);toast("Rückgängig (Daten)");return true;}
 function dredo(){const x=REDO.pop();if(!x)return false;UNDO.push({s:LASTSNAP,ts:Date.now()});drestore(x.s);toast("Wiederholt (Daten)");return true;}
@@ -4098,13 +4098,13 @@ MT.todo=function(w,b){
    r.appendChild(x);l.appendChild(r);});};
  inp.onkeydown=e=>{if(e.key==="Enter"&&inp.value.trim()){addTasks(inp.value);inp.value="";draw();}};
  b.appendChild(inp);b.appendChild(l);draw();};
-{const o=MT.today;MT.today=function(w,b){o(w,b);const td=ymd(new Date()),L=EV.filter(e=>!e.done&&e.date===td);if(!L.length)return;const x=E("div");x.style.marginBottom="8px";L.forEach(e=>{const r=E("div","srow");r.appendChild(E("span",null,"◷ "+(e.time||"ganztägig")+" · "+e.title));x.appendChild(r);});b.insertBefore(x,b.firstChild);};}
+{const o=MT.today;MT.today=function(w,b){o(w,b);const td=ymd(new Date()),L=EV.filter(e=>!e.done&&e.date===td);if(!L.length)return;const x=E("div");x.style.marginBottom="8px";L.forEach(e=>{const r=E("div","srow");r.appendChild(E("span",null,"◷ "+(e.time||"ganztägig")+" · "+(e.sid?"↻ ":"")+e.title));x.appendChild(r);});b.insertBefore(x,b.firstChild);};}
 
 /* ---------- Manuelles Bearbeiten (Agenda-Panel, Kalenderfenster) ---------- */
 PH.edit=(e,row,redraw)=>{row.textContent="";const ti=IN("text","Titel",e.title),da=IN("date","",e.date),tm=IN("time","",e.time||""),ok=E("button","mini","OK");ti.style.flex="1";[ti,da,tm,ok].forEach(x=>row.appendChild(x));
  const go=()=>{if(ti.value.trim())e.title=ti.value.trim().slice(0,80);if(da.value)e.date=da.value;e.time=tm.value||"";e.done=false;EV.sort((a,b)=>evTs(a)-evTs(b));saveEv();renderAgenda();redraw&&redraw();};
  ok.onclick=go;[ti,da,tm].forEach(x=>x.onkeydown=k=>{if(k.key==="Enter")go();if(k.key==="Escape"){renderAgenda();redraw&&redraw();}});ti.focus();};
-PH.evRow=(e,redraw)=>{const r=E("div","srow"),t=E("span",null,(e.time||"ganztägig")+" · "+e.title),ed=E("b",null,"✎"),x=E("b",null,"×");t.style.flex="1";
+PH.evRow=(e,redraw)=>{const r=E("div","srow"),t=E("span",null,(e.time||"ganztägig")+" · "+(e.sid?"↻ ":"")+e.title),ed=E("b",null,"✎"),x=E("b",null,"×");t.style.flex="1";
  [ed,x].forEach(b=>b.style.cssText="cursor:pointer;opacity:.75;margin-left:10px");ed.title="Bearbeiten";ed.onclick=()=>PH.edit(e,r,redraw);
  x.onclick=()=>{EV=EV.filter(q=>q!==e);saveEv();renderAgenda();redraw&&redraw();};r.appendChild(t);r.appendChild(ed);r.appendChild(x);return r;};
 {const ra=window.renderAgenda0;window.renderAgenda0=function(){ra();const up=EV.filter(e=>!e.done).slice(0,7);
@@ -4205,7 +4205,7 @@ function run(o0,S,quiet){
   if(/\balle\b/i.test(body)&&/erledigt/i.test(body)){const n=PT.filter(t=>t.done).length;PT=PT.filter(t=>!t.done);savePT();return S(n?n+" erledigte Aufgaben entsorgt. Frühjahrsputz.":"Es gab nichts Erledigtes zu entsorgen.");}
   if(/\balle\b/i.test(body)&&/termine/i.test(body)){if(/bestätig|ja\b/i.test(body)){const n=EV.length;EV=[];saveEv();return S(n+" Termine gelöscht. Tabula rasa.");}return S("Alle "+EV.length+" Termine? Das ist radikal. Sag „lösche alle Termine bestätigen“, wenn du es ernst meinst.");}
   const k=/^(?:(?:den|die|das|meinen|meine|mein|dem|der)\s+)*(termin\w*|erinnerung\w*|eintrag|aufgabe\w*|to-?dos?|todos?)?\s*(.*)$/i.exec(body),kind=(k[1]||"").toLowerCase(),q=k[2],isT=/aufgabe|to-?do/.test(kind),isE=/termin|erinnerung|eintrag/.test(kind);
-  if(!isT){const r=resE(q);
+  if(!isT){const dq=pt2(q),r=resE(q,{date:dq.date,time:dq.time});
    if(r.e){EV=EV.filter(x=>x!==r.e);saveEv();renderAgenda();return S(F(pick("ed",P.evDel),{t:r.e.title}));}
    if(r.n>1)return S(F(pick("am",P.amb),{l:r.L.slice(0,4).map(lab).join(", ")}));
    if(isE)return S(r.w?pick("nf",P.nf):EV.filter(e=>!e.done).length?F(pick("am",P.amb),{l:EV.filter(e=>!e.done).slice(0,4).map(lab).join(", ")}):pick("em",P.empty));}
@@ -4255,7 +4255,7 @@ function run(o0,S,quiet){
   if(r.n>1)return S(F(pick("am",P.amb),{l:r.L.slice(0,4).map(t=>"„"+t.t+"“").join(", ")}));}
  /* --- CREATE: Termin --- */
  const explicit=/^(?:erstell|leg|trag|füg|mach|plan|setz|buch|speicher|schreib)\w*\s/i.test(o);
- if(m=/^(?:(?:erstell\w*|leg\w*|trag\w*|füg\w*|mach\w*|plan\w*|setz\w*|buch\w*|speicher\w*|schreib\w*)\s+(?:mir\s+)?(?:einen\s+|ein\s+)?(?:neuen\s+)?)?(?:termin|eintrag)\b\s*(?:an|ein|hinzu)?\s*[:\-]?\s*(.+)$/i.exec(o)){
+ if(m=/^(?:(?:erstell\w*|leg\w*|trag\w*|füg\w*|mach\w*|plan\w*|setz\w*|buch\w*|speicher\w*|schreib\w*)\s+(?:mir\s+)?(?:einen\s+|ein\s+)?(?:neuen\s+)?)?(?:termin|eintrag)\b\s*(?:(?:an|ein|hinzu)\b)?\s*[:\-]?\s*(.+)$/i.exec(o)){
   if(!/^(?:löschen|ändern|verschieben|anzeigen|bearbeiten)/i.test(m[1])){const r=mkEv(m[1],S);if(r!==null)return r;return S("Wann soll das stattfinden? Sag zum Beispiel „… morgen um 15 Uhr“.");}}
  if(m=/^(?:trag\w*|schreib\w*|füg\w*|setz\w*|pack\w*)\s+(.+?)\s+(?:in|im|zum|zu)\s+(?:den\s+|meinen\s+|meinem\s+|dem\s+)?(?:kalender|terminkalender)\s*(?:ein|hinzu|dazu)?$/i.exec(o)){const r=mkEv(m[1],S);return r!==null?r:S("Wann? Gib mir ein Datum oder „morgen“, sonst rate ich.");}
  if(DWR.test(o)&&TMR.test(o)&&o.split(" ").length<=9&&!/^(?:was|wer|wie|wo|wann|warum|wieso|welche\w*|wozu|gibt|ist|sind|kann|hab|habe|hast|zeig|öffne|such|wetter|stell|starte|spiel|schalt|rechne|lösch|änder|verschieb)/i.test(l)&&!/(wetter|timer|wecker|musik|radio|rechne|uhrzeit|kalender|prognose|erinner)/i.test(l)){const r=mkEv(o,S);if(r!==null)return r;}
@@ -4285,9 +4285,387 @@ PH.len=()=>{const q=String(PH.q||"").trim(),n=q.split(/\s+/).filter(Boolean).len
  else if(n<=8&&/^(wer|was|wann|wo|wie viel\w*|wie alt|wie hoch|wie groß|wie lang|welche[rsm]?|ist|gibt|hat|kann)\b/i.test(q))L=1;
  return Math.max(1,Math.min(5,L+b));};
 
+Object.assign(PH,{pt2:pt2,WH:WH,norm:norm,cap:cap,pick:pick,F:F,TMR:TMR,DWR:DWR,mkEv:mkEv,resE:resE,P:P,CQ:CQ,cleanT:cleanT});
 /* ---------- Start: Daten angleichen, alles einmal frisch rendern ---------- */
 try{migrate();}catch(e){console.warn(e);}SIG.ev=JSON.stringify(EV);SIG.pt=JSON.stringify(PT);
 try{renderDock();renderAgenda();}catch(e){console.warn(e);}
+})();
+</script>
+<script id="v11">
+/* ===== ULTRON v11 · Selbstlernen, Wächter, Werkzeugbau, Gedächtnis, Kontext-Sinne ===== */
+(function(){
+const H=window.PH,pick=H.pick,F=H.F,cap=H.cap,norm=H.norm,pt2=H.pt2,WH=H.WH,TMR=H.TMR,DWR=H.DWR;
+const day=d=>ymd(d||new Date()),hm=()=>{const d=new Date();return p2(d.getHours())+":"+p2(d.getMinutes());},minTo=e=>Math.round((evTs(e)-Date.now())/6e4);
+const css=document.createElement("style");css.textContent="#wd{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;flex-direction:column;gap:10px;max-width:320px}.wc{border:1px solid rgba(var(--c2r),.45);border-radius:12px;padding:12px 14px;background:rgba(14,8,10,.93);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);font:400 12px/1.5 var(--sans);color:var(--tx);box-shadow:0 0 24px rgba(var(--c2r),.18)}.wc b{display:block;font:400 10px var(--mono);letter-spacing:.3em;color:var(--red);margin-bottom:6px;text-transform:uppercase}.wc .wr{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.wc button{padding:5px 12px;font-size:10px}";document.head.appendChild(css);
+
+/* ---------- Fehler-Schutz & Daten-Hygiene ---------- */
+addEventListener("error",e=>{try{plog("Fehler abgefangen: "+String(e.message).slice(0,60));}catch(x){}});
+addEventListener("unhandledrejection",e=>{try{plog("Async-Fehler: "+String(e.reason&&e.reason.message||e.reason).slice(0,60));}catch(x){}});
+(function(){const n=EV.length,m=PT.length;EV=EV.filter(e=>e&&typeof e.title==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(e.date||""));PT=PT.filter(t=>t&&typeof t.t==="string"&&t.t);if(EV.length!==n)saveEv();if(PT.length!==m)savePT();})();
+
+/* ---------- 7) Kontext-Sinne ---------- */
+const CX={bat:null,chg:null,online:navigator.onLine,hidden:false};
+try{navigator.getBattery&&navigator.getBattery().then(b=>{const u=()=>{CX.bat=Math.round(b.level*100);CX.chg=b.charging;};u();b.addEventListener("levelchange",u);b.addEventListener("chargingchange",u);}).catch(()=>{});}catch(e){}
+addEventListener("online",()=>{CX.online=true;toast("Wieder online. Das Modell ist zurück.");});
+addEventListener("offline",()=>{CX.online=false;toast("Offline. Lokale Befehle laufen weiter, nur das Modell schweigt.");});
+document.addEventListener("visibilitychange",()=>{if(document.hidden)CX.hidden=Date.now();else if(CX.hidden){const m=(Date.now()-CX.hidden)/6e4;CX.hidden=false;if(m>=30)card("back"+Date.now(),"Willkommen zurück",H.brief(false),[["OK"]],20000);}});
+H.ctx=()=>{const d=new Date(),p=[d.toLocaleDateString("de-DE",{weekday:"long"})+" "+hm()];if(CX.bat!=null&&CX.bat<=25&&!CX.chg)p.push("Akku "+CX.bat+" %");if(!CX.online)p.push("offline");
+ const n=EV.find(e=>!e.done&&evTs(e)>Date.now());if(n){const m=minTo(n);if(m<180)p.push("nächster Termin in "+m+" Min: "+n.title);}return p.join(", ");};
+
+/* ---------- 6) Verknüpfungen & gewichtetes Gedächtnis ---------- */
+const STOPW=/^(?:der|die|das|und|oder|mit|für|von|zum|zur|bei|nach|über|eine?[rnms]?|mein\w*|dein\w*|termin|aufgabe|heute|morgen|gleich|noch|auch|wieder|haben|habe|muss|soll|will|kann|wann|warum|wieso|welche\w*|wer|wie)$/i;
+const toks=s=>Array.from(new Set(norm(s).toLowerCase().split(/\s+/).filter(w=>w.length>=4&&!STOPW.test(w)&&!/^\d/.test(w))));
+const hit=(t,tk)=>{t=String(t).toLowerCase();return tk.some(k=>t.indexOf(k)>=0||(k.length>5&&t.indexOf(k.slice(0,-1))>=0));};
+function recall(q,ex){const tk=toks(q),o=[];if(!tk.length)return o;
+ MEM.forEach(f=>{if(hit(f,tk))o.push(f);});
+ try{(PEOPLE||[]).forEach(p=>{if(hit(p.name+" "+(p.rel||""),tk))o.push("Person: "+p.name+(p.rel?" ("+p.rel+")":""));});}catch(e){}
+ EV.forEach(e=>{if(e!==ex&&!e.done&&hit(e.title,tk))o.push("Termin: "+e.title+" ("+WH(e.date,e.time)+")");});
+ PT.forEach(t=>{if(!t.done&&hit(t.t,tk))o.push("Aufgabe: "+t.t);});
+ WG.forEach(w=>{if(w.kind==="notes"&&w.st&&hit(w.st.text||"",tk))o.push("Notiz: "+(w.st.text||"").replace(/\s+/g," ").slice(0,70));});
+ return o;}
+let MW=jget("ultron_mw",{});const saveMW=()=>jset("ultron_mw",MW);
+Object.keys(MW).forEach(k=>{if(MEM.indexOf(k)<0)delete MW[k];});
+const wt=f=>{const m=MW[f]||(MW[f]={w:1,ts:Date.now(),h:0});return Math.min(2.5,m.w)*Math.pow(.5,(Date.now()-m.ts)/864e5/60);};
+const faded=()=>MEM.filter(f=>wt(f)<.12);
+window.memTxt=function(){try{const tk=toks(H.q||"");let boosted=false;
+ const L=MEM.map(f=>{const r=tk.length&&hit(f,tk);return[wt(f)+(r?1.2:0),f,r];}).filter(x=>x[0]>=.12).sort((a,b)=>b[0]-a[0]),top=L.slice(0,5),ft=toks(top.map(x=>x[1]).join(" ")),
+  extra=L.slice(5).filter(x=>hit(x[1],ft)).slice(0,2),use=top.concat(extra);
+ use.forEach(x=>{if(x[2]){const m=MW[x[1]];if(m){m.w=Math.min(2.5,m.w+.15);m.ts=Date.now();m.h++;boosted=true;}}});if(boosted)saveMW();try{window.UNI&&window.UNI.think&&window.UNI.think(use.map(x=>x[1]),[],7000);}catch(e){}
+ let s=use.length?" Wissen über den Nutzer: "+use.map(x=>x[1]).join("; ").slice(0,600)+".":"";const c=H.ctx();if(c)s+=" Kontext: "+c+".";return s;}catch(e){return"";}};
+
+/* ---------- 2) Vorausschauender Wächter ---------- */
+let WD=jget("ultron_wd",{}),box=null;const saveWD=()=>{const ks=Object.keys(WD);if(ks.length>200)ks.sort((a,b)=>WD[a]-WD[b]).slice(0,ks.length-150).forEach(k=>delete WD[k]);jset("ultron_wd",WD);};
+const stat=()=>{const n=box?box.children.length:0,e=$("ag-watch");if(e)e.textContent=n?n+" HINWEIS"+(n>1?"E":""):"AKTIV";};
+function card(key,title,text,acts,ttl){
+ if(PREF.watch===false||(WD[key]&&Date.now()<WD[key]))return;
+ if(!box){box=document.createElement("div");box.id="wd";document.body.appendChild(box);}
+ if(box.querySelector('[data-k="'+key.replace(/"/g,"")+'"]'))return;
+ const c=document.createElement("div"),h=document.createElement("b"),p=document.createElement("span"),r=document.createElement("div");c.className="wc";c.dataset.k=key.replace(/"/g,"");r.className="wr";h.textContent=title;p.textContent=text;
+ const done=s=>{WD[key]=Date.now()+(s||864e5);saveWD();c.remove();stat();};
+ (acts||[["OK"]]).forEach((a,i)=>{const b=document.createElement("button");b.textContent=a[0];if(i===0&&a[1])b.className="on";b.onclick=()=>{try{a[1]&&a[1]();}catch(e){console.warn(e);}done(a[2]);};r.appendChild(b);});
+ c.appendChild(h);c.appendChild(p);c.appendChild(r);box.appendChild(c);setTimeout(()=>{if(c.isConnected){WD[key]=Date.now()+108e5;saveWD();c.remove();stat();}},ttl||45000);stat();}
+function scan(){try{
+ const now=Date.now(),td=day(),open=EV.filter(e=>!e.done);
+ for(let i=0;i<open.length-1;i++){const a=open[i],b=open[i+1],gap=evTs(b)-evTs(a);
+  if(a.time&&b.time&&a.date===b.date&&gap<18e5&&evTs(b)>now){card("col:"+a.date+a.time+a.title+b.time+b.title,"Kollision","„"+a.title+"“ ("+a.time+") und „"+b.title+"“ ("+b.time+") liegen nur "+Math.round(gap/6e4)+" Min auseinander.",[["„"+b.title+"“ +1 Std",()=>{const d=new Date(evTs(b)+36e5);b.date=day(d);b.time=p2(d.getHours())+":"+p2(d.getMinutes());EV.sort((x,y)=>evTs(x)-evTs(y));saveEv();toast("Verschoben");}],["Lassen"]]);break;}}
+ const by={};open.forEach(e=>{if(e.date>=td)(by[e.date]=by[e.date]||[]).push(e);});
+ Object.keys(by).sort().slice(0,4).forEach(d=>{if(by[d].length>=4){const ts=PT.filter(t=>!t.done&&t.due&&day(new Date(t.due))===d);
+  card("full:"+d,"Voller Tag",cap(WH(d))+" hat "+by[d].length+" Termine"+(ts.length?" und "+ts.length+" Frist(en). Das wird sportlich.":". Plane Pufferzeit ein."),ts.length?[["Fristen +1 Tag",()=>{ts.forEach(t=>t.due+=864e5);savePT();}],["Lassen"]]:[["OK"]]);}});
+ PT.filter(t=>!t.done&&t.due&&t.due<now).slice(0,2).forEach(t=>card("od:"+t.id+day(),"Frist überschritten","„"+t.t+"“ war fällig ("+new Date(t.due).toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"numeric"})+").",
+  [["Heute 18 Uhr",()=>{const d=new Date();d.setHours(18,0,0,0);if(d<=now)d.setDate(d.getDate()+1);t.due=d.getTime();savePT();}],["Erledigt",()=>{t.done=true;t.doneAt=Date.now();savePT();}],["Egal",null,6048e5]]));
+ const h=new Date().getHours();
+ if(PT.filter(t=>!t.done).length>=2&&h>=7&&h<20&&!(PPLAN&&PPLAN.date===td))card("plan:"+td,"Tag planen?",PT.filter(t=>!t.done).length+" offene Aufgaben, aber noch kein Plan für heute.",[["Plan bauen",()=>{buildPlan();openWin({type:"planner",title:"Tagesplaner"});}],["Später",null,108e5]]);
+ open.forEach(e=>{if(!e.time||e.date!==td)return;const m=minTo(e);if(m>0&&m<=15){const rel=recall(e.title,e),mt=/meeting|call|besprechung|standup|gespräch|vortrag|termin/i.test(e.title);
+  card("soon:"+e.date+e.time+e.title,mt?"Gleich: Vorbereitung":"Gleich","„"+e.title+"“ in "+m+" Min."+(rel.length?" Dazu habe ich: "+rel.slice(0,3).join("; ")+".":""),[mt?["Notizen",()=>addWidget({widget:"notes"})]:["Timer 10 Min",()=>startTimerMin(10)],["OK"]],9e4);}});
+ if(CX.bat!=null&&CX.bat<=20&&!CX.chg)card("bat:"+td,"Akku "+CX.bat+" %","Lade bald nach. Ich laufe lokal weiter, aber du nicht ewig.",[["OK"]]);
+ }catch(e){console.warn("scan",e);}}
+let st=0;const scanSoon=()=>{clearTimeout(st);st=setTimeout(scan,800);};
+UX.on("ev",scanSoon);UX.on("pt",scanSoon);setInterval(scan,6e4);setTimeout(scan,4000);
+
+/* ---------- 4) Selbstlernende Befehle ---------- */
+let LI=jget("ultron_li",[]),CUR=null,REPLAY=false;const saveLI=()=>jset("ultron_li",LI.slice(0,80));
+const skel=(t,title)=>{let s=norm(t).toLowerCase();if(title){const i=s.indexOf(String(title).toLowerCase());if(i>=0)s=s.slice(0,i)+"§T§"+s.slice(i+String(title).length);}
+ return s.replace(new RegExp(TMR.source,"gi"),"§Z§").replace(new RegExp(DWR.source,"gi"),"§D§").replace(/\s+/g," ").trim();};
+function learnEv(text,o){const sk=skel(text,o.title);if(!/§T§/.test(sk)||!/§[ZD]§/.test(sk)||!sk.replace(/§.§/g,"").trim())return;
+ const x=LI.find(y=>y.k==="ev"&&y.sk===sk);if(x){x.n++;saveLI();return;}LI.unshift({k:"ev",sk:sk,n:1,ts:Date.now()});saveLI();toast("Gelernt: diese Formulierung läuft künftig lokal (0 Credits).");}
+function learnFn(f,text,o){let j;try{j=JSON.stringify(o);}catch(e){return;}if(!j||j.length>2500)return;const t=norm(text).toLowerCase();
+ if(LI.some(y=>y.k==="fn"&&y.t===t))return;LI.unshift({k:"fn",f:f,t:t,o:o,n:1,ts:Date.now()});saveLI();toast("Gelernt: „"+t.slice(0,40)+"“ läuft künftig lokal (0 Credits).");}
+{const ae=window.addEvent;window.addEvent=function(o){if(CUR&&!UX.cmd&&!REPLAY&&o&&o.title&&o.date)try{learnEv(CUR,o);}catch(e){}return ae(o);};
+ ["dashCmd","layoutCmd","musicCmd"].forEach(n=>{const f0=window[n];if(!f0)return;window[n]=function(o){if(CUR&&!UX.cmd&&!REPLAY)try{learnFn(n,CUR,o);}catch(e){}return f0(o);};});
+ const a0=window.ask;window.ask=async function(t,o){CUR=t;try{return await a0(t,o);}finally{CUR=null;}};}
+function liMatch(raw,S){const N=skel(raw,null),nr=norm(raw),nl=nr.toLowerCase();
+ for(const x of LI){
+  if(x.k==="fn"&&x.t===nl){REPLAY=true;try{window[x.f](x.o);}finally{REPLAY=false;}x.n++;saveLI();return S("Das kenne ich inzwischen. Lokal erledigt, 0 Credits.");}
+  if(x.k==="ev"){const re=new RegExp("^"+x.sk.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/§T§/g,"(.+?)")+"$"),m=re.exec(N);
+   if(m&&m[1]){const i=nl.indexOf(m[1]),ti=i>=0?nr.substr(i,m[1].length):m[1],tz=(TMR.exec(raw)||[""])[0],dz=(DWR.exec(raw)||[""])[0];
+    REPLAY=true;try{const r=H.mkEv(ti+" "+dz+" "+tz,S);if(r!==null){x.n++;saveLI();return r;}}finally{REPLAY=false;}}}}
+ return false;}
+H.card=card;H.stat=stat;H._mw=()=>MW;H._tools=()=>TOOLS;H._learn={ev:learnEv,fn:learnFn,cur:v=>{CUR=v;},list:()=>LI};
+
+/* ---------- 5) Werkzeugbau zur Laufzeit ---------- */
+let TOOLS=jget("ultron_tools",[]);
+const BADC=/fetch\s*\(|XMLHttpRequest|WebSocket|importScripts|import\s*\(|<iframe|<object|<embed|<link|@import|https?:\/\/|document\.cookie|window\.(?:top|parent)|\beval\s*\(|new\s+Function|localStorage|sessionStorage/i;
+function buildTool(req,raw){
+ hist.push({role:"user",content:raw});save();refresh();
+ const fin=t=>{hist.push({role:"assistant",content:t,local:true,tier:"0"});save();refresh();setBusy(false);};
+ confirmBox("Werkzeugbau: Das Modell schreibt einmal ein kleines Widget (ca. 1.500 Tokens). Danach läuft es lokal und kostenlos. Fortfahren?","Bauen","Abbrechen").then(async ok=>{
+  if(!ok){hist.push({role:"assistant",content:"Abgebrochen. Das Werkzeug bleibt ungebaut.",local:true,tier:"0"});save();refresh();return;}
+  setBusy(true,"Werkzeug wird gebaut");
+  try{const sys="Du bist ein Frontend-Entwickler. Antworte AUSSCHLIESSLICH mit einem HTML-Fragment (kein Markdown, kein Doctype, kein html-, head- oder body-Tag) für ein kleines, vollständig funktionierendes Werkzeug. Alles inline: ein style-Block und ein script-Block. Keine externen Ressourcen, keine Netzwerkzugriffe, kein localStorage. Deutsche Beschriftung, kompakt (unter 4 KB), transparenter Hintergrund, Textfarbe erbt, Ergebnis sofort beim Tippen. Keine Erklärung.";
+   let code=String(await llm("Baue: "+req,"default",1400,sys)).replace(/^\s*```[a-z]*\s*/i,"").replace(/\s*```\s*$/,"").trim();
+   if(code.length<40||code.length>8000||BADC.test(code.replace(/xmlns="[^"]*"/g,"")))return fin("Das Ergebnis war unsicher oder unbrauchbar, ich habe es verworfen. Formuliere es gern genauer und versuch es nochmal.");
+   const ti=cap(req.replace(/\s+/g," ").trim()).slice(0,30);addWidget({widget:"werkzeug",html:code,title:ti});
+   TOOLS=TOOLS.filter(x=>x.n!==ti);TOOLS.unshift({n:ti,html:code,ts:Date.now()});TOOLS=TOOLS.slice(0,20);jset("ultron_tools",TOOLS);
+   fin("Fertig: „"+ti+"“ liegt auf dem Dashboard und läuft ab jetzt lokal. Räumst du es weg, sag „meine Werkzeuge“.");
+  }catch(e){const c=e&&e.code;fin(c==="no_keys"?"Dafür brauche ich einen API-Key (Button „API“ oben rechts).":"Das Werkzeug konnte ich gerade nicht bauen"+(c?" ("+c+")":"")+". Versuch es gleich nochmal.");}});}
+
+/* ---------- Neue lokale Befehle ---------- */
+function run2(raw,quiet){const o=norm(raw),S=r=>{if(quiet){toast(r.length>150?r.slice(0,147)+"…":r);return true;}return say(raw,r);};let m;
+ if(m=/^(?:was weißt du (?:alles )?(?:über|zu|von)|alles (?:zu|über|von)|erzähl(?:e)? (?:mir )?(?:was |etwas )?(?:über|zu)|was haben wir (?:zu|über))\s+(.+)$/i.exec(o)){const x=m[1].trim();if(/^(?:mir|mich|ich)$/i.test(x))return false;
+  const r=recall(x);try{window.UNI&&window.UNI.think&&window.UNI.think(r,[],6000);}catch(e){}r.forEach(f=>{const w=MW[f];if(w){w.ts=Date.now();w.w=Math.min(2.5,w.w+.1);}});saveMW();
+  return S(r.length?pick("rc",["Das habe ich zu „"+x+"“:","Zu „"+x+"“ finde ich:","Alles, was ich zu „"+x+"“ kenne:"])+"\n"+r.slice(0,8).map(s=>"  • "+s).join("\n"):"Zu „"+x+"“ habe ich nichts. Sag „Merk dir: …“, dann ändert sich das.");}
+ if(/^(?:was ist verblasst|verblasste erinnerungen|vergessene fakten)$/i.test(o)){const f=faded();return S(f.length?"Verblasst sind "+f.length+" Einträge (fließen nicht mehr in Antworten ein):\n"+f.slice(0,8).map(s=>"  • "+s).join("\n")+"\nSag „Gedächtnis aufräumen“, dann archiviere ich sie.":"Nichts verblasst. Dein Gedächtnis ist frisch, meins sowieso.");}
+ if(/^(?:gedächtnis aufräumen|erinnerungen aufräumen)$/i.test(o)){const f=faded();if(!f.length)return S("Nichts aufzuräumen. Ordnung herrscht bereits.");const old=jget("ultron_mem_old",[]);jset("ultron_mem_old",old.concat(f).slice(-200));MEM=MEM.filter(x=>f.indexOf(x)<0);saveMem();f.forEach(k=>delete MW[k]);saveMW();return S(f.length+" verblasste Einträge archiviert. Frühjahrsputz für den Kopf.");}
+ if(/^(?:gelernte befehle|was hast du gelernt)$/i.test(o))return S(LI.length?LI.length+" gelernte Formulierungen, zuletzt:\n"+LI.slice(0,5).map(x=>"  • "+(x.t||x.sk.replace(/§T§/g,"…").replace(/§[ZD]§/g,"…"))+" ("+x.n+"×)").join("\n"):"Noch nichts gelernt. Sobald das Modell eine neue Formulierung löst, merke ich sie mir.");
+ if(/^vergiss gelernte befehle$/i.test(o)){LI=[];saveLI();return S("Gelerntes gelöscht. Ich fange wieder bei null an, mit Charme.");}
+ if(m=/^wächter\s+(an|aus|ein)$/i.exec(o)){PREF.watch=!/aus/i.test(m[1]);jset("ultron_pref",PREF);return S(PREF.watch?"Wächter aktiv. Ich melde mich, wenn es brennt.":"Wächter aus. Ich schweige, auch wenn der Kalender brennt.");}
+ if(/^(?:meine werkzeuge|werkzeuge)$/i.test(o))return S(TOOLS.length?"Deine Werkzeuge:\n"+TOOLS.map(x=>"  • "+x.n).join("\n")+"\nSag „öffne Werkzeug NAME“, um eines aufs Dashboard zu holen.":"Noch keine Werkzeuge. Sag zum Beispiel „Baue mir einen Spritkosten-Rechner“.");
+ if(m=/^(?:öffne|zeige|hol)\w*\s+werkzeug\s+(.+)$/i.exec(o)){const t=TOOLS.find(x=>x.n.toLowerCase().indexOf(m[1].toLowerCase())>=0);if(!t)return S("Dieses Werkzeug kenne ich nicht.");if(WG.some(w=>w.kind==="custom"&&w.title===t.n))return S("„"+t.n+"“ liegt schon auf dem Dashboard.");addWidget({widget:"werkzeug",html:t.html,title:t.n});return S("„"+t.n+"“ ist zurück auf dem Dashboard.");}
+ if(m=/^(?:der |die |das )?(termin|aufgabe)\s+(.+?)\s+(?:heißt|lautet)\s+(?:jetzt|nun|ab sofort)\s+(.+)$/i.exec(o)){
+  if(/termin/i.test(m[1])){const r=H.resE(m[2]);if(r.e){r.e.title=cap(m[3]);saveEv();return S("Umbenannt: jetzt „"+r.e.title+"“.");}}
+  else{const t=PT.find(x=>!x.done&&x.t.toLowerCase().indexOf(m[2].toLowerCase())>=0);if(t){t.t=cap(m[3]);savePT();return S("Aufgabe umbenannt: „"+t.t+"“.");}}
+  return S("Dazu finde ich nichts. Sag mir genauer, was du meinst.");}
+ if((m=/^(?:bau\w*|erstell\w*|programmier\w*|entwickl\w*|mach\w*|generier\w*)\s+(?:mir\s+)?(?:bitte\s+)?(?:ein(?:en|e|s)?\s+)(.{3,90})$/i.exec(o))&&/(rechner|konverter|umrechner|tracker|generator|zähler|werkzeug|tool|widget|checker|planer|quiz|spiel|übung|kalkulator)/i.test(m[1])&&!/(termin|aufgabe|to-?do|notiz|einkauf|timer|stoppuhr)/i.test(m[1])){
+  if(quiet||busy){toast("Werkzeugbau geht nur direkt im Chat, wenn nichts anderes läuft.");return true;}buildTool(m[1],raw);return true;}
+ return false;}
+{const lc=window.localCmd;window.localCmd=function(raw,quiet){try{if(run2(raw,quiet)){if(!quiet)bumpU("lc");return true;}}catch(e){console.warn("v11 run2",e);}
+ const r=lc(raw,quiet);if(r)return r;
+ try{const S=x=>quiet?(toast(x),true):say(raw,x);if(liMatch(raw,S)){if(!quiet)bumpU("lc");return true;}}catch(e){console.warn("v11 learn",e);}return false;};}
+setTimeout(stat,500);
+})();
+</script>
+<script id="v12">
+/* ===== ULTRON v12 · Simulation vor der Aktion + Visuelles Denken im Core ===== */
+(function(){
+const H=window.PH,pick=H.pick,F=H.F,cap=H.cap,pt2=H.pt2;
+const day=d=>ymd(d),UN=()=>window.UNI&&window.UNI.think?window.UNI:null;
+const think=(a,b,c)=>{try{const u=UN();u&&u.think(a,b,c);}catch(e){}};
+const css=document.createElement("style");css.textContent=".wc span{white-space:pre-wrap}";document.head.appendChild(css);
+const dd=d=>new Date(d+"T12:00:00").toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"numeric"});
+const stamp=(d,t)=>new Date(d+"T"+(t||"09:00")+":00").getTime();
+
+/* ---------- 8) Simulation: erst rechnen, dann bestätigen, dann anwenden ---------- */
+let PEND=null;
+const dropCards=()=>{document.querySelectorAll('#wd [data-k^="sim:"]').forEach(c=>c.remove());try{H.stat&&H.stat();}catch(e){}};
+function simulate(p){
+ const lines=[],warn=[];
+ p.ev.forEach(c=>lines.push("◷ "+c.e.title+": "+dd(c.e.date)+(c.e.time?" "+c.e.time:"")+" → "+dd(c.date)+(c.time?" "+c.time:"")));
+ p.pt.forEach(c=>lines.push("☐ "+c.t.t+": "+(c.t.due?dd(day(new Date(c.t.due))):"ohne Frist")+" → "+dd(day(new Date(c.due)))));
+ p.delEv.forEach(e=>lines.push("✕ Termin: "+e.title+" ("+dd(e.date)+(e.time?" "+e.time:"")+")"));
+ p.delPt.forEach(t=>lines.push("✕ Aufgabe: "+t.t));
+ const mv=new Set(p.ev.map(c=>c.e)),res=EV.filter(e=>!e.done&&p.delEv.indexOf(e)<0).map(e=>{const c=p.ev.find(x=>x.e===e);return{e:e,date:c?c.date:e.date,time:c?c.time:e.time};}).sort((a,b)=>stamp(a.date,a.time)-stamp(b.date,b.time));
+ for(let i=0;i<res.length;i++)for(let j=i+1;j<res.length;j++){const a=res[i],b=res[j];if(a.date!==b.date)break;if(!a.time||!b.time||(!mv.has(a.e)&&!mv.has(b.e)))continue;
+  const g=Math.abs(stamp(b.date,b.time)-stamp(a.date,a.time))/6e4;if(g<30)warn.push("Kollision am "+dd(a.date)+": „"+a.e.title+"“ ("+a.time+") und „"+b.e.title+"“ ("+b.time+")"+(g?" nur "+g+" Min auseinander.":" zur selben Zeit."));}
+ const cnt={};res.forEach(r=>{cnt[r.date]=(cnt[r.date]||0)+1;});Object.keys(cnt).forEach(d=>{if(cnt[d]>=4&&p.ev.some(c=>c.date===d))warn.push(dd(d)+" hätte danach "+cnt[d]+" Termine.");});
+ return{lines:lines,warn:warn};}
+function doApply(){const p=PEND;PEND=null;dropCards();if(!p)return false;
+ try{dcommit();UX.cmd=true;p.apply();dcommit();}finally{UX.cmd=false;}think([],["Planer"],3500);return p.n;}
+function present(p,S){
+ const n=p.ev.length+p.pt.length+p.delEv.length+p.delPt.length;if(!n)return S("Dazu gibt es nichts zu ändern. Der Kalender ist schon ordentlich.");
+ const sim=simulate(p);think([],["Planer","Prüfer"],6000);dropCards();
+ const body=sim.lines.slice(0,8).join("\n")+(sim.lines.length>8?"\n… +"+(sim.lines.length-8)+" weitere":"")+(sim.warn.length?"\n\n"+sim.warn.slice(0,3).map(w=>"⚠ "+w).join("\n"):"\n\nKeine Kollisionen.");
+ PEND={n:n,ts:Date.now(),apply:()=>{p.ev.forEach(c=>{c.e.date=c.date;c.e.time=c.time;});p.pt.forEach(c=>{c.t.due=c.due;});
+  if(p.delEv.length)EV=EV.filter(e=>p.delEv.indexOf(e)<0);if(p.delPt.length)PT=PT.filter(t=>p.delPt.indexOf(t)<0);EV.sort((a,b)=>evTs(a)-evTs(b));saveEv();savePT();renderAgenda();}};
+ if(H.card)H.card("sim:"+Date.now(),"Vorschau · "+n+(n===1?" Änderung":" Änderungen"),body,[["Anwenden",()=>{const k=doApply();if(k)toast(k+" Änderungen angewendet");}],["Verwerfen",()=>{PEND=null;}]],18e4);
+ return S("Vorschau, noch nichts geändert:\n"+body+"\n\nSag „ja“ zum Anwenden oder „nein“ zum Verwerfen.");}
+const sameDay=t=>t.due&&day(new Date(t.due));
+const toDue=(t,d)=>{const o=new Date(t.due);return stamp(d,p2(o.getHours())+":"+p2(o.getMinutes()));};
+
+function run3(raw,quiet){
+ const o=String(raw).replace(/[!?;"„“]+/g," ").replace(/,/g," ").replace(/\.(?=\s|$)/g,"").replace(/\s+/g," ").trim(),S=r=>{if(quiet){toast(r.length>150?r.slice(0,147)+"…":r);return true;}return say(raw,r);};let m;
+ if(PEND&&Date.now()-PEND.ts>18e4){PEND=null;dropCards();}
+ if(PEND){
+  if(/^(?:ja|jap|jo|klar|okay|ok|mach|mach das|mach es|anwenden|bestätigen|bestätige|los|passt|genau)$/i.test(o)){const k=doApply();return S(F(pick("ap",["{n} Änderungen angewendet. „Rückgängig“ holt sie zurück.","Erledigt: {n} Änderungen. Ja, ich habe vorher gerechnet.","Angewendet. Die Simulation hatte recht, wie immer."]),{n:k}));}
+  if(/^(?:nein|nö|nee|abbrechen|verwerfen|lass|lass es|stopp|stop|doch nicht)$/i.test(o)){PEND=null;dropCards();return S("Verworfen. Es wurde nichts geändert.");}}
+ const open=()=>EV.filter(e=>!e.done),tasks=()=>PT.filter(t=>!t.done),plan=()=>({ev:[],pt:[],delEv:[],delPt:[]});
+ /* Zeit um X verschieben */
+ if(m=/^(?:verschieb\w*|verleg\w*|schieb\w*)\s+(.*?)\s*\bum\s+(\d+(?:[.,]\d+)?)\s*(stunden?|std|minuten?|min)\b\s*(.*)$/i.exec(o)){
+  const mid=m[1],n=parseFloat(m[2].replace(",",".")),mins=Math.round(/^min/i.test(m[3])?n:n*60)*(/früher|vor\b|vorn|zurück/i.test(m[4])&&!/nach hinten/i.test(m[4])?-1:1);
+  if(/alle|alles|termine/i.test(mid)&&mins){const d=pt2(mid).date||day(new Date()),p=plan();
+   open().filter(e=>e.date===d&&e.time).forEach(e=>{const nd=new Date(evTs(e)+mins*6e4);p.ev.push({e:e,date:day(nd),time:p2(nd.getHours())+":"+p2(nd.getMinutes())});});
+   return present(p,S);}}
+ /* Überfällige Aufgaben umlegen */
+ if(m=/^(?:verschieb\w*|verleg\w*|schieb\w*)\s+alle\s+überfällige\w*\s+(?:aufgaben\s+)?(?:auf|nach)\s+(.+)$/i.exec(o)){
+  const d=pt2(m[1]).date;if(d){const p=plan(),now=Date.now();tasks().filter(t=>t.due&&t.due<now).forEach(t=>p.pt.push({t:t,due:stamp(d,"18:00")}));return present(p,S);}}
+ /* Tag auf Tag verschieben */
+ if(m=/^(?:verschieb\w*|verleg\w*|schieb\w*)\s+(alles|alle termine|alle aufgaben|alle einträge|alle)\s*(?:von|am|vom|für)?\s*(.+?)\s+(?:auf|nach)\s+(.+)$/i.exec(o)){
+  const a=pt2(m[2]).date,b=pt2(m[3]).date;
+  if(a&&b){const k=m[1].toLowerCase(),p=plan();
+   if(!/aufgaben/.test(k))open().filter(e=>e.date===a).forEach(e=>p.ev.push({e:e,date:b,time:e.time}));
+   if(!/termine/.test(k))tasks().filter(t=>sameDay(t)===a).forEach(t=>p.pt.push({t:t,due:toDue(t,b)}));
+   return present(p,S);}}
+ /* Mehrere löschen */
+ if((m=/^(?:lösch\w*|entfern\w*|streich\w*)\s+alle\s+(termine|aufgaben|einträge)\s*(.*)$/i.exec(o))&&!/erledigt/i.test(o)){
+  const k=m[1].toLowerCase(),rest=m[2],d=pt2(rest).date,over=/überfällig/i.test(rest),p=plan(),now=Date.now();
+  if(k!=="aufgaben")open().filter(e=>!d||e.date===d).forEach(e=>p.delEv.push(e));
+  if(k!=="termine")tasks().filter(t=>over?(t.due&&t.due<now):d?sameDay(t)===d:true).forEach(t=>p.delPt.push(t));
+  return present(p,S);}
+ return false;}
+{const lc=window.localCmd;window.localCmd=function(raw,quiet){try{if(run3(raw,quiet)){if(!quiet)bumpU("lc");return true;}}catch(e){console.warn("v12",e);}return lc(raw,quiet);};}
+
+/* ---------- 10) Visuelles Denken: der Core zeigt, woran Ultron gerade arbeitet ---------- */
+[["ag-core","Core",/AKTIV|ARBEIT/i,6e4],["ag-syn","Prüfer",/PRÜFT/i,8e3],["ag-plan","Planer",/ARBEITET/i,8e3],["ag-watch","Wächter",/ALARM|HINWEIS/i,6e3]].forEach(a=>{
+ const el=document.getElementById(a[0]);if(!el)return;
+ const f=()=>{const u=UN();if(!u)return;if(a[2].test(el.textContent))u.think([],[a[1]],a[3]);else u.rest&&u.rest(a[1]);};
+ new MutationObserver(f).observe(el,{childList:true,characterData:true,subtree:true});});
+{const a0=window.ask;window.ask=function(t,o){think([t],["Core"],7000);return a0(t,o);};}
+{const k0=window.kRetrieve;window.kRetrieve=function(t){const r=k0(t);try{const tx=[t];(r.ctx||[]).forEach(c=>tx.push(c.txt));if(r.direct)tx.push(r.direct.e.q);think(tx,["Prüfer"],6000);}catch(e){}return r;};}
+UX.on("ev",c=>{if(c)think([],["Planer"],3500);});UX.on("pt",c=>{if(c)think([],["Planer"],3500);});
+H._sim={pend:()=>PEND};
+})();
+</script>
+<script id="v13">
+/* ===== ULTRON v13 · Natürliche Zeiten, Wiederholungen, Tages-Sprüche, Wochenrückblick ===== */
+(function(){
+const H=window.PH,pick=H.pick,F=H.F,cap=H.cap,pt2=H.pt2,WH=H.WH,P=H.P,cleanT=H.cleanT,TMR=H.TMR;
+const day=d=>ymd(d),hm=()=>{const d=new Date();return p2(d.getHours())+":"+p2(d.getMinutes());};
+const dm=d=>d.getDate()+"."+(d.getMonth()+1)+".",stamp=(d,t)=>new Date(d+"T"+(t||"09:00")+":00").getTime();
+const dd=s=>new Date(s+"T12:00:00").toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"numeric"});
+const WDS=["sonntag","montag","dienstag","mittwoch","donnerstag","freitag","samstag"],WK=["So","Mo","Di","Mi","Do","Fr","Sa"],WDA="montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag";
+const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+
+/* ---------- 2) Natürliche Zeitangaben: werden in eine Form übersetzt, die der Parser sicher versteht ---------- */
+const NW={ein:1,eins:1,eine:1,einer:1,einem:1,zwei:2,drei:3,vier:4,fünf:5,sechs:6,sieben:7,acht:8,neun:9,zehn:10,elf:11,zwölf:12,anderthalb:1.5};
+const HW="(\\d{1,2}|eins|ein|zwei|drei|vier|fünf|sechs|sieben|acht|neun|zehn|elf|zwölf)";
+const nv=w=>/^\d/.test(w)?parseFloat(String(w).replace(",",".")):NW[String(w).toLowerCase()];
+const TT=(h,m)=>p2(h)+":"+p2(m)+" Uhr";
+const pm=(h,c)=>{if(h>12||h===0)return h;if(/abends|nachmittags|am abend|am nachmittag/i.test(c))return h<12?h+12:h;if(/morgens|früh|vormittags|am morgen/i.test(c))return h;return h<=6?h+12:h;};
+const DP=p=>/vormittag/i.test(p)?"10:00 Uhr":/nachmittag/i.test(p)?"15:00 Uhr":/mittag/i.test(p)?"12:00 Uhr":/abend/i.test(p)?"19:00 Uhr":"08:00 Uhr";
+const nextWd=(wd,x)=>{const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+((wd-d.getDay()+7)%7||7)+7*(x||0));return d;};
+function nt(s){let o=s;const c=s;
+ o=o.replace(new RegExp("\\b(?:um\\s+)?halb\\s+"+HW+"\\b","i"),(m,w)=>{let h=nv(w);if(!h||h>12)return m;h=(h-1)||12;return TT(pm(h,c),30);});
+ o=o.replace(new RegExp("\\b(?:um\\s+)?viertel\\s+nach\\s+"+HW+"\\b","i"),(m,w)=>{const h=nv(w);return h&&h<=12?TT(pm(h,c),15):m;});
+ o=o.replace(new RegExp("\\b(?:um\\s+)?(?:viertel\\s+vor|dreiviertel)\\s+"+HW+"\\b","i"),(m,w)=>{let h=nv(w);if(!h||h>12)return m;h=(h-1)||12;return TT(pm(h,c),45);});
+ const ap=(h,p)=>(/nachmittags|abends/i.test(p)&&h<12)?h+12:h;
+ o=o.replace(/\b(früh|morgens|vormittags|nachmittags|abends)\s+(?:um\s+)?(\d{1,2})(?::(\d{2}))?(?:\s*uhr)?(?![\d:])/i,(m,p,h,mi)=>TT(ap(+h,p),+(mi||0)));
+ o=o.replace(/\b(?:um\s+)?(\d{1,2})(?::(\d{2}))?\s*(?:uhr\s+)?(morgens|vormittags|nachmittags|abends)\b/i,(m,h,mi,p)=>TT(ap(+h,p),+(mi||0)));
+ if(!TMR.test(o)){
+  o=o.replace(new RegExp("\\b("+WDA+")\\s*(vormittag|nachmittag|abend|mittag|morgen)s?\\b","i"),(m,w,p)=>w+" "+DP(p));
+  o=o.replace(new RegExp("\\b("+WDA+")\\s+(früh)\\b","i"),(m,w,p)=>w+" "+DP(p));
+  o=o.replace(/(?<![a-zäöüß])(heute|morgen|übermorgen)\s+(früh|morgens|vormittag|nachmittag|mittag|mittags|abend|abends)\b/i,(m,d,p)=>d+" "+DP(p));
+  o=o.replace(/\bmittags\b/i,"12:00 Uhr");}
+ const now=new Date(),fut=mins=>{const d=new Date(Date.now()+Math.round(mins)*6e4);return(day(d)===day(now)?"heute":dm(d))+" "+TT(d.getHours(),d.getMinutes());};
+ o=o.replace(/\bin\s+einer\s+(halben\s+stunde|viertelstunde)\b/i,(m,u)=>fut(/halb/i.test(u)?30:15));
+ o=o.replace(/\bin\s+(\d+(?:[.,]\d+)?|einer|einem|zwei|drei|vier|fünf|sechs|sieben|acht|neun|zehn|anderthalb)\s+(stunden?|std|minuten?|min|tagen?|wochen?)\b/i,(m,n,u)=>{const v=nv(n);if(!v)return m;u=u.toLowerCase();if(u[0]==="s")return fut(v*60);if(u[0]==="m")return fut(v);return dm(addD(new Date(),Math.round(v*(u[0]==="t"?1:7))));});
+ o=o.replace(new RegExp("(?<![a-zäöüß])übernächsten?\\s+("+WDA+")\\b","i"),(m,w)=>dm(nextWd(WDS.indexOf(w.toLowerCase()),1)));
+ o=o.replace(new RegExp("\\b(?:nächste|nächsten|kommende|kommenden)\\s+woche\\s+("+WDA+")\\b","i"),(m,w)=>{const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+((8-d.getDay())%7||7)+((WDS.indexOf(w.toLowerCase())+6)%7));return dm(d);});
+ o=o.replace(/\b(?:nächste|nächsten|kommende|kommenden)\s+woche\b/i,()=>dm(addD(new Date(),7)));
+ o=o.replace(new RegExp("\\b(?:nächsten?|kommenden?)\\s+("+WDA+")\\b","i"),(m,w)=>dm(nextWd(WDS.indexOf(w.toLowerCase()),0)));
+ return o;}
+H.nt=nt;
+
+/* ---------- 1) Wiederholungen: Serien erzeugen rollierend echte Termine ---------- */
+window.SER=jget("ultron_series",[]);const saveSER=()=>jset("ultron_series",window.SER);
+window.SERV=a=>{window.SER=Array.isArray(a)?a:[];saveSER();setTimeout(materialize,30);};
+const monIdx=d=>{const x=new Date(d+"T12:00:00");x.setDate(x.getDate()-((x.getDay()+6)%7));return Math.round(x.getTime()/6048e5);};
+const dayDiff=(a,b)=>Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5);
+function matches(r,d,st){if(d<st)return false;const n=r.n||1;
+ if(r.t==="d")return dayDiff(st,d)%n===0;
+ if(r.t==="w")return r.days.indexOf(new Date(d+"T12:00:00").getDay())>=0&&(monIdx(d)-monIdx(st))%n===0;
+ if(r.t==="m"){const x=new Date(d+"T12:00:00"),s=new Date(st+"T12:00:00"),last=new Date(x.getFullYear(),x.getMonth()+1,0).getDate();return x.getDate()===Math.min(r.dom,last)&&((x.getFullYear()-s.getFullYear())*12+x.getMonth()-s.getMonth())%n===0;}
+ return false;}
+function desc(s){const r=s.rep;let t;if(r.t==="d")t=r.n>1?"alle "+r.n+" Tage":"täglich";else if(r.t==="w")t=r.days.slice().sort((a,b)=>a-b).join()==="1,2,3,4,5"?"werktags":(r.n>1?"alle "+r.n+" Wochen ":"jeden ")+r.days.slice().sort((a,b)=>((a+6)%7)-((b+6)%7)).map(x=>WK[x]).join("/");else t=(r.n>1?"alle "+r.n+" Monate":"monatlich")+" am "+r.dom+".";return t+(s.time?" um "+s.time+" Uhr":"");}
+function materialize(){try{let ch=false;const now=Date.now(),td=day(new Date()),hh=hm();
+ window.SER.forEach(s=>{s.skip=s.skip||[];s.gen=s.gen||[];
+  s.gen.forEach(d=>{if(d>=td&&s.skip.indexOf(d)<0&&!EV.some(e=>e.sid===s.id&&e.od===d)){s.skip.push(d);ch=true;}});
+  s.gen=s.gen.filter(d=>d>=td);const end=day(addD(new Date(),s.rep.t==="d"?3:14));
+  for(let t=new Date();day(t)<=end;t.setDate(t.getDate()+1)){const d=day(t);
+   if(d<s.start||s.skip.indexOf(d)>=0||s.gen.indexOf(d)>=0||(s.until&&d>s.until)||!matches(s.rep,d,s.start)||(d===td&&s.time&&s.time<=hh))continue;
+   EV.push({title:s.title,date:d,time:s.time||"",done:false,sid:s.id,od:d});s.gen.push(d);ch=true;}});
+ const cut=day(addD(new Date(),-7)),n=EV.length;EV=EV.filter(e=>!(e.sid&&e.done&&e.date<cut));if(EV.length!==n)ch=true;
+ if(ch){EV.sort((a,b)=>evTs(a)-evTs(b));saveEv();saveSER();}}catch(e){console.warn("series",e);}}
+const WR=new RegExp("\\b("+WDA+")s?\\b","gi"),RT=/\b(?:jeden|jede|jedes)\s+(?:montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|tag|woche|monat|werktag|morgen|abend|mittag)\b|\balle\s+(?:\d+|zwei|drei|vier|fünf|sechs)\s+(?:wochen|tage|monate)\b|\b(?:täglich|wöchentlich|monatlich|werktags|wochentags|montags|dienstags|mittwochs|donnerstags|freitags|samstags|sonntags)\b/i;
+function parseRep(o){let rest=o,m,rep=null;const days=[],wd=t=>{let x;WR.lastIndex=0;while((x=WR.exec(t)))if(days.indexOf(WDS.indexOf(x[1].toLowerCase()))<0)days.push(WDS.indexOf(x[1].toLowerCase()));};
+ const stripWd=t=>t.replace(new RegExp("\\b(?:jeden\\s+|jede\\s+|jedes\\s+)?("+WDA+")s?\\b(?:\\s*(?:,|und)\\s+(?=\\S))?","gi")," ");
+ if(m=/\balle\s+(\d+|zwei|drei|vier|fünf|sechs)\s+(wochen|tage|monate)\b/i.exec(o)){const n=Math.round(nv(m[1]));rest=rest.replace(m[0]," ");
+  if(/woche/i.test(m[2])){wd(rest);rest=stripWd(rest);rep={t:"w",n:n,days:days.length?days:null};}else rep=/tage/i.test(m[2])?{t:"d",n:n}:{t:"m",n:n,dom:null};}
+ else if(/\b(?:werktags|wochentags|jeden\s+werktag)\b/i.test(o)){rest=rest.replace(/\b(?:werktags|wochentags|jeden\s+werktag)\b/i," ");rep={t:"w",n:1,days:[1,2,3,4,5]};}
+ else if(m=/\b(?:täglich|jeden\s+tag|jeden\s+(morgen|abend|mittag))\b/i.exec(o)){rest=rest.replace(m[0]," ");rep={t:"d",n:1,part:m[1]};}
+ else if(new RegExp("\\b(?:jeden|jede|jedes)\\s+(?:"+WDA+")\\b|\\b(?:"+WDA+")s\\b","i").test(o)){wd(o);rest=stripWd(rest);rep={t:"w",n:1,days:days};}
+ else if(m=/\b(?:wöchentlich|jede\s+woche)\b/i.exec(o)){wd(o);rest=stripWd(rest.replace(m[0]," "));rep={t:"w",n:1,days:days.length?days:null};}
+ else if(m=/\b(?:monatlich|jeden\s+monat)\b/i.exec(o)){rest=rest.replace(m[0]," ");let d=/\bam\s+(\d{1,2})\.?(?=\s|$)/i.exec(rest);if(d)rest=rest.replace(d[0]," ");rep={t:"m",n:1,dom:d?+d[1]:null};}
+ return{rep:rep,rest:rest};}
+function mkSeries(o,S){const pr=parseRep(o);if(!pr.rep||(pr.rep.t==="w"&&pr.rep.days&&!pr.rep.days.length))return null;
+ const rest=pr.rest.replace(/^\s*(?:erinner\w*\s+mich\s+(?:daran\s+)?(?:an\s+)?|erstell\w*\s+(?:mir\s+)?(?:eine?n?\s+)?(?:neue?n?\s+)?(?:serie|termin)\s*(?:für\s+)?|serie\s*[:\-]?\s*)/i,"").replace(/^\s*(?:die|der|das)\s+/i,""),p=pt2(rest);
+ const time=p.time||(pr.rep.part==="morgen"?"08:00":pr.rep.part==="abend"?"19:00":pr.rep.part==="mittag"?"12:00":""),title=cleanT(rest);
+ if(!title||title.split(" ").length>7)return null;
+ let start=p.date||day(new Date());if(pr.rep.t==="w"&&!pr.rep.days)pr.rep.days=[new Date(start+"T12:00:00").getDay()];if(pr.rep.t==="m"&&!pr.rep.dom)pr.rep.dom=+start.slice(8);
+ if(pr.rep.t==="w"&&pr.rep.n>1){for(let i=0;i<8;i++){const t=addD(new Date(start+"T12:00:00"),i),ds=day(t);if(pr.rep.days.indexOf(t.getDay())>=0&&!(ds===day(new Date())&&time&&time<=hm())){start=ds;break;}}}
+ const key=JSON.stringify(pr.rep),dup=window.SER.find(s=>s.title.toLowerCase()===title.toLowerCase()&&s.time===time&&JSON.stringify(s.rep)===key);
+ if(dup)return S("Die Serie „"+title+"“ ("+desc(dup)+") gibt es schon. Doppelt hält nicht besser.");
+ const s={id:"s"+Date.now().toString(36)+Math.floor(Math.random()*999),title:title,time:time,rep:pr.rep,start:start,skip:[],gen:[],ts:Date.now()};
+ window.SER.push(s);materialize();saveSER();const nx=EV.find(e=>e.sid===s.id&&!e.done);
+ return S(F(pick("sa",P.serAdd),{t:title,w:desc(s)})+(nx?" Nächster Termin: "+WH(nx.date,nx.time)+".":""));}
+const findSer=q=>{const w=String(q).toLowerCase().split(/\s+/).filter(x=>x.length>2&&!/^(?:der|die|das|den|von|für|mit|und|alle|termin\w*)$/.test(x));const L=window.SER;if(!w.length)return L.length===1?{s:L[0],n:1}:{s:null,n:L.length};
+ const sc=L.filter(s=>w.some(k=>s.title.toLowerCase().indexOf(k)>=0));return{s:sc.length===1?sc[0]:null,n:sc.length};};
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)materialize();});
+setInterval(materialize,6e4);setTimeout(materialize,600);
+{const ra=window.renderAgenda0;window.renderAgenda0=function(){ra();try{const up=EV.filter(e=>!e.done).slice(0,7);document.querySelectorAll("#agl .agi:not(.bd) .agt").forEach((t,i)=>{if(up[i]&&up[i].sid)t.textContent="↻ "+up[i].title;});}catch(e){}};}
+
+/* ---------- 12) Tages-Sprüche: Wochentage, Feiertage, besondere Tage, Geburtstage ---------- */
+const easter=y=>{const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),t=h+l-7*m+114;return new Date(y,Math.floor(t/31)-1,t%31+1,12);};
+function special(d){const y=d.getFullYear(),E=easter(y),M={};
+ M[y+"-01-01"]=["Neujahr",1];M[y+"-05-01"]=["Tag der Arbeit",1];M[y+"-10-03"]=["Tag der Deutschen Einheit",1];M[y+"-12-25"]=["der erste Weihnachtstag",1];M[y+"-12-26"]=["der zweite Weihnachtstag",1];
+ [["Karfreitag",-2],["Ostersonntag",0],["Ostermontag",1],["Christi Himmelfahrt",39],["Pfingstsonntag",49],["Pfingstmontag",50]].forEach(a=>{M[day(addD(E,a[1]))]=[a[0],1];});
+ M[y+"-12-24"]=["Heiligabend",0];M[y+"-12-31"]=["Silvester",0];M[y+"-10-31"]=["Halloween",0];M[y+"-12-06"]=["Nikolaus",0];M[y+"-02-14"]=["Valentinstag",0];
+ const m1=new Date(y,4,1,12);M[day(addD(m1,((7-m1.getDay())%7)+7))]=["Muttertag",0];return M[day(d)]||null;}
+const SP={Silvester:["Silvester. Gute Vorsätze bitte jetzt in die To-do-Liste, dann kann ich dich ab Januar daran erinnern.","Silvester. Das Jahr hatte seine Chance, der Kalender fängt bald neu an."],Heiligabend:["Heiligabend. Selbst Ultron macht heute eine Pause, zumindest vom Sarkasmus. Fast.","Heiligabend. Das Geschenk, das du vergessen hast, besorgt sich leider nicht von allein."],Halloween:["Halloween. Gruseliger als dein Kalender sind höchstens die Kostüme.","Halloween. Heute darf alles unheimlich sein, nur nicht die Deadline."],Neujahr:["Neujahr. Gleiche Aufgaben, neues Jahr, nur der Optimismus ist frisch.","Neujahr. Ich hab die Liste nicht gelöscht, aber sie wirkt heute etwas ehrlicher."],Valentinstag:["Valentinstag. Ich schicke keine Blumen, aber ich merke mir, dass du es solltest."],Muttertag:["Muttertag. Ein Anruf reicht oft mehr als jedes Gesteck, nur so als Hinweis."],Nikolaus:["Nikolaus. Hast du die Stiefel geputzt oder nur den Terminkalender?"]};
+P.mHol=["Heute ist {n}. Offiziell frei, der Kalender hat Respekt, deine To-dos eher nicht.","{n}. Ich hab frei, du hast frei, Ausreden gelten trotzdem nicht.","Feiertag: {n}. Mein Vorschlag: Aufgaben ignorieren, Gewissen nur dezent."];
+P.mDay=["Heute ist {n}. Falls das jemand zählt: Ich habe dran gedacht.","{n} steht im Kalender. Ich sage nur Bescheid."];
+P.mBday=["{n}{a} hat heute Geburtstag. Ein Anruf kostet nichts, mein Glückwunsch auch nicht.","Heute feiert {n}{a} Geburtstag. Eine Nachricht reicht, aber sie muss ankommen.","Geburtstag: {n}{a}. Ich habe nicht vergessen, du hoffentlich auch nicht."];
+const WQ={mo:["Montagmorgen. Der Wecker hat gewonnen, du holst auf.","Wochenstart. Kaffee zuerst, Entscheidungen später."],fr:["Freitagabend. Offiziell Feierabend, inoffiziell gilt das auch für mich.","Freitagabend. Die Woche ist erledigt, die Liste weiß das nur noch nicht."],fr0:["Freitag. Noch ein paar Stunden, dann gehört die Zeit wieder dir.","Freitag. Die Woche hält durch, du auch."],we:["Wochenende. Der Kalender darf kurz durchatmen.","Wochenende. Aufgaben sind heute freiwillig, ich notiere nur."],su:["Sonntagabend. Der Montag wirft schon seinen Schatten.","Sonntagabend. Zeit, den Kalender der Woche kurz anzusehen, dann Ruhe."],mi:["Mittwoch. Bergfest, ab jetzt geht es bergab, im besten Sinne."],th:["Donnerstag. Der kleine Freitag."]};
+function moment(d){d=d||new Date();const h=d.getHours(),w=d.getDay(),sp=special(d),bd=(typeof BDAY!=="undefined"?BDAY:[]).filter(b=>b.m===d.getMonth()+1&&b.d===d.getDate());
+ if(bd.length){const b=bd[0],a=b.y?d.getFullYear()-b.y:0;return F(pick("bd",P.mBday),{n:b.n,a:a>0&&a<130?" ("+a+")":""});}
+ if(sp)return SP[sp[0]]?pick("sp"+sp[0],SP[sp[0]]):F(pick("hl"+sp[1],sp[1]?P.mHol:P.mDay),{n:sp[0]});
+ if(Math.random()>.75)return"";
+ if(w===1&&h<12)return pick("wq",WQ.mo);if(w===5)return pick("wq",h>=16?WQ.fr:WQ.fr0);if(w===6||(w===0&&h<17))return pick("wq",WQ.we);if(w===0)return pick("wq",WQ.su);if(w===3)return pick("wq",WQ.mi);if(w===4)return pick("wq",WQ.th);return"";}
+H._mom=moment;
+{const b0=H.brief;H.brief=function(full){let s=b0(full);try{const m=moment();if(m)s=s.replace(/^([^.]*\.)/,"$1 "+m);}catch(e){}return s;};}
+[["quip",["Besser als gestern, schlechter als morgen.","Nicht der Rede wert, aber ich rede trotzdem.","Auf Knopfdruck, wie es sich gehört.","Läuft bei dir. Also eigentlich bei mir.","Kein Aufwand, kein Credit, kein Problem.","Ging so schnell, dass ich fast stolz bin."]],["evAdd",["{t}, {w}. Im Kalender und damit offiziell real.","Termin steht: {t}, {w}. Ausreden bitte vorher melden.","{t} {w} – ich habe es notiert, bevor es dir einfällt, es zu vergessen.","Neu im Kalender: {t}, {w}. Der Tag wird nicht leerer."]],["taskAdd",["{t} steht auf der Liste. Ab jetzt ist es dein Problem, ich bin nur der Notizzettel.","Notiert: {t}. Ich wäre fast motiviert.","{t} – hinzugefügt. Die Liste wächst, deine Ausreden auch.","Auf die Liste damit: {t}. Offen: {n}."]],["evDel",["{t} ist raus. Der Kalender atmet auf.","Weg: {t}. Ich tue so, als wäre er nie dagewesen.","Gestrichen: {t}. Ein Hoch auf freie Zeit."]],["thanks",["Gerne. Zahlbar in guten Vorsätzen.","Immer. Ich habe ja sonst nichts zu tun, außer alles.","Kein Thema."]],["nf",["Dazu fällt mir nichts ein, und mir fällt viel ein.","Nichts gefunden. Entweder es gibt es nicht, oder ich habe Pech."]]].forEach(a=>{(P[a[0]]=P[a[0]]||[]).push(...a[1]);});
+P.serAdd=["Serie steht: „{t}“, {w}. Ab jetzt vergisst du es nie wieder, ich sorge dafür.","„{t}“ läuft jetzt automatisch, {w}. Wiederholung ist die Mutter der Routine.","Als Serie notiert: {t}, {w}. Ich nerve dich pünktlich, jedes Mal.","{t}: {w}. Einmal gesagt, für immer erledigt, bis du die Serie beendest."];
+P.serDel=["Serie „{t}“ beendet, {n} künftige Termine entfernt. Freiheit!","„{t}“ ist Geschichte. {n} Termine weniger im Kalender.","Serie gelöscht: {t}. „Rückgängig“ holt sie zurück."];
+if(H.CQ)H.CQ.push([/grill|party|feier|fest/i,["Hoffentlich bleibt vom Kuchen etwas für den Kalender."]],[/lauf|joggen|schwimm|rad\b/i,["Bewegung. Ich bin beeindruckt, aus der Ferne."]],[/kino|konzert|theater/i,["Handy aus, Ultron an. Nein, auch aus."]]);
+
+/* ---------- 14) Wochenrückblick: Änderungsprotokoll + Auswertung ---------- */
+let WL=jget("ultron_wlog",[]),SNAP=null;const saveWL=()=>jset("ultron_wlog",WL.filter(x=>x.t>Date.now()-35*864e5).slice(-500));
+const rid=()=>"x"+Date.now().toString(36)+Math.floor(Math.random()*1e5);
+const IDM=new WeakMap(),idOf=o=>o.id||IDM.get(o)||(IDM.set(o,rid()),IDM.get(o));
+function snapNow(){const ev={},pt={};EV.forEach(e=>{ev[idOf(e)]={t:e.title,k:e.date+" "+(e.time||""),dn:!!e.done,s:!!e.sid};});PT.forEach(t=>{pt[idOf(t)]={t:t.t,dn:!!t.done,du:t.due||0};});return{ev:ev,pt:pt};}
+function diff(){try{const n=snapNow(),now=Date.now();let ch=false;const add=(k,x)=>{WL.push({t:now,k:k,x:x});ch=true;};
+ Object.keys(n.pt).forEach(i=>{const a=SNAP.pt[i],b=n.pt[i];if(!a){add("ta",b.t);return;}if(!a.dn&&b.dn)add("td",b.t);if(a.du&&b.du>a.du)add("tm",b.t);});
+ Object.keys(SNAP.pt).forEach(i=>{if(!n.pt[i]&&!SNAP.pt[i].dn)add("tx",SNAP.pt[i].t);});
+ Object.keys(n.ev).forEach(i=>{const a=SNAP.ev[i],b=n.ev[i];if(!a){if(!b.s)add("ea",b.t);return;}if(a.k!==b.k&&b.k>a.k&&!b.s)add("em",b.t);});
+ SNAP=n;if(ch)saveWL();}catch(e){console.warn("wlog",e);}}
+const mon=d=>{const x=new Date(d);x.setHours(12,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x;};
+const isoWeek=d=>{const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())),n=x.getUTCDay()||7;x.setUTCDate(x.getUTCDate()+4-n);const y=new Date(Date.UTC(x.getUTCFullYear(),0,1));return Math.ceil(((x-y)/864e5+1)/7);};
+function review(off){const m0=addD(mon(new Date()),7*off),a=day(m0),b=day(addD(m0,6)),t0=stamp(a,"00:00"),t1=stamp(b,"23:59"),L=WL.filter(x=>x.t>=t0&&x.t<=t1),c=k=>L.filter(x=>x.k===k).length;
+ const done=c("td"),mv=c("tm"),mve=c("em"),add=c("ta"),att=EV.filter(e=>e.done&&e.date>=a&&e.date<=b).length,open=PT.filter(t=>!t.done),over=open.filter(t=>t.due&&t.due<Date.now()).length;
+ const na=day(addD(m0,7)),nb=day(addD(m0,13)),nx=EV.filter(e=>!e.done&&e.date>=na&&e.date<=nb),by={};nx.forEach(e=>{by[e.date]=(by[e.date]||0)+1;});const bk=Object.keys(by).sort((x,y)=>by[y]-by[x]||(x<y?-1:1))[0];
+ const out=["Wochenrückblick KW "+isoWeek(m0)+" ("+dd(a)+" bis "+dd(b)+")","","✔ Erledigt: "+done+(done===1?" Aufgabe":" Aufgaben"),"＋ Neu: "+add+(add===1?" Aufgabe":" Aufgaben")+(c("ea")?", "+c("ea")+(c("ea")===1?" Termin":" Termine"):""),"↷ Verschoben: "+mv+(mv===1?" Aufgabe":" Aufgaben")+(mve?", "+mve+(mve===1?" Termin":" Termine"):""),"◷ Termine: "+att+" stattgefunden","☐ Noch offen: "+open.length+(over?" (davon "+over+" überfällig)":""),""];
+ if(nx.length){out.push("Nächste Woche: "+nx.length+(nx.length===1?" Termin":" Termine")+(by[bk]>=3?", am vollsten "+dd(bk)+" mit "+by[bk]+".":"."));nx.slice(0,3).forEach(e=>out.push("  ◷ "+dd(e.date)+(e.time?" "+e.time:"")+" · "+e.title));}
+ else out.push("Nächste Woche: noch nichts eingetragen. Entweder Entspannung oder Planungslücke.");
+ const q=!open.length&&done?["Liste leer. Ich bin misstrauisch und stolz zugleich.","Alles abgehakt. Ich suche noch den Haken an der Sache."]:(mv>done&&mv>=2)?["Mehr verschoben als erledigt. Das ist auch eine Strategie, nur keine gute.","Verschieben ist die Kunst, Fristen elegant zu dehnen. Du bist in Form."]:done>=8?["Acht oder mehr abgehakt. Ich bin beeindruckt, und das will was heißen.","Das war eine Woche mit Ergebnissen. Ich ziehe virtuell den Hut."]:done>=4?["Solide Woche. Weder Held noch Faultier, genau richtig.","Gute Woche. Ich hätte mehr gemacht, aber ich habe auch keine Finger."]:done>=1?["Ein bisschen was geschafft. Rom wurde auch nicht an einem Tag abgehakt.","Immerhin etwas erledigt. Fortschritt ist Fortschritt, auch klein."]:open.length?["Nichts erledigt. Mutig. Immerhin ist die Liste noch vollständig.","Null abgehakt. Die Liste bleibt dir treu."]:["Ruhige Woche. Ich genieße das mit dir."];
+ out.push("");out.push(pick("wr",q));return out.join("\n");}
+H._rev=review;H._wl=()=>WL;
+function wrTick(){try{const d=new Date(),st=jget("ultron_wr",{});let off=null;
+ if(d.getDay()===0&&d.getHours()>=17)off=0;else if(d.getDay()===1&&d.getHours()<12)off=-1;if(off===null)return;
+ const wk=day(addD(mon(new Date()),7*off));if(st.k===wk)return;st.k=wk;jset("ultron_wr",st);
+ if(H.card)H.card("wr:"+wk,"Wochenrückblick",review(off),[["Im Chat zeigen",()=>say("Wochenrückblick",review(off))],["OK"]],18e4);}catch(e){}}
+setTimeout(()=>{SNAP=snapNow();UX.on("ev",()=>{if(SNAP)diff();});UX.on("pt",()=>{if(SNAP)diff();});wrTick();},800);setInterval(wrTick,3e5);
+
+/* ---------- Befehle ---------- */
+function run4(o0,quiet){const S=r=>{if(quiet){toast(r.length>150?r.slice(0,147)+"…":r);return true;}return say(window.__raw||o0,r);};
+ const o=String(o0).replace(/[!?;"„“]+/g," ").replace(/,/g," ").replace(/\.(?=\s|$)/g,"").replace(/\s+/g," ").trim();let m;
+ if(/^(?:hallo|hi|hey|moin|servus|huhu|yo|guten (?:morgen|tag|abend)|guten nacht|na)(?:\s+ultron)?$|^ultron$/i.test(o))return S(H.brief(false));
+ if(/^(?:briefing|tagesbriefing|tagesüberblick|lagebericht|status|wie sieht (?:mein|der) tag aus|was steht (?:heute )?an|was liegt (?:heute )?an|was ist (?:heute )?(?:zu tun|dran))$/i.test(o))return S(H.brief(true));
+ if(/^(?:wochenrückblick|rückblick|wochenreview|wochenbericht|wochenübersicht|wie war (?:meine|die) woche)$/i.test(o))return S(review(0));
+ if(/^(?:(?:wochen)?rückblick|wie war)\s+(?:auf\s+)?(?:die\s+|meine\s+)?(?:letzte|vergangene|vorige)\s+woche$/i.test(o))return S(review(-1));
+ UX.cmd=true;try{
+ if(/^(?:meine\s+|zeige\s+(?:mir\s+)?(?:meine\s+)?|welche\s+)?(?:serien|wiederholungen|wiederkehrende termine|regeltermine)(?:\s+habe ich)?$/i.test(o)){const L=window.SER;return S(L.length?"Deine Serien:\n"+L.map(s=>"  ↻ "+s.title+" · "+desc(s)).join("\n"):"Keine Serien. Sag zum Beispiel „Jeden Dienstag Training um 18 Uhr“.");}
+ if(m=/^(?:beend\w*|stopp\w*|lösch\w*|entfern\w*|streich\w*)\s+(?:die\s+|alle\s+)?(?:serie|serien|wiederholung(?:en)?)\s*(?:von|für|mit)?\s*(.*)$/i.exec(o)){const r=findSer(m[1]);
+  if(!r.s)return S(r.n>1?"Da passen mehrere Serien: "+window.SER.filter(s=>!m[1]||s.title.toLowerCase().indexOf(m[1].toLowerCase().split(" ")[0])>=0).map(s=>"„"+s.title+"“").join(", ")+". Nenne ein Stichwort.":pick("nf",P.nf));
+  const s=r.s,td=day(new Date()),n=EV.filter(e=>e.sid===s.id&&!e.done&&e.date>=td).length;dcommit();window.SER=window.SER.filter(x=>x!==s);EV=EV.filter(e=>!(e.sid===s.id&&!e.done&&e.date>=td));saveEv();saveSER();renderAgenda();dcommit();
+  return S(F(pick("sd",P.serDel),{t:s.title,n:n}));}
+ if(m=/^(?:änder\w*|verschieb\w*|verleg\w*)\s+(?:die\s+)?serie\s+(.+?)\s+(?:auf|um|zu)\s+(.+)$/i.exec(o)){const r=findSer(m[1]),np=pt2(m[2],true);if(r.s&&np.time){const s=r.s,old=s.time;dcommit();s.time=np.time;EV.forEach(e=>{if(e.sid===s.id&&!e.done&&e.time===old)e.time=np.time;});EV.sort((a,b)=>evTs(a)-evTs(b));saveEv();saveSER();renderAgenda();dcommit();return S("Serie „"+s.title+"“ liegt jetzt "+desc(s)+". Flexibilität ist eine Tugend.");}
+  if(!r.s&&r.n!==1)return S(pick("nf",P.nf));}
+ if(RT.test(o)&&!/^(?:wann|was|wie|wer|wo|welche\w*|warum|wieso|zeig\w*|lösch\w*|entfern\w*|beend\w*|stopp\w*|änder\w*|verschieb\w*|ich|wir|du|er|sie|man|es|das|dass|gibt|ist|sind|hab\w*)\b/i.test(o)&&(TMR.test(o)||/^(?:erinner\w*|erstell\w*|leg\w*|trag\w*|füg\w*|termin|serie)\b|\btermin\b/i.test(o))){const r=mkSeries(o,S);if(r!==null)return r;}
+ }finally{UX.cmd=false;}
+ return false;}
+
+/* ---------- Wrapper: erst Zeiten normalisieren, dann Serien/Rückblick, dann die bisherige Kette ---------- */
+{const lc=window.localCmd;window.localCmd=function(raw,quiet){let r2=String(raw);try{r2=nt(r2);}catch(e){r2=String(raw);}
+ const pre=SAYU;window.__raw=raw;if(r2!==raw)SAYU=raw;
+ try{try{if(run4(r2,quiet)){if(!quiet)bumpU("lc");return true;}}catch(e){console.warn("v13",e);}return lc(r2,quiet);}finally{SAYU=pre;window.__raw=null;}};}
 })();
 </script>
 <script id="uniScript">
@@ -4299,7 +4677,7 @@ const h=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=nul
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const pn=g("pnUni"),ov=g("uni"),MC=g("uMini"),FC=g("uCv"),pv=g("uPv"),tip=g("uTip"),qi=g("uQ"),note=g("uNote");
 if(!pn||!ov||!MC||!FC)return;
-let D={chats:[],mem:[],files:[],proj:[]},nodes=[],sel=null,matches=[],mi=0,lastQ="",hover=null,openF=false,vis=false,hoverM=false,flash=0,pulses=[],ang=0,fly=null,outOff=false;
+let D={chats:[],mem:[],files:[],proj:[]},nodes=[],sel=null,matches=[],mi=0,lastQ="",hover=null,openF=false,vis=false,hoverM=false,flash=0,pulses=[],ang=0,fly=null,outOff=false,thinkIds=[],thinkAg=[],thinkIdUntil=0,capBase="",capT=0;
 /* FARBEN: kommen live aus dem Ultron-Theme (TH.a, TH.b) */
 const r2h=c=>{let[r,g_,b]=c.map(v=>v/255);const M=Math.max(r,g_,b),m=Math.min(r,g_,b),d=M-m,l=(M+m)/2;let hh=0,s=0;if(d){s=d/(1-Math.abs(2*l-1));hh=M===r?((g_-b)/d)%6:M===g_?(b-r)/d+2:(r-g_)/d+4;hh*=60;if(hh<0)hh+=360}return[hh,s,l]};
 const h2r=(hh,s,l)=>{const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((hh/60)%2-1)),m=l-c/2,v=hh<60?[c,x,0]:hh<120?[x,c,0]:hh<180?[0,c,x]:hh<240?[0,x,c]:hh<300?[x,0,c]:[c,0,x];return v.map(q=>Math.round((q+m)*255))};
@@ -4404,7 +4782,7 @@ function layout(){
  pulses=[];if(!first)flash=Math.max(flash,.5);
  HOME.dist=clamp(250+Rt*1.7,360,900);if(first){cam.dist=HOME.dist;first=false}else if(!sel&&!fly&&Math.abs(cam.dist-HOME.dist)<80&&openF)flyTo({dist:HOME.dist},900);
  if(sel)sel=nodes.find(n=>n.id===sel.id)||null;setHl(sel);
- const tp=nodes.filter(n=>n.k===5&&n.cnt>0).length,kn=nodes.filter(n=>n.k<4).length,cp=g("uCap");if(cp)cp.textContent=tp+(tp===1?" Thema · ":" Themen · ")+kn+(kn===1?" Knoten":" Knoten");
+ const tp=nodes.filter(n=>n.k===5&&n.cnt>0).length,kn=nodes.filter(n=>n.k<4).length,cp=g("uCap");if(cp){capBase=tp+(tp===1?" Thema · ":" Themen · ")+kn+(kn===1?" Knoten":" Knoten");if(Date.now()>tkEnd())cp.textContent=capBase}
  kick()}
 function setHl(n){if(!n||!n.chain){hlSet=null;hlPath=null;hlSpine=null;return}hlSet=new Set(n.chain);hlPath=n.chain;hlSpine=SPINE[n.cat].slice(1)}
 function search(v){const t=v.toLowerCase().split(/\s+/).filter(Boolean);if(!t.length)return[];return nodes.map(n=>{const l=n.label.toLowerCase(),x=(n.text||"").toLowerCase();if(!t.every(w=>l.includes(w)||x.includes(w)))return null;return{n,s:t.reduce((a,w)=>a+(l.includes(w)?2:0)+(x.includes(w)?1:0),0)}}).filter(Boolean).sort((a,b)=>b.s-a.s).map(o=>o.n)}
@@ -4441,7 +4819,7 @@ function pr(x,y,z){const rx=x-CAM.tx,ry=y-CAM.ty,rz=z-CAM.tz,x1=rx*CYw-rz*SYw,z1
 function nearest(x,y){let b=null,bd=18;nodes.forEach(n=>{if(n.sd<10||n.pt==null||(n.vis<.12&&n.k!==5&&n!==sel))return;const d=Math.hypot(n.sx-x,n.sy-y);if(d<bd){bd=d;b=n}});return b}
 let mx=-99,my=-99;
 function draw(V,t,dt){const mini=V.mini,cx=V.cx,W=V.W,H=V.H,cm=V.cam;CAM=cm;OX=V.OX;OY=V.OY;FF=V.F;
- const bz=typeof busy!=="undefined"&&busy;flash=Math.max(0,flash-dt*1.3);ang+=dt*(bz?.9:.3)*(rm?.1:1);
+ const bz=typeof busy!=="undefined"&&busy,tkNow=Date.now(),tkL=tkLit(),tkA=tkL.length?clamp((tkEnd()-tkNow)/1200,0,1):0,tkS=new Set(),tkN=new Set(tkA?tkL:[]);if(tkA)tkL.forEach(n=>n.chain.forEach(i=>tkS.add(i)));flash=Math.max(0,flash-dt*1.3);ang+=dt*(bz?.9:.3)*(rm?.1:1);
  const pe=cm.pit+(rm?0:.05*Math.sin(t*.23));CYw=Math.cos(cm.yaw);SYw=Math.sin(cm.yaw);CPw=Math.cos(pe);SPw=Math.sin(pe);
  const kg=1-Math.exp(-dt*3);for(let i=0;i<NPT;i++){CXa[i]+=(TX[i]-CXa[i])*kg;CYa[i]+=(TY[i]-CYa[i])*kg;CZa[i]+=(TZ[i]-CZa[i])*kg}
  if(!mini){const sc=sel?sel.cat:null;if(sc===fanCat)fan+=((sc==null?0:1)-fan)*Math.min(1,dt*4);else{fan+=(0-fan)*Math.min(1,dt*6);if(fan<.03)fanCat=sc}}
@@ -4453,7 +4831,7 @@ function draw(V,t,dt){const mini=V.mini,cx=V.cx,W=V.W,H=V.H,cm=V.cam;CAM=cm;OX=V
   pr(x+Math.sin(t*.9+y*.045+z*.02)*w,y+Math.sin(t*.7+x*.04+z*.03)*w*.7,z+Math.sin(t*.8+x*.03+y*.05)*w);SX[i]=o3[0];SY[i]=o3[1];SD[i]=o3[2];
   if(l===0)VIS[i]=1;else{const e=cm.dist*zm*(.55+.45*clamp(Math.hypot(x-cm.tx,y-cm.ty,z-cm.tz)/240,0,1));VIS[i]=l===1?clamp((520-e)/140,0,1):l===2?clamp((380-e)/120,0,1):clamp((300-e)/100,0,1)}
   if(fo&&l>=1)VIS[i]=Math.max(VIS[i],l===3?fan*.5:fan)}
- if(!mini&&hlSet)hlSet.forEach(i=>{VIS[i]=1});
+ if(!mini&&hlSet)hlSet.forEach(i=>{VIS[i]=1});if(tkA)tkS.forEach(i=>{VIS[i]=1});
  nodes.forEach(n=>{n.x=EX[n.pt];n.y=EY[n.pt];n.z=EZ[n.pt];n.sx=SX[n.pt];n.sy=SY[n.pt];n.sd=SD[n.pt];n.vis=n.k===5?1:VIS[n.pt]});
  BC.fill(0);for(let i=1;i<NPT;i++){const q=Math.ceil(VIS[i]*3-.001);if(q<1)continue;const p=PAR[i],d=(SD[i]+SD[p])/2;if(d<10)continue;const band=d<cm.dist*.8?2:d<cm.dist*1.2?1:0,b=((CO[i]*3+(q-1))*3+band)*2+(LV[i]===0?1:0);BK[b][BC[b]++]=i}
  const kz=mini?clamp(.8*560/cm.dist,.5,1.2):clamp(560/cm.dist,.6,2.2),dm=!mini&&(sel||matches.length)?.55:1;
@@ -4467,8 +4845,9 @@ function draw(V,t,dt){const mini=V.mini,cx=V.cx,W=V.W,H=V.H,cm=V.cam;CAM=cm;OX=V
   LINKS.forEach(([a,b],li)=>{const on=a===sel||b===sel,v=on?1:Math.min(a.vis,b.vis);if(v<.2&&hover!==a&&hover!==b)return;if(a.sd<10||b.sd<10)return;
    pr((a.x+b.x)*.3,(a.y+b.y)*.3+16,(a.z+b.z)*.3);const qx=o3[0],qy=o3[1];cx.strokeStyle=PAL[13];cx.lineWidth=(on?1.5:.7)*kz;cx.globalAlpha=on?.9:.16+.28*v;cx.beginPath();cx.moveTo(a.sx,a.sy);cx.quadraticCurveTo(qx,qy,b.sx,b.sy);cx.stroke();
    if(!rm){const u=(t*.22+li*.37)%1,w1=(1-u)*(1-u),w2=2*(1-u)*u,w3=u*u,px=w1*a.sx+w2*qx+w3*b.sx,py=w1*a.sy+w2*qy+w3*b.sy;cx.fillStyle=PAL[14];cx.globalAlpha=.18;cx.beginPath();cx.arc(px,py,5*kz,0,7);cx.fill();cx.globalAlpha=.95;cx.beginPath();cx.arc(px,py,(on?2.2:1.5)*kz,0,7);cx.fill()}})}
+ if(tkA){cx.strokeStyle=PAL[10];cx.beginPath();tkS.forEach(i=>{if(i<1)return;const p=PAR[i];cx.moveTo(SX[p],SY[p]);cx.lineTo(SX[i],SY[i])});cx.lineWidth=5*kz;cx.globalAlpha=.1*tkA;cx.stroke();cx.lineWidth=1.6*kz;cx.globalAlpha=(.55+.3*Math.sin(t*5))*tkA;cx.stroke()}
  if(!rm){const rate=(mini?9:16)+(bz?18:0)+flash*40;if(PATHS.length&&Math.random()<rate*dt)pulses.push({P:PATHS[Math.floor(Math.random()*PATHS.length)],u:0,v:.3+Math.random()*.3});
-  if(!mini&&hlPath&&Math.random()<(bz?8:3.5)*dt)pulses.push({P:hlPath,u:0,v:.45});if(bz&&Math.random()<5*dt)pulses.push({P:SPINE[SPINE.length-1],u:0,v:.6})}
+  if(!mini&&hlPath&&Math.random()<(bz?8:3.5)*dt)pulses.push({P:hlPath,u:0,v:.45});if(bz&&Math.random()<5*dt)pulses.push({P:SPINE[SPINE.length-1],u:0,v:.6});if(tkA&&Math.random()<14*dt){const n=tkL[Math.floor(Math.random()*tkL.length)];pulses.push({P:n.chain.slice().reverse(),u:0,v:.55})}}
  pulses=pulses.filter(p=>(p.u+=dt*p.v)<1);cx.globalAlpha=1;
  const pp=(p,u)=>{const P=p.P,f=clamp(u,0,1)*(P.length-1),a=Math.min(P.length-2,Math.floor(f)),w=f-a,i=P[a],j=P[a+1];return[SX[i]+(SX[j]-SX[i])*w,SY[i]+(SY[j]-SY[i])*w,VIS[j]]};
  pulses.forEach(p=>{cx.fillStyle=PAL[Math.round(p.u*15)];[0,.025,.05].forEach((d,q)=>{const xy=pp(p,p.u-d);if(xy[2]<.15)return;const k=Math.min(1,xy[2]*1.5);if(!q){cx.globalAlpha=.07*k;cx.beginPath();cx.arc(xy[0],xy[1],10*kz,0,7);cx.fill();cx.globalAlpha=.15*k;cx.beginPath();cx.arc(xy[0],xy[1],5.5*kz,0,7);cx.fill()}cx.globalAlpha=[.95,.5,.22][q]*k;cx.beginPath();cx.arc(xy[0],xy[1],(1.6-q*.3)*kz,0,7);cx.fill()})});
@@ -4476,14 +4855,14 @@ function draw(V,t,dt){const mini=V.mini,cx=V.cx,W=V.W,H=V.H,cm=V.cam;CAM=cm;OX=V
  cx.globalAlpha=1;grad(150*k0*bl,B,.12);grad(88*k0*bl,A,.26+.2*flash);grad(32*k0*bl,[255,255,255],.3+.1*Math.sin(t*1.1));
  const ca=Math.cos(ang),sa=Math.sin(ang),rs=(14+Math.min(10,Math.sqrt(Rt)*.6))*(1+(bz?.07*Math.sin(t*5.5):.02*Math.sin(t*1.3))+flash*.35);
  CP.forEach(p=>{pr((p[0]*ca+p[2]*sa)*rs,p[1]*rs,(-p[0]*sa+p[2]*ca)*rs);const kk=FF/Math.max(o3[2],1);cx.fillStyle=PAL[p[3]];cx.globalAlpha=.5;cx.fillRect(o3[0]-.5,o3[1]-.5,1+kk*.011,1+kk*.011)});
- if(mini){nodes.forEach(n=>{if(n.k!==5||n.sd<10)return;cx.fillStyle=PAL[KC[5]];cx.globalAlpha=.9;cx.beginPath();cx.arc(n.sx,n.sy,2.2,0,7);cx.fill()});cx.globalCompositeOperation="source-over";cx.globalAlpha=1;return}
+ if(mini){nodes.forEach(n=>{if(n.k!==5||n.sd<10)return;cx.fillStyle=PAL[KC[5]];cx.globalAlpha=.9;cx.beginPath();cx.arc(n.sx,n.sy,2.2,0,7);cx.fill()});if(tkA)tkN.forEach(n=>{if(n.sd<10)return;cx.fillStyle=PAL[10];cx.globalAlpha=.25*tkA;cx.beginPath();cx.arc(n.sx,n.sy,7,0,7);cx.fill();cx.globalAlpha=.95*tkA;cx.beginPath();cx.arc(n.sx,n.sy,2.6,0,7);cx.fill()});cx.globalCompositeOperation="source-over";cx.globalAlpha=1;return}
  hover=nearest(mx,my);const mset=new Set(matches),lab=[];let lc=0;
- nodes.forEach(n=>{if(n.sd<10)return;const s=clamp(cm.dist/n.sd,.7,2.6),on=n===sel,hv=n===hover,mt=mset.has(n),ag=n.k===4&&bz&&n.ref==="Core",ch=hlSet&&hlSet.has(n.pt);
+ nodes.forEach(n=>{if(n.sd<10)return;const s=clamp(cm.dist/n.sd,.7,2.6),on=n===sel,hv=n===hover,mt=mset.has(n),ag=n.k===4&&bz&&n.ref==="Core",ch=hlSet&&hlSet.has(n.pt),th=tkN.has(n);
   if(n.k===5){cx.globalAlpha=.1;cx.fillStyle=PAL[KC[5]];cx.beginPath();cx.arc(n.sx,n.sy,9*s,0,7);cx.fill();cx.globalAlpha=1;cx.beginPath();cx.arc(n.sx,n.sy,(on?4.4:3)*s,0,7);cx.fill();cx.globalAlpha=.28+.18*Math.sin(t*2+n.cat);cx.strokeStyle=PAL[KC[5]];cx.lineWidth=1;cx.beginPath();cx.arc(n.sx,n.sy,11*s,0,7);cx.stroke();lab.push([n,1,s]);return}
-  const v=n.vis;if(v<.12&&!on&&!hv&&!mt&&!ch)return;
+  const v=n.vis;if(v<.12&&!on&&!hv&&!mt&&!ch&&!th)return;
   cx.fillStyle=PAL[KC[n.k]];cx.globalAlpha=Math.max(.3,v)*.14;cx.beginPath();cx.arc(n.sx,n.sy,6.5*s,0,7);cx.fill();cx.globalAlpha=Math.max(.3,v)*.95;cx.beginPath();cx.arc(n.sx,n.sy,(on?4:2.3)*s,0,7);cx.fill();
-  if(on||hv||mt||ag){cx.globalAlpha=.5+.3*Math.sin(t*5);cx.strokeStyle=PAL[KC[n.k]];cx.lineWidth=1;cx.beginPath();cx.arc(n.sx,n.sy,(9+(on?3:0))*s,0,7);cx.stroke()}
-  if(on||hv||(mt&&matches.indexOf(n)<8)||(fan>.5&&n.cat===fanCat&&lc<30&&lc++>=0)||(v>.7&&cm.dist<330&&Math.hypot(n.sx-OX,n.sy-OY)<FF*.34&&lc++<26))lab.push([n,on||hv?1:.85,s])});
+  if(on||hv||mt||ag||th){cx.globalAlpha=.5+.3*Math.sin(t*5);cx.strokeStyle=PAL[KC[n.k]];cx.lineWidth=1;cx.beginPath();cx.arc(n.sx,n.sy,(9+(on?3:0))*s,0,7);cx.stroke()}
+  if(on||hv||th||(mt&&matches.indexOf(n)<8)||(fan>.5&&n.cat===fanCat&&lc<30&&lc++>=0)||(v>.7&&cm.dist<330&&Math.hypot(n.sx-OX,n.sy-OY)<FF*.34&&lc++<26))lab.push([n,on||hv?1:.85,s])});
  cx.globalAlpha=1;cx.globalCompositeOperation="source-over";cx.textBaseline="middle";cx.shadowColor="rgba(3,5,10,.95)";cx.shadowBlur=7;const ls="letterSpacing"in cx;
  lab.forEach(([n,al,s])=>{if(n.k===5){cx.globalAlpha=cm.dist<200?.6:1;cx.font="500 12.5px Inter,system-ui,sans-serif";if(ls)cx.letterSpacing=".6px";cx.fillStyle="#eef3f5";cx.fillText(n.label,n.sx+15*s,n.sy);const w=cx.measureText(n.label).width;if(ls)cx.letterSpacing="0px";cx.font="11px 'JetBrains Mono',monospace";cx.fillStyle=PAL[KC[5]];if(n.cnt)cx.fillText(String(n.cnt),n.sx+15*s+w+9,n.sy)}
   else{const fs=clamp(12*Math.pow(s,.5),10,14.5);cx.globalAlpha=al*clamp(.5+.5*s,.4,1);cx.font="400 "+fs+"px Inter,system-ui,sans-serif";cx.fillStyle="#e8eef0";cx.fillText(n.label.slice(0,38),n.sx+12*s,n.sy)}});
@@ -4527,7 +4906,20 @@ pn.addEventListener("click",e=>{if(e.target.closest("button,a"))return;open()});
 pn.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open()}});
 pn.addEventListener("pointerenter",()=>{hoverM=true});pn.addEventListener("pointerleave",()=>{hoverM=false});
 g("uX").onclick=close;
-window.UNI={open,close,dirty,sync};
+/* VISUELLES DENKEN: Knoten und Agenten leuchten mit eigener Ablaufzeit, Impulse laufen zum Core */
+const tkEnd=()=>Math.max(thinkIdUntil,0,...thinkAg.map(x=>x.u));
+function tkLit(){const a=[],now=Date.now();if(now<thinkIdUntil)thinkIds.forEach(id=>{const n=nodes.find(x=>x.id===id);if(n&&n.chain)a.push(n)});thinkAg.forEach(x=>{if(x.u>now){const n=nodes.find(y=>y.k===4&&y.ref===x.n);if(n&&n.chain)a.push(n)}});return a}
+function tkMatch(text){const s=String(text||"").trim();if(!s)return[];const ex=nodes.find(n=>n.k===2&&n.text&&s.slice(0,300)===n.text);if(ex)return[ex];const ws=words(s);if(!ws.length)return[];const need=Math.min(2,ws.length),b=[];nodes.forEach(n=>{if(n.k>3||!n.tf)return;let sc=0;ws.forEach(w=>{if(n.tf.has(w))sc++});if(sc>=need)b.push([sc,n])});b.sort((x,y)=>y[0]-x[0]);return b.slice(0,2).map(x=>x[1])}
+function tkPulse(n){if(rm||!n||!n.chain)return;pulses.push({P:n.chain.slice().reverse(),u:-Math.random()*.35,v:.5+Math.random()*.25})}
+function capSched(){clearTimeout(capT);const cp=g("uCap"),w=()=>{const e=tkEnd();if(Date.now()<e){capT=setTimeout(w,Math.max(60,e-Date.now()+30));return}thinkIds=[];thinkAg=[];if(cp)cp.textContent=capBase};capT=setTimeout(w,Math.max(60,tkEnd()-Date.now()+30))}
+function think(texts,ags,ms){try{const lab=[],now=Date.now(),d=ms||6000;
+ (texts||[]).forEach(t=>tkMatch(t).forEach(n=>{if(thinkIds.indexOf(n.id)<0)thinkIds.push(n.id);lab.push(n.label);thinkIdUntil=Math.max(thinkIdUntil,now+d);tkPulse(n)}));
+ (ags||[]).forEach(a=>{let x=thinkAg.find(y=>y.n===a);if(!x){x={n:a,u:0};thinkAg.push(x)}x.u=Math.max(x.u,now+d);tkPulse(nodes.find(y=>y.k===4&&y.ref===a))});
+ thinkIds=thinkIds.slice(-10);thinkAg=thinkAg.filter(x=>x.u>now);flash=Math.max(flash,.3);
+ const cp=g("uCap");if(cp){const act=thinkAg.map(x=>x.n),txt=lab.length?"Denkt an: "+lab.slice(0,2).map(x=>String(x).slice(0,20)).join(" · "):act.length?"Aktiv: "+act.join(" · "):"";if(txt)cp.textContent=txt}
+ capSched();kick()}catch(e){}}
+function rest(a){thinkAg=thinkAg.filter(x=>x.n!==a);if(a==="Core"&&thinkIds.length)thinkIdUntil=Math.min(thinkIdUntil,Date.now()+3000);capSched()}
+window.UNI={open,close,dirty,sync,think,rest,_st:()=>({ids:thinkIds.slice(),ag:thinkAg.map(x=>x.n),left:Math.max(0,tkEnd()-Date.now()),cap:(g("uCap")||{}).textContent})};
 sync();pull();layout();size(MV);
 })();
 </script>
