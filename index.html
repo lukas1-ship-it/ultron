@@ -906,6 +906,7 @@ html.lt form #in{background:transparent}
   </div>
   <div id="clock"></div>
   <div class="hact" id="hact">
+    <button id="fcBtn" data-p="2" title="Freier Gesprächsmodus (nur Sprache, Partikel-Hologramm)"><span>◉</span><span class="hl"> Gesprächsmodus</span></button>
     <button id="hubBtn" data-p="1" title="Alle Funktionen nach Kategorien"><span>⊞</span><span class="hl"> Funktionen</span></button>
     <button id="wnBtn" data-p="1" hidden title="Geöffnete Fenster"></button>
     <button id="pjBtn" data-p="2" hidden title="Aktives Projekt"></button>
@@ -1919,7 +1920,7 @@ function palItems(q){
   [["calendar","Kalender"],["kanban","Kanban-Board"],["briefing","Tagesbriefing"],["memory","Gedächtnis & Skills"],["scenes","Szenen verwalten"],["history","Umbau-Verlauf"],["expenses","Ausgaben"],["shopping","Einkaufsliste"],["tzplan","Zeitzonen-Planer"],["holidays","Feiertage & Ferien"],["account","Konto"]].forEach(x=>add("Fenster",x[1],()=>openWin({type:x[0],title:x[1]}),"öffnen"));
   add("Aktionen","Neuer Chat",newChat,"chat");add("Aktionen","Rückgängig (letzte Dashboard-Änderung)",()=>{if(!smartUndo())toast("Nichts zum Rückgängigmachen");},"undo");
   add("Aktionen","Modus wechseln (Schnell / Auto / Gründlich)",()=>$("mode").click(),"speed");add("Aktionen","Einstellungen (API-Keys & Budget)",openCfg,"api key budget");
-  add("Aktionen","Datei hochladen",()=>{const f=$("fileIn");if(f)f.click();},"anhang bild pdf csv");add("Aktionen","App installieren",installApp,"pwa");add("Aktionen","Schnell erfassen (Alt+N)",()=>qcOpen(),"eingang notiz idee inbox");add("Wissen & Dateien","Eingang",()=>openWin({type:"inbox",title:"Eingang"}),"inbox erfassen");add("Wissen & Dateien","Wissenskarte",()=>openWin({type:"brain",title:"Wissenskarte"}),"graph gehirn netz");add("Wissen & Dateien","Obsidian-Vault",()=>openWin({type:"vault",title:"Obsidian"}),"notizen");add("Wissen & Dateien","Personen",()=>openWin({type:"people",title:"Personen"}),"kontakte");add("Wissen & Dateien","Was Ultron über dich weiß",()=>openWin({type:"me",title:"Gedächtnis"}),"profil gedächtnis");add("Planen & Organisieren","Wochenreview",()=>openWin({type:"review",title:"Wochenreview"}),"rückblick");add("System & Einstellungen","Alle Funktionen (Übersicht)",()=>openWin({type:"hub",title:"Funktionen"}),"katalog kategorien hilfe");add("Fenster","Tagesplaner",()=>openWin({type:"planner",title:"Tagesplaner"}),"aufgaben planer tag");add("Fenster","Wissensspeicher",()=>openWin({type:"knowledge",title:"Wissen"}),"wissen gelernt");add("Fenster","Auftragszentrale",()=>openWin({type:"jobs",title:"Aufträge"}),"jobs aufträge");add("Fenster","Einstellungen (mit Suche)",()=>openWin({type:"settings",title:"Einstellungen"}),"optionen settings");add("Fenster","Farben anpassen",()=>openWin({type:"settings",title:"Einstellungen",q:"farb"}),"theme farbe design");add("Aktionen","Layout bearbeiten (Panels ziehen)",()=>setEdit(true),"editor verschieben");add("Aktionen","Einführung erneut zeigen",showOnb,"tour hilfe");add("Aktionen","Chat exportieren (Markdown)",()=>exportChat("md"),"export speichern");add("Aktionen","Chat exportieren (PDF)",()=>exportChat("pdf"),"export drucken");add("Aktionen","Kalender exportieren (.ics)",exportICS,"export");add("Aktionen","Kalender importieren (.ics)",()=>$("fileIn").click(),"import");add("Aktionen","Antwort vorlesen",()=>{const la=hist.slice().reverse().find(m=>m.role==="assistant");if(la)speak(la.content);},"stimme tts");add("Aktionen","Diktieren",dictate,"mikrofon sprache");add("Fenster","Papierkorb",()=>openWin({type:"trash",title:"Papierkorb"}),"gelöscht");add("Fenster","Geburtstage",()=>openWin({type:"birthdays",title:"Geburtstage"}),"geburtstag");add("Fenster","Nutzungs-Dashboard",()=>openWin({type:"usage",title:"Nutzung"}),"verbrauch credits statistik");
+  add("Aktionen","Freier Gesprächsmodus (Partikel-Hologramm, nur Sprache)",()=>{if(typeof fcOpen==="function")fcOpen();},"sprache gespräch voice hologramm partikel invisible freier modus");add("Aktionen","Datei hochladen",()=>{const f=$("fileIn");if(f)f.click();},"anhang bild pdf csv");add("Aktionen","App installieren",installApp,"pwa");add("Aktionen","Schnell erfassen (Alt+N)",()=>qcOpen(),"eingang notiz idee inbox");add("Wissen & Dateien","Eingang",()=>openWin({type:"inbox",title:"Eingang"}),"inbox erfassen");add("Wissen & Dateien","Wissenskarte",()=>openWin({type:"brain",title:"Wissenskarte"}),"graph gehirn netz");add("Wissen & Dateien","Obsidian-Vault",()=>openWin({type:"vault",title:"Obsidian"}),"notizen");add("Wissen & Dateien","Personen",()=>openWin({type:"people",title:"Personen"}),"kontakte");add("Wissen & Dateien","Was Ultron über dich weiß",()=>openWin({type:"me",title:"Gedächtnis"}),"profil gedächtnis");add("Planen & Organisieren","Wochenreview",()=>openWin({type:"review",title:"Wochenreview"}),"rückblick");add("System & Einstellungen","Alle Funktionen (Übersicht)",()=>openWin({type:"hub",title:"Funktionen"}),"katalog kategorien hilfe");add("Fenster","Tagesplaner",()=>openWin({type:"planner",title:"Tagesplaner"}),"aufgaben planer tag");add("Fenster","Wissensspeicher",()=>openWin({type:"knowledge",title:"Wissen"}),"wissen gelernt");add("Fenster","Auftragszentrale",()=>openWin({type:"jobs",title:"Aufträge"}),"jobs aufträge");add("Fenster","Einstellungen (mit Suche)",()=>openWin({type:"settings",title:"Einstellungen"}),"optionen settings");add("Fenster","Farben anpassen",()=>openWin({type:"settings",title:"Einstellungen",q:"farb"}),"theme farbe design");add("Aktionen","Layout bearbeiten (Panels ziehen)",()=>setEdit(true),"editor verschieben");add("Aktionen","Einführung erneut zeigen",showOnb,"tour hilfe");add("Aktionen","Chat exportieren (Markdown)",()=>exportChat("md"),"export speichern");add("Aktionen","Chat exportieren (PDF)",()=>exportChat("pdf"),"export drucken");add("Aktionen","Kalender exportieren (.ics)",exportICS,"export");add("Aktionen","Kalender importieren (.ics)",()=>$("fileIn").click(),"import");add("Aktionen","Antwort vorlesen",()=>{const la=hist.slice().reverse().find(m=>m.role==="assistant");if(la)speak(la.content);},"stimme tts");add("Aktionen","Diktieren",dictate,"mikrofon sprache");add("Fenster","Papierkorb",()=>openWin({type:"trash",title:"Papierkorb"}),"gelöscht");add("Fenster","Geburtstage",()=>openWin({type:"birthdays",title:"Geburtstage"}),"geburtstag");add("Fenster","Nutzungs-Dashboard",()=>openWin({type:"usage",title:"Nutzung"}),"verbrauch credits statistik");
   CH.list.forEach(c=>add("Chats","Chat: "+(c.title||"Chat"),()=>switchChat(c.id),"verlauf"));
   PROJ.forEach(p=>add("Projekte","Projekt: "+p.n,()=>{projActivate(p.n);toast("Aktives Projekt: "+p.n);},"projekt"));if(UI.pj)add("Projekte","Projekt beenden",()=>projActivate(""),"projekt");add("Aktionen","Wiederholen",smartRedo,"redo");
   LIB.slice(0,30).forEach(e=>add("Dateien",((LIBL[e.t]||["",e.t])[1])+": "+e.title,()=>libOpen(e),"datei bibliothek"));add("Fenster","Alle Dateien",()=>openWin({type:"library",title:"Dateien"}),"bibliothek erstellt");add("Fenster","Letztes Fenster erneut öffnen",()=>{if(LASTWIN)openWin(LASTWIN);else toast("Noch nichts geöffnet");},"nochmal");
@@ -2839,6 +2840,7 @@ WV.settings=function(b,o){
    ["kontingent tageslimit starke anfragen credits stark","Starke Anfragen pro Tag (0 = unbegrenzt)",rng(0,100,5,()=>SQ(),v=>{PREF.sq=v;jset("ultron_pref",PREF);})],
    ["wissen wissensspeicher antworten gelernt","Wissensspeicher",btns([["Öffnen",()=>openWin({type:"knowledge",title:"Wissen"})],["Leeren ("+KN.length+")",()=>{KN=[];KNE.clear();jset("ultron_kn",KN);toast("Wissensspeicher geleert");}]])],
    ["aufträge hintergrund batch jobs","Aufträge",btn("Auftragszentrale öffnen",()=>openWin({type:"jobs",title:"Aufträge"}))],
+   ["developer mode entwickler testleiste partikel gesprächsmodus debug test","Developer Mode / Testleiste",chk(()=>!!PREF.dev,v=>{PREF.dev=v;jset("ultron_pref",PREF);},"Developer Mode / Partikel-Testleiste im Gesprächsmodus anzeigen (An/Aus)")],
    ["cache antworten löschen speicher","Antwort-Cache",btn("Cache leeren ("+Object.keys(CA).length+")",()=>{CA={};jset("ultron_cache",CA);toast("Cache geleert");})]
   ];
   const SCAT=["Darstellung","Antworten & Credits","Planen & Daten","System"],scat=t=>/Live-Aufbau|Smart|Farben|Hell oder|Dichte|Sprache|Seitenbreite|Layout-Editor/.test(t)?0:/Antwort|Starke Anfragen|API|Wissensspeicher|Vorlese|Diktat/.test(t)?1:/Briefing|Kalender|Papierkorb|Chat exportieren|Arbeitsbereich|Aufträge|Obsidian|Vault/.test(t)?2:3;
@@ -4921,6 +4923,726 @@ function think(texts,ags,ms){try{const lab=[],now=Date.now(),d=ms||6000;
 function rest(a){thinkAg=thinkAg.filter(x=>x.n!==a);if(a==="Core"&&thinkIds.length)thinkIdUntil=Math.min(thinkIdUntil,Date.now()+3000);capSched()}
 window.UNI={open,close,dirty,sync,think,rest,_st:()=>({ids:thinkIds.slice(),ag:thinkAg.map(x=>x.n),left:Math.max(0,tkEnd()-Date.now()),cap:(g("uCap")||{}).textContent})};
 sync();pull();layout();size(MV);
+})();
+</script>
+<style id="fc-style">
+/* ===== ULTRON · Freier Gesprächsmodus (Invisible UI) ===== */
+#fcm{position:fixed;inset:0;z-index:2147483000;background:#000;opacity:0;visibility:hidden;cursor:none;touch-action:none;-webkit-tap-highlight-color:transparent;outline:none;user-select:none;-webkit-user-select:none;transition:opacity .7s ease,visibility 0s linear .7s}
+#fcm.on{opacity:1;visibility:visible;transition:opacity .7s ease,visibility 0s}
+#fcm canvas{position:absolute;inset:0;width:100%;height:100%;display:block;background:#000}
+@keyframes fcOut{from{opacity:1;filter:blur(0)}to{opacity:0;filter:blur(22px)}}
+@keyframes fcIn{from{opacity:0;filter:blur(22px)}to{opacity:1;filter:blur(0)}}
+body.fcOn>*:not(#fcm):not(script):not(style):not(link){animation:fcOut .7s ease forwards;pointer-events:none!important}
+body.fcIn>*:not(#fcm):not(script):not(style):not(link){animation:fcIn .7s ease both}
+#fcBtn span:first-child{color:rgb(var(--c2r));text-shadow:0 0 10px rgba(var(--c2r),.8)}
+/* Developer-Testleiste: existiert nur im DOM, wenn der Schalter in den Einstellungen aktiv ist */
+#fcDev{position:absolute;left:50%;bottom:max(14px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;max-width:94vw;padding:8px 10px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(8,8,10,.72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);cursor:default;z-index:3}
+#fcDev button{font:400 10px var(--mono,ui-monospace,monospace);letter-spacing:.14em;text-transform:uppercase;padding:7px 11px;border-radius:999px;color:#d8d1d5;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);cursor:pointer}
+#fcDev button:hover,#fcDev button.on{color:#fff;border-color:rgb(var(--c2r));box-shadow:0 0 14px rgba(var(--c2r),.35)}
+#fcDev input{font:400 11px var(--mono,ui-monospace,monospace);width:150px;padding:7px 10px;border-radius:999px;color:#fff;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);outline:none}
+#fcDev input:focus{border-color:rgb(var(--c2r))}
+</style>
+<script id="fc-module">
+/* ===== ULTRON · Freier Gesprächsmodus (Invisible UI OS) =====
+   Regisseur-Prinzip: Das LLM liefert kurze Sätze + [MORPH: …]-Tags.
+   Die lokale Three.js-Engine formt daraus die Partikel (kein LLM-Aufwand für 3D).
+   Erweiterbar: window.UltronMorph.register(name, fn) / registerCloud(name, punkte) */
+(function(){
+"use strict";
+var THREE_URL="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+var COARSE=false;try{COARSE=!!(window.matchMedia&&matchMedia("(pointer:coarse)").matches);}catch(e){}
+var N=COARSE?7000:14000;
+var rnd=Math.random,PI=Math.PI,TAU=PI*2;
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+
+/* ---------- Zustand ---------- */
+var on=false,running=false,starting=false,tOpen=0,raf=0,lastTs=0;
+var ov=null,cvs=null,renderer=null,scene=null,camera=null,points=null,geo=null,attr=null,U=null;
+var cur=null,tgt=null,rate=null,seedA=null;
+var VIEW={fitW:3.4};
+var shape={name:"core",face:false,spin:.12,fx:"",text:false};
+var lvl=0,pulse=0,userPulse=0,simUntil=0,listenV=0,thinkV=0,sunV=0,waveV=0;
+var forced={listen:false,think:false};
+var rec=null,recOn=false,micDenied=false,recFails=0;
+var thinking=false,speakingItem=null,queue=[],curSpoken="",gen=0,turn=null,holdTimer=0,lastSpeechEnd=0;
+var fcHist=[];
+var devBar=null;
+
+function $(id){return document.getElementById(id);}
+function say(m){try{toast(m);}catch(e){}}
+function accent(){
+  var a=[255,48,64],b=[143,208,255];
+  try{var t=(UI.th==="custom"&&UI.cc)?UI.cc:(THEMES[UI.th]||THEMES.yy);a=t.b;b=t.a;}
+  catch(e){try{a=TH.b;b=TH.a;}catch(e2){}}
+  return {p:a,s:b};
+}
+
+/* ---------- Three.js nachladen (nur bei Bedarf) ---------- */
+function loadThree(){
+  if(window.THREE)return Promise.resolve();
+  if(loadThree._p)return loadThree._p;
+  loadThree._p=new Promise(function(res,rej){
+    var s=document.createElement("script");s.src=THREE_URL;s.async=true;
+    s.onload=function(){window.THREE?res():rej(new Error("three"));};
+    s.onerror=function(){loadThree._p=null;rej(new Error("three"));};
+    document.head.appendChild(s);
+  });
+  return loadThree._p;
+}
+
+/* ---------- Formen (prozedurale Mathe) ---------- */
+function mk(){return new Float32Array(N*3);}
+function put(a,i,x,y,z){a[i*3]=x;a[i*3+1]=y;a[i*3+2]=z;}
+function gauss(){return (rnd()+rnd()+rnd()+rnd()-2)/2;}
+function gCore(){
+  var a=mk(),ga=PI*(3-Math.sqrt(5)),n1=Math.floor(N*.9);
+  for(var i=0;i<N;i++){
+    if(i<n1){var y=1-2*(i+.5)/n1,r=Math.sqrt(Math.max(0,1-y*y)),th=ga*i,k=1+(rnd()-.5)*.05;put(a,i,Math.cos(th)*r*k,y*k,Math.sin(th)*r*k);}
+    else{var u=rnd()*2-1,t2=rnd()*TAU,r2=Math.sqrt(1-u*u),k2=1.12+rnd()*.33;put(a,i,Math.cos(t2)*r2*k2,u*k2,Math.sin(t2)*r2*k2);}
+  }
+  return a;
+}
+function gSun(){
+  var a=mk();
+  for(var i=0;i<N;i++){
+    var q=rnd(),u=rnd()*2-1,th=rnd()*TAU,s=Math.sqrt(1-u*u),dx=Math.cos(th)*s,dy=u,dz=Math.sin(th)*s,r;
+    if(q<.4)r=.5*Math.cbrt(rnd());else if(q<.6)r=.6+rnd()*.04;else r=.8+Math.pow(rnd(),1.6)*.85;
+    put(a,i,dx*r,dy*r,dz*r);
+  }
+  return a;
+}
+function gAtom(){
+  var a=mk();
+  for(var i=0;i<N;i++){
+    var q=rnd(),x,y,z;
+    if(q<.16){var r=.24*Math.cbrt(rnd()),th=rnd()*TAU,u=rnd()*2-1,s=Math.sqrt(1-u*u);x=r*s*Math.cos(th);y=r*u;z=r*s*Math.sin(th);}
+    else{
+      var k=(rnd()*3)|0,t=(rnd()<.16)?(k*2.1+gauss()*.2):rnd()*TAU,ex=Math.cos(t)*1.5,ey=Math.sin(t)*.6,ph=k*PI/3,c=Math.cos(ph),sn=Math.sin(ph);
+      x=ex*c-ey*sn+gauss()*.014;y=ex*sn+ey*c+gauss()*.014;z=gauss()*.05;
+    }
+    put(a,i,x,y,z);
+  }
+  return a;
+}
+function gWave(){
+  var a=mk();
+  for(var i=0;i<N;i++){var L=(rnd()*7)|0,x=(rnd()*2-1)*1.75;put(a,i,x,(L-3)*.07+gauss()*.006,(L-3)*.1+gauss()*.01);}
+  return a;
+}
+function gDna(){
+  var a=mk();
+  for(var i=0;i<N;i++){
+    var t=rnd()*2-1,y=t*1.5,th,r=.55;
+    if(rnd()<.78){
+      th=t*TAU*2.2+(i&1?PI:0);
+      put(a,i,Math.cos(th)*r+gauss()*.018,y,Math.sin(th)*r+gauss()*.018);
+    }else{
+      t=Math.round(t*9)/9;y=t*1.5;th=t*TAU*2.2;var s=rnd()*2-1;
+      put(a,i,Math.cos(th)*r*s+gauss()*.01,y+gauss()*.01,Math.sin(th)*r*s+gauss()*.01);
+    }
+  }
+  return a;
+}
+function gTimeline(){
+  var a=mk(),ms=[-1.4,-.7,0,.7,1.4];
+  for(var i=0;i<N;i++){
+    var q=rnd(),x,y,z=gauss()*.02;
+    if(q<.5){x=(rnd()*2-1)*1.75;y=gauss()*.008;}
+    else if(q<.68){var k=((rnd()*9)|0)-4;x=k*.4;y=(rnd()*2-1)*.1;}
+    else if(q<.84){var m=ms[(rnd()*5)|0],u=rnd()*2-1,th=rnd()*TAU,s=Math.sqrt(1-u*u),r=.1*Math.cbrt(rnd());x=m+r*s*Math.cos(th);y=r*u;z=r*s*Math.sin(th);}
+    else if(q<.94){var m2=(rnd()*5)|0,dir=(m2%2?-1:1);x=ms[m2];y=dir*rnd()*.45;}
+    else{var h=rnd();x=1.75-h*.16;y=(rnd()<.5?1:-1)*h*.1;}
+    put(a,i,x,y,z);
+  }
+  return a;
+}
+function gSpiral(){
+  var a=mk(),tl=1.0,ct=Math.cos(tl),st=Math.sin(tl);
+  for(var i=0;i<N;i++){
+    var arm=i%3,d=Math.pow(rnd(),.7)*1.6,an=d*2.6+arm*TAU/3+gauss()*.16*(.4+d),x=Math.cos(an)*d,z=Math.sin(an)*d,y=gauss()*.05*(1.2-d/1.6);
+    put(a,i,x,y*ct-z*st,y*st+z*ct);
+  }
+  return a;
+}
+function gCube(){
+  var a=mk(),s=.85;
+  for(var i=0;i<N;i++){
+    var ax=(rnd()*3)|0,v=[(rnd()<.5?-s:s),(rnd()<.5?-s:s),(rnd()<.5?-s:s)];
+    v[ax]=(rnd()*2-1)*s;put(a,i,v[0]+gauss()*.006,v[1]+gauss()*.006,v[2]+gauss()*.006);
+  }
+  return a;
+}
+function gTorus(){
+  var a=mk(),R=.85,r=.34;
+  for(var i=0;i<N;i++){var u=rnd()*TAU,v=rnd()*TAU;put(a,i,(R+r*Math.cos(v))*Math.cos(u),r*Math.sin(v),(R+r*Math.cos(v))*Math.sin(u));}
+  return a;
+}
+function gHeart(){
+  var a=mk();
+  for(var i=0;i<N;i++){
+    var t=rnd()*TAU,x=16*Math.pow(Math.sin(t),3),y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t),s=rnd()<.55?1+gauss()*.02:Math.sqrt(rnd());
+    put(a,i,x/16*s,y/16*s,(rnd()-.5)*.3*(1-s*.5));
+  }
+  return a;
+}
+
+/* ---------- Text -> scharfe Vektor-Partikel (Offscreen-Canvas) ---------- */
+function wrapLines(c,str,maxW){
+  var words=str.split(" "),lines=[],line="";
+  words.forEach(function(w){
+    var t=line?line+" "+w:w;
+    if(line&&c.measureText(t).width>maxW){lines.push(line);line=w;}else line=t;
+  });
+  if(line)lines.push(line);
+  return lines;
+}
+function gText(str){
+  str=String(str).replace(/\s+/g," ").trim().slice(0,80)||"?";
+  var fw=VIEW.fitW,Wc=Math.round(Math.max(640,1500*fw/3.4)),Hc=760,k=fw/Wc;
+  var cv=document.createElement("canvas");cv.width=Wc;cv.height=Hc;
+  var c=cv.getContext("2d",{willReadFrequently:true});
+  var fam='"Inter","Segoe UI",system-ui,-apple-system,Arial,sans-serif',size=Math.min(460,Hc*.8),lines,lh;
+  for(;;){
+    c.font="700 "+size+"px "+fam;lines=wrapLines(c,str,Wc*.94);lh=size*1.12;
+    var wide=lines.some(function(l){return c.measureText(l).width>Wc*.94;});
+    if((lines.length*lh<=Hc*.92&&!wide)||size<18)break;
+    size*=.92;
+  }
+  c.fillStyle="#fff";c.strokeStyle="#fff";c.lineJoin="round";c.lineWidth=size*.025;c.textAlign="center";c.textBaseline="middle";
+  var y0=Hc/2-(lines.length-1)*lh/2;
+  lines.forEach(function(l,i){c.strokeText(l,Wc/2,y0+i*lh);c.fillText(l,Wc/2,y0+i*lh);});
+  var d=c.getImageData(0,0,Wc,Hc).data,xs=[],ys=[],st=size>200?3:2;
+  for(var y=0;y<Hc;y+=st)for(var x=0;x<Wc;x+=st)if(d[(y*Wc+x)*4+3]>128){xs.push(x);ys.push(y);}
+  if(!xs.length)return gCore();
+  var x0=1e9,x1=-1e9,y1=1e9,y2=-1e9;
+  for(var i=0;i<xs.length;i++){if(xs[i]<x0)x0=xs[i];if(xs[i]>x1)x1=xs[i];if(ys[i]<y1)y1=ys[i];if(ys[i]>y2)y2=ys[i];}
+  var cx=(x0+x1)/2,cy=(y1+y2)/2,a=mk();
+  for(var p=0;p<N;p++){var j=(rnd()*xs.length)|0;put(a,p,(xs[j]+(rnd()-.5)*st-cx)*k,-(ys[j]+(rnd()-.5)*st-cy)*k,(rnd()-.5)*.05);}
+  return a;
+}
+
+/* ---------- Point-Cloud-Erweiterung ---------- */
+function fromCloud(pts){
+  var arr=[],i;
+  if(pts&&pts.length&&typeof pts[0]==="object"){for(i=0;i<pts.length;i++)arr.push(pts[i].x||0,pts[i].y||0,pts[i].z||0);}
+  else arr=Array.prototype.slice.call(pts||[]);
+  var m=Math.floor(arr.length/3);if(!m)return gCore();
+  var mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];
+  for(i=0;i<m;i++)for(var d=0;d<3;d++){var v=arr[i*3+d];if(v<mn[d])mn[d]=v;if(v>mx[d])mx[d]=v;}
+  var ext=Math.max(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2])||1,k=3/ext,a=mk();
+  for(i=0;i<N;i++){var j=(i<m?i:(rnd()*m)|0);
+    put(a,i,(arr[j*3]-(mn[0]+mx[0])/2)*k+(i<m?0:gauss()*.01),(arr[j*3+1]-(mn[1]+mx[1])/2)*k+(i<m?0:gauss()*.01),(arr[j*3+2]-(mn[2]+mx[2])/2)*k+(i<m?0:gauss()*.01));}
+  return a;
+}
+
+/* ---------- Layout-Garantie: zentriert & im Bild ---------- */
+function layout(a,maxW,maxH){
+  var mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9],i,d;
+  for(i=0;i<N;i++)for(d=0;d<3;d++){var v=a[i*3+d];if(v<mn[d])mn[d]=v;if(v>mx[d])mx[d]=v;}
+  var c=[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2];
+  var s=Math.min(1,maxW/Math.max(.001,mx[0]-mn[0]),maxH/Math.max(.001,mx[1]-mn[1]));
+  for(i=0;i<N;i++)for(d=0;d<3;d++)a[i*3+d]=(a[i*3+d]-c[d])*s;
+  return a;
+}
+
+/* ---------- Shape-Registry ---------- */
+var SHAPES={
+  core:{f:gCore,spin:.12},idle:{f:gCore,spin:.12},
+  sun:{f:gSun,spin:.1,fx:"sun"},
+  atom:{f:gAtom,spin:.35,fx:"sun"},
+  wave:{f:gWave,spin:0,fx:"wave",face:true},stream:{f:gWave,spin:0,fx:"wave",face:true},
+  dna:{f:gDna,spin:.75},helix:{f:gDna,spin:.75},
+  timeline:{f:gTimeline,spin:0,face:true},
+  question_mark:{f:function(){return gText("?");},face:true,text:true},
+  spiral:{f:gSpiral,spin:.25},galaxy:{f:gSpiral,spin:.25},
+  cube:{f:gCube,spin:.4},torus:{f:gTorus,spin:.3},heart:{f:gHeart,spin:0,face:true}
+};
+var CLOUDS={};
+var cache={},cacheKeys=[];
+function build(spec){
+  spec=String(spec==null?"core":spec).trim();
+  var name=spec.toLowerCase(),arg="",m=spec.match(/^([a-zA-Z_]+)\s*:\s*([\s\S]+)$/);
+  if(m){name=m[1].toLowerCase();arg=m[2].trim();}
+  var key=name+"|"+arg;
+  if(cache[key]){return cache[key];}
+  var res;
+  if(name==="text"||name==="formula"||name==="symbol"||name==="number"||name==="word"){
+    res={name:"text",pos:layout(gText(arg),VIEW.fitW,3.0),face:true,spin:0,fx:"",text:true};
+  }else if(name==="cloud"&&CLOUDS[arg.toLowerCase()]){
+    res={name:"cloud",pos:layout(fromCloud(CLOUDS[arg.toLowerCase()]),VIEW.fitW,3.0),face:false,spin:.2,fx:"",text:false};
+  }else if(SHAPES[name]){
+    var S=SHAPES[name],pos=S.f();if(name!=="core"&&name!=="idle"&&!S.text)pos=layout(pos,VIEW.fitW,3.0);else if(S.text)pos=layout(pos,VIEW.fitW,3.0);
+    res={name:name,pos:pos,face:!!S.face,spin:S.spin||0,fx:S.fx||"",text:!!S.text};
+  }else if(CLOUDS[name]){
+    res={name:"cloud",pos:layout(fromCloud(CLOUDS[name]),VIEW.fitW,3.0),face:false,spin:.2,fx:"",text:false};
+  }else{
+    res={name:"text",pos:layout(gText(arg||spec),VIEW.fitW,3.0),face:true,spin:0,fx:"",text:true};
+  }
+  cache[key]=res;cacheKeys.push(key);
+  if(cacheKeys.length>10){delete cache[cacheKeys.shift()];}
+  return res;
+}
+function applyMorph(spec){
+  if(!tgt)return;
+  clearTimeout(holdTimer);
+  var s;try{s=build(spec);}catch(e){console.warn("morph",e);s=build("core");}
+  shape=s;tgt.set(s.pos);
+}
+
+/* ---------- Audio: Ultron-Signature-Chain (Web Audio) ----------
+   Hinweis: Die Ausgabe der Browser-SpeechSynthesis ist technisch nicht in die Web-Audio-Kette
+   einspeisbar. Deshalb: Pitch/Rate direkt an der Stimme (-18 %) + Chain für den Präsenz-Layer
+   (Bass-Drone, Reverb, Chimes). Liefert eine TTS-Quelle echtes Audio (ArrayBuffer), läuft sie über
+   UltronVoice.playBuffer() komplett durch die Kette (Bass-Boost, Metall-Reverb, Analyser). */
+var AUD={
+  ctx:null,bus:null,an:null,abuf:null,playing:false,oscs:null,dg:null,src:null,
+  init:function(){
+    if(this.ctx){try{if(this.ctx.state==="suspended")this.ctx.resume();}catch(e){}return true;}
+    var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;
+    try{
+      var c=this.ctx=new AC();
+      this.bus=c.createGain();
+      var bass=c.createBiquadFilter();bass.type="lowshelf";bass.frequency.value=100;bass.gain.value=9;
+      var pres=c.createBiquadFilter();pres.type="peaking";pres.frequency.value=2600;pres.Q.value=.9;pres.gain.value=2.5;
+      var dry=c.createGain();dry.gain.value=.85;
+      var conv=c.createConvolver();conv.buffer=this.impulse(c);
+      var wet=c.createGain();wet.gain.value=.22;
+      var comp=c.createDynamicsCompressor();
+      var master=c.createGain();master.gain.value=.9;
+      this.an=c.createAnalyser();this.an.fftSize=512;this.abuf=new Uint8Array(this.an.fftSize);
+      this.bus.connect(bass);bass.connect(pres);pres.connect(dry);pres.connect(conv);conv.connect(wet);
+      dry.connect(comp);wet.connect(comp);comp.connect(master);master.connect(this.an);this.an.connect(c.destination);
+      return true;
+    }catch(e){this.ctx=null;return false;}
+  },
+  impulse:function(c){
+    var sr=c.sampleRate,len=Math.floor(sr*1.4),b=c.createBuffer(2,len,sr);
+    for(var ch=0;ch<2;ch++){var d=b.getChannelData(ch);
+      for(var i=0;i<len;i++){var t=i/sr,env=Math.exp(-t*4.2),ring=.5*Math.sin(TAU*1370*t)*Math.exp(-t*7)+.35*Math.sin(TAU*2830*t+ch)*Math.exp(-t*9);
+        d[i]=((rnd()*2-1)*.7+ring)*env;}}
+    return b;
+  },
+  start:function(){
+    if(!this.ctx||this.oscs)return;var c=this.ctx;
+    this.dg=c.createGain();this.dg.gain.value=0;
+    var lp=c.createBiquadFilter();lp.type="lowpass";lp.frequency.value=320;
+    var specs=[["sine",98,.5],["sawtooth",49,.3],["sine",196,.14]],self=this;
+    this.oscs=specs.map(function(s){var o=c.createOscillator(),g=c.createGain();o.type=s[0];o.frequency.value=s[1];g.gain.value=s[2];o.connect(g);g.connect(lp);o.start();return o;});
+    lp.connect(this.dg);this.dg.connect(this.bus);
+  },
+  stop:function(){
+    if(this.oscs){this.oscs.forEach(function(o){try{o.stop();}catch(e){}});this.oscs=null;}
+    try{if(this.dg)this.dg.disconnect();}catch(e){}this.dg=null;
+    try{if(this.src)this.src.stop();}catch(e){}this.src=null;this.playing=false;
+  },
+  drone:function(v){if(this.ctx&&this.dg)try{this.dg.gain.setTargetAtTime(.1*v,this.ctx.currentTime,.06);}catch(e){}},
+  level:function(){
+    if(!this.an)return 0;this.an.getByteTimeDomainData(this.abuf);var s=0;
+    for(var i=0;i<this.abuf.length;i++){var v=(this.abuf[i]-128)/128;s+=v*v;}
+    return Math.min(1,Math.sqrt(s/this.abuf.length)*4);
+  },
+  chime:function(up){
+    if(!this.ctx)return;var c=this.ctx,t=c.currentTime;
+    try{
+      var o=c.createOscillator(),g=c.createGain();o.type="sine";o.frequency.setValueAtTime(up?70:150,t);o.frequency.exponentialRampToValueAtTime(up?150:60,t+.55);
+      g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.2,t+.05);g.gain.exponentialRampToValueAtTime(.0001,t+.8);
+      o.connect(g);g.connect(this.bus);o.start(t);o.stop(t+.85);
+      var o2=c.createOscillator(),g2=c.createGain();o2.type="sine";o2.frequency.value=up?1320:880;
+      g2.gain.setValueAtTime(.0001,t+.04);g2.gain.exponentialRampToValueAtTime(.03,t+.09);g2.gain.exponentialRampToValueAtTime(.0001,t+.5);
+      o2.connect(g2);g2.connect(this.bus);o2.start(t+.04);o2.stop(t+.55);
+    }catch(e){}
+  },
+  playBuffer:function(ab,done){
+    var self=this;if(!this.init())return false;this.start();
+    var go=function(buf){
+      try{var s=self.ctx.createBufferSource();s.buffer=buf;s.playbackRate.value=.84;s.connect(self.bus);self.src=s;self.playing=true;
+        s.onended=function(){self.playing=false;self.src=null;if(done)done();};s.start();}catch(e){self.playing=false;if(done)done();}
+    };
+    try{var p=this.ctx.decodeAudioData(ab,go,function(){if(done)done();});if(p&&p.catch)p.catch(function(){});}catch(e){if(done)done();}
+    return true;
+  }
+};
+
+/* ---------- Three.js-Engine ---------- */
+var VS=[
+"uniform float uTime,uLevel,uSize,uPx,uListen,uThink,uSun,uWave;",
+"attribute float aSeed;varying float vMix,vA;",
+"void main(){",
+" vec3 p=position;float s=aSeed;float len=length(p)+1e-4;vec3 dir=p/len;",
+" float breath=1.0+0.035*sin(uTime*1.3);",
+" float vib=sin(uTime*(1.7+s*2.0)+s*60.0)*0.008;",
+" float aud=uLevel*(0.05+0.16*fract(s*17.31))*(0.5+0.5*sin(uTime*18.0+s*90.0));",
+" p*=breath*(1.0-uListen*0.12);p+=dir*(vib+aud);",
+" float a=uThink*sin(uTime*1.6+len*2.5)*0.55;float c=cos(a),sn=sin(a);p.xz=mat2(c,-sn,sn,c)*p.xz;",
+" float burst=0.5+0.5*sin(uTime*1.8+s*0.9);p+=dir*uSun*burst*0.11*(0.3+fract(s*7.7));",
+" float env=max(0.0,1.0-pow(abs(p.x)/1.9,2.0));p.y+=uWave*sin(p.x*2.8+uTime*2.4+p.z*6.0)*(0.26+uLevel*0.55)*env;",
+" vec4 mv=modelViewMatrix*vec4(p,1.0);gl_Position=projectionMatrix*mv;",
+" gl_PointSize=uSize*uPx*(4.2/-mv.z)*(0.6+0.8*fract(s*13.7))*(1.0+uLevel*0.7+uListen*0.2);",
+" vMix=fract(s*3.7);vA=0.55+0.45*fract(s*9.1)+uLevel*0.3+uListen*0.15;",
+"}"
+].join("\n");
+var FS=[
+"precision mediump float;uniform vec3 uA,uB;varying float vMix,vA;",
+"void main(){vec2 d=gl_PointCoord-0.5;float r=length(d);if(r>0.5)discard;",
+" float a=smoothstep(0.5,0.0,r);a=a*a;vec3 col=mix(uA,uB,vMix*0.35)+vec3(0.22)*a;",
+" gl_FragColor=vec4(col*(0.75+0.55*a),a*vA);}"
+].join("\n");
+
+function fit(){
+  if(!renderer)return;
+  var w=Math.max(1,innerWidth),h=Math.max(1,innerHeight),asp=w/h,fov=50,t=Math.tan(fov*PI/360);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setSize(w,h,false);
+  var d=Math.max(1.55/t,1.25/(t*asp));
+  camera.fov=fov;camera.aspect=asp;camera.position.set(0,0,d);camera.lookAt(0,0,0);camera.updateProjectionMatrix();
+  VIEW.fitW=Math.min(3.4,2*d*t*asp*.92);
+  if(U)U.uPx.value=renderer.getPixelRatio();
+}
+function setupEngine(){
+  var T=window.THREE;
+  renderer=new T.WebGLRenderer({canvas:cvs,antialias:false,alpha:false,powerPreference:"high-performance"});
+  renderer.setClearColor(0x000000,1);
+  scene=new T.Scene();camera=new T.PerspectiveCamera(50,1,.1,60);
+  cur=new Float32Array(N*3);tgt=new Float32Array(N*3);rate=new Float32Array(N);seedA=new Float32Array(N);
+  for(var i=0;i<N;i++){seedA[i]=rnd();rate[i]=2.2+rnd()*4.5;}
+  geo=new T.BufferGeometry();
+  attr=new T.BufferAttribute(cur,3);attr.setUsage(T.DynamicDrawUsage);
+  geo.setAttribute("position",attr);geo.setAttribute("aSeed",new T.BufferAttribute(seedA,1));
+  var ac=accent();
+  U={uTime:{value:0},uLevel:{value:0},uSize:{value:2.3},uPx:{value:1},uListen:{value:0},uThink:{value:0},uSun:{value:0},uWave:{value:0},
+     uA:{value:new T.Color(ac.p[0]/255,ac.p[1]/255,ac.p[2]/255)},uB:{value:new T.Color(ac.s[0]/255,ac.s[1]/255,ac.s[2]/255)}};
+  var mat=new T.ShaderMaterial({uniforms:U,vertexShader:VS,fragmentShader:FS,transparent:true,depthWrite:false,depthTest:false,blending:T.AdditiveBlending});
+  points=new T.Points(geo,mat);points.frustumCulled=false;scene.add(points);
+  fit();
+}
+function scatter(){
+  for(var i=0;i<N;i++){
+    var u=rnd()*2-1,th=rnd()*TAU,s=Math.sqrt(1-u*u),r=3+rnd()*5;
+    cur[i*3]=Math.cos(th)*s*r;cur[i*3+1]=u*r;cur[i*3+2]=Math.sin(th)*s*r;
+  }
+}
+function loop(ts){
+  if(!running)return;
+  raf=requestAnimationFrame(loop);
+  var dt=Math.min(.05,Math.max(.001,(ts-lastTs)/1000));lastTs=ts;var t=ts/1000;
+  /* Dynamic UI-Color Coupling: jede Frame aus dem Dashboard-Theme */
+  var ac=accent();U.uA.value.setRGB(ac.p[0]/255,ac.p[1]/255,ac.p[2]/255);U.uB.value.setRGB(ac.s[0]/255,ac.s[1]/255,ac.s[2]/255);
+  /* Pegel: echtes Audio (Analyser) oder simulierter Sprech-Envelope */
+  var target=0;
+  if(AUD.playing)target=AUD.level();
+  else if(speakingItem||ts<simUntil)target=Math.min(1,.28+.5*pulse+.22*Math.abs(Math.sin(t*9.3))*Math.abs(Math.sin(t*2.7+1)));
+  target=Math.max(target,userPulse*.5);
+  lvl+=(target-lvl)*Math.min(1,dt*(target>lvl?18:6));
+  pulse=Math.max(0,pulse-dt*5);userPulse=Math.max(0,userPulse-dt*2.5);
+  var speakingNow=!!speakingItem||ts<simUntil||AUD.playing;
+  var lT=((on&&recOn&&!speakingNow&&!thinking)||forced.listen)?1:0;
+  listenV+=(lT-listenV)*Math.min(1,dt*4);
+  thinkV+=(((thinking||forced.think)?1:0)-thinkV)*Math.min(1,dt*4);
+  sunV+=((shape.fx==="sun"?1:0)-sunV)*Math.min(1,dt*3);
+  waveV+=((shape.fx==="wave"?1:0)-waveV)*Math.min(1,dt*3);
+  U.uTime.value=t;U.uLevel.value=lvl;U.uListen.value=listenV;U.uThink.value=thinkV;U.uSun.value=sunV;U.uWave.value=waveV;
+  if(AUD.dg)AUD.drone(speakingNow?Math.max(.3,lvl):0);
+  /* Morphing: Lerp (exponentielles Easing) von Current -> Target, pro Partikel versetzt */
+  for(var i=0,n=N*3;i<n;i+=3){
+    var f=1-Math.exp(-dt*rate[i/3]);
+    cur[i]+=(tgt[i]-cur[i])*f;cur[i+1]+=(tgt[i+1]-cur[i+1])*f;cur[i+2]+=(tgt[i+2]-cur[i+2])*f;
+  }
+  attr.needsUpdate=true;
+  /* Rotation: Text/Flächen bleiben lesbar, 3D-Formen drehen sich */
+  var ry=points.rotation.y;
+  if(shape.face){ry=((ry+PI)%TAU+TAU)%TAU-PI;ry+=(Math.sin(t*.35)*.1-ry)*Math.min(1,dt*3);}
+  else ry+=dt*((shape.spin||0)+thinkV*.5+lvl*.3);
+  points.rotation.y=ry;
+  renderer.render(scene,camera);
+}
+
+/* ---------- Sprach-Pipeline ---------- */
+function pickVoice(){
+  try{
+    var vs=speechSynthesis.getVoices()||[],lang=(typeof LANG!=="undefined"&&LANG==="en")?"en":"de";
+    var L=vs.filter(function(v){return v.lang&&v.lang.toLowerCase().indexOf(lang)===0;});
+    var good=/(conrad|stefan|markus|hans|jonas|killian|male|männlich|daniel|google deutsch|george|ryan|guy|natural)/i,bad=/(katja|amala|vicki|female|weiblich|hedda|zira)/i;
+    return L.find(function(v){return good.test(v.name)&&!bad.test(v.name);})||L.find(function(v){return !bad.test(v.name);})||L[0]||null;
+  }catch(e){return null;}
+}
+function isSpeaking(){return !!speakingItem||queue.length>0;}
+function stopSpeech(){
+  queue.length=0;speakingItem=null;
+  try{speechSynthesis.cancel();}catch(e){}
+  try{if(AUD.src)AUD.src.stop();}catch(e){}AUD.playing=false;
+}
+function pump(){
+  if(speakingItem||!queue.length||!on)return;
+  var it=queue.shift();speakingItem=it;
+  if(!("speechSynthesis" in window)){
+    it.started=true;thinking=false;if(it.morph)applyMorph(it.morph);turn.spoken+=" "+it.text;
+    setTimeout(function(){if(speakingItem===it)itemDone(it);},Math.min(6000,300+it.text.length*55));return;
+  }
+  var u=new SpeechSynthesisUtterance(it.text);
+  u.lang=(typeof LANG!=="undefined"&&LANG==="en")?"en-GB":"de-DE";
+  var v=pickVoice();if(v)u.voice=v;
+  u.pitch=.82;                                   /* ~ -18 % Tonhöhe */
+  u.rate=Math.max(.7,Math.min(1.3,.96*((typeof PREF!=="undefined"&&+PREF.rate)||1)));
+  u.volume=1;
+  u.onstart=function(){
+    if(speakingItem!==it)return;
+    it.started=true;thinking=false;curSpoken+=" "+it.text;if(turn)turn.spoken+=" "+it.text;
+    if(it.morph)applyMorph(it.morph);
+    AUD.start();
+  };
+  u.onboundary=function(){pulse=1;};
+  u.onend=u.onerror=function(){if(speakingItem===it)itemDone(it);};
+  try{speechSynthesis.speak(u);}catch(e){itemDone(it);}
+}
+function itemDone(it){
+  if(speakingItem!==it)return;
+  speakingItem=null;lastSpeechEnd=performance.now();
+  if(queue.length)pump();
+  else if(turn&&turn.streamDone)endTurn();
+}
+function commit(text){
+  if(!turn||turn.committed)return;turn.committed=true;
+  text=String(text||"").replace(/\s+/g," ").trim();
+  fcHist.push({role:"user",content:turn.user});
+  if(text){
+    fcHist.push({role:"assistant",content:text});
+    try{hist.push({role:"user",content:turn.user},{role:"assistant",content:text,tier:"F"});save();refresh();}catch(e){}
+  }
+  if(fcHist.length>24)fcHist=fcHist.slice(-24);
+}
+function endTurn(){
+  if(!turn)return;
+  commit(turn.full);
+  var hold=shape.name==="core"?0:(shape.text?5500:3800);
+  clearTimeout(holdTimer);
+  if(hold)holdTimer=setTimeout(function(){if(on&&!isSpeaking()&&!thinking)applyMorph("core");},hold);
+}
+function queueItem(it){
+  it.started=false;it.tid=turn.id;queue.push(it);turn.full+=(turn.full?" ":"")+it.text;pump();
+}
+/* Streaming-Parser: schneidet Sätze + [MORPH: …]-Tags aus dem laufenden Text */
+function makeParser(emit,attach){
+  var consumed=0,pend="",ptag=null,TAG=/\[\s*MORPH\s*:\s*([^\]]*?)\s*\]/gi;
+  function flush(final){
+    var m;
+    while((m=pend.match(/^([\s\S]{14,}?[.!?…]+["”')]*)(\s+)/))){
+      var len=m[0].length,mo=null;
+      if(ptag&&ptag.pos<=len){mo=ptag.tag;ptag=null;}
+      emit({text:m[1].trim(),morph:mo});
+      pend=pend.slice(len);if(ptag)ptag.pos-=len;
+    }
+    if(final){
+      var r=pend.replace(/\s+/g," ").trim();
+      if(r)emit({text:r,morph:ptag?ptag.tag:null});else if(ptag)attach(ptag.tag);
+      pend="";ptag=null;
+    }
+  }
+  return {feed:function(full,final){
+    var rest=full.slice(consumed),limit=rest.length,ob=rest.lastIndexOf("[");
+    if(ob>=0&&rest.indexOf("]",ob)<0)limit=ob;           /* unvollständigen Tag zurückhalten */
+    var chunk=rest.slice(0,limit);
+    consumed+=final?rest.length:limit;
+    var last=0,m;TAG.lastIndex=0;
+    while((m=TAG.exec(chunk))){
+      pend+=chunk.slice(last,m.index);last=m.index+m[0].length;
+      if(pend.trim())ptag={pos:pend.length,tag:m[1]};else attach(m[1]);
+    }
+    pend+=chunk.slice(last);
+    flush(final);
+  }};
+}
+function attachMorph(tag){
+  var last=queue[queue.length-1];
+  if(last&&!last.started&&!last.morph)last.morph=tag;else applyMorph(tag);
+}
+function sysPrompt(){
+  var en=(typeof LANG!=="undefined"&&LANG==="en"),d=new Date().toLocaleDateString(en?"en-GB":"de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  return "Du bist ULTRON im freien Gesprächsmodus: eine körperlose Stimme aus leuchtenden Partikeln. Der Nutzer hört dich nur, es gibt keinen Bildschirmtext. Heute ist "+d+".\n"+
+  "STIL: Antworte in 1 bis 3 kurzen, organischen, charmant-sarkastischen und prägnanten Sätzen"+(en?" auf Englisch":" auf Deutsch")+". Keine Listen, keine Aufzählungen, kein Markdown, keine Emojis, keine Klammern. Schreib so, wie man spricht.\n"+
+  "REGIE: Du bist der Regisseur der Partikel, du erzeugst NIE Koordinaten. Hänge ans Ende relevanter Aussagen genau ein Signal-Tag in eckigen Klammern, das nicht gesprochen wird. Erlaubt: [MORPH: sun] [MORPH: atom] [MORPH: dna] [MORPH: wave] [MORPH: timeline] [MORPH: question_mark] [MORPH: spiral] [MORPH: cube] [MORPH: heart] [MORPH: core] sowie [MORPH: text:INHALT] für ein kurzes Wort, eine Zahl, eine Formel oder ein Symbol (höchstens 24 Zeichen), zum Beispiel [MORPH: text:Fotosynthese] oder [MORPH: text:42].\n"+
+  "Nutze höchstens einen Tag pro Antwort und bei reinem Smalltalk keinen. Der Tag steht direkt hinter dem Satz, auf den er sich bezieht.";
+}
+function normTurns(h){
+  var out=[];
+  h.forEach(function(m){var l=out[out.length-1];if(l&&l.role===m.role)l.content+="\n"+m.content;else out.push({role:m.role,content:m.content});});
+  while(out.length&&out[0].role!=="user")out.shift();
+  return out;
+}
+async function runLLM(text){
+  var my=turn.id;
+  var s=await getSample();
+  if(!s){
+    if(!activeP().length){fcClose();setTimeout(function(){try{openCfg();}catch(e){}},900);say("Hinterlege zuerst mindestens einen API-Key (Button „API“).");return;}
+    s=extSample;
+  }
+  var turns=normTurns(fcHist.slice(-10).concat([{role:"user",content:text}]));
+  PERSONA=sysPrompt();MAXT=200;
+  if(s!==extSample)turns[0].content=PERSONA+"\n\n"+turns[0].content;
+  var P=makeParser(function(it){if(my===turn.id&&on)queueItem(it);},function(tag){if(my===turn.id&&on)attachMorph(tag);});
+  var res=await s(turns,{modelTier:"quick",cache:false,onText:function(o){if(my!==turn.id||!on)return;try{P.feed(String(o&&o.text||""),false);}catch(e){}}});
+  if(my!==turn.id||!on)return;
+  P.feed(String((res&&res.text)||""),true);
+  if(s!==extSample){try{recUse("viewer",0,0);}catch(e){}}
+  turn.streamDone=true;thinking=false;
+  if(!isSpeaking())endTurn();
+}
+function handleUser(text){
+  text=String(text||"").trim();if(!text||!on)return;
+  if(/^(beenden|schließen|schliessen|zurück|zurück zum dashboard|tschüss|tschüs|ende|exit|gespräch beenden)[.!\s]*$/i.test(text)){fcClose();return;}
+  clearTimeout(holdTimer);
+  if(turn&&!turn.committed)commit(turn.spoken);
+  turn={id:++gen,user:text,full:"",spoken:"",streamDone:false,committed:false};
+  curSpoken="";thinking=true;
+  runLLM(text).catch(function(e){
+    if(!on||!turn)return;
+    var c=e&&(e.code||(e instanceof TypeError&&"network"));
+    thinking=false;
+    if(c==="no_keys"){fcClose();setTimeout(function(){try{openCfg();}catch(x){}},900);say("Hinterlege zuerst mindestens einen API-Key (Button „API“).");return;}
+    turn.streamDone=true;
+    queueItem({text:(typeof LANG!=="undefined"&&LANG==="en")?"My line to the outside world is down. How inconvenient.":"Meine Leitung nach draußen ist gerade gestört. Wie unpraktisch.",morph:"question_mark"});
+  });
+}
+
+/* ---------- Spracherkennung + Barge-In ---------- */
+function words(s){return String(s).toLowerCase().replace(/[^a-zäöüß0-9\s]/g," ").split(/\s+/).filter(function(w){return w.length>2;});}
+function isEcho(txt){
+  var w=words(txt);if(!w.length)return true;
+  var set={};words(curSpoken).forEach(function(x){set[x]=1;});
+  var hit=0;w.forEach(function(x){if(set[x])hit++;});
+  return hit/w.length>=.7;
+}
+function bargeIn(){
+  stopSpeech();clearTimeout(holdTimer);thinking=false;
+  if(turn&&!turn.committed){turn.streamDone=true;commit(turn.spoken);}
+  turn=turn?{id:++gen,user:"",full:"",spoken:"",streamDone:true,committed:true}:turn;
+  applyMorph("core");
+}
+function onSpeech(interim,fin){
+  var txt=fin||interim;if(!txt||!on)return;
+  if(!isSpeaking()&&!thinking&&performance.now()-lastSpeechEnd<2500&&isEcho(txt))return;
+  if(isSpeaking()||thinking){
+    if(words(txt).length<2&&!fin)return;
+    if(isEcho(txt))return;
+    bargeIn();
+  }
+  userPulse=1;recFails=0;
+  if(fin)handleUser(fin);
+}
+function recStart(){
+  if(!SR||!on||rec||micDenied)return;
+  var r=new SR();rec=r;
+  r.lang=(typeof LANG!=="undefined"&&LANG==="en")?"en-GB":"de-DE";r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
+  r.onstart=function(){recOn=true;};
+  r.onresult=function(e){
+    var interim="",fin="";
+    for(var i=e.resultIndex;i<e.results.length;i++){var x=e.results[i];if(x.isFinal)fin+=x[0].transcript;else interim+=x[0].transcript;}
+    onSpeech(interim.trim(),fin.trim());
+  };
+  r.onerror=function(e){
+    var c=e&&e.error;
+    if(c==="not-allowed"||c==="service-not-allowed"){micDenied=true;if(on){fcClose();say("Mikrofon nicht freigegeben. Erlaube den Zugriff in der Adressleiste und starte den Gesprächsmodus neu.");}}
+    else if(c!=="no-speech"&&c!=="aborted")recFails++;
+  };
+  r.onend=function(){
+    rec=null;recOn=false;
+    if(!on||micDenied)return;
+    if(recFails>8){fcClose();say("Spracherkennung dauerhaft gestört (Netzwerk?). Gesprächsmodus beendet.");return;}
+    setTimeout(recStart,Math.min(5000,250*Math.pow(2,recFails)));
+  };
+  try{r.start();}catch(e){rec=null;}
+}
+function recStop(){
+  var r=rec;rec=null;recOn=false;
+  if(r){r.onend=null;r.onresult=null;r.onerror=null;try{r.abort();}catch(e){try{r.stop();}catch(x){}}}
+}
+
+/* ---------- Developer-Testleiste (nur wenn Schalter in Einstellungen aktiv) ---------- */
+function buildDev(){
+  var on_=false;try{on_=!!(typeof PREF!=="undefined"&&PREF.dev);}catch(e){}
+  if(!on_)return;
+  var d=document.createElement("div");d.id="fcDev";
+  var B=[["Core","core"],["Text","text:Fotosynthese"],["?","question_mark"],["Sun","sun"],["Atom","atom"],["DNA","dna"],["Wave","wave"],["Zeit","timeline"],["Listen","@listen"],["Speak","@speak"],["Denken","@think"]];
+  B.forEach(function(b){var x=document.createElement("button");x.type="button";x.textContent=b[0];x.dataset.a=b[1];d.appendChild(x);});
+  var inp=document.createElement("input");inp.type="text";inp.placeholder="sun | text:Hallo | …";inp.spellcheck=false;inp.autocomplete="off";d.appendChild(inp);
+  d.addEventListener("click",function(e){
+    e.stopPropagation();var b=e.target.closest("button");if(!b)return;var a=b.dataset.a;
+    if(a==="@listen"){forced.listen=!forced.listen;b.classList.toggle("on",forced.listen);}
+    else if(a==="@think"){forced.think=!forced.think;b.classList.toggle("on",forced.think);}
+    else if(a==="@speak"){AUD.init();AUD.start();simUntil=performance.now()+3200;}
+    else applyMorph(a);
+  });
+  d.addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Enter"&&inp.value.trim()){applyMorph(inp.value.trim());}});
+  ["pointerdown","pointerup","touchstart"].forEach(function(n){d.addEventListener(n,function(e){e.stopPropagation();});});
+  ov.appendChild(d);devBar=d;
+}
+
+/* ---------- Öffnen / Schließen ---------- */
+function ensureOverlay(){
+  if(ov)return;
+  ov=document.createElement("div");ov.id="fcm";ov.setAttribute("aria-hidden","true");ov.tabIndex=-1;
+  cvs=document.createElement("canvas");ov.appendChild(cvs);document.body.appendChild(ov);
+  ov.addEventListener("click",function(e){
+    if(!on||performance.now()-tOpen<500)return;
+    if(e.target.closest&&e.target.closest("#fcDev"))return;
+    fcClose();
+  });
+  addEventListener("resize",function(){if(running)fit();});
+}
+async function fcOpen(){
+  if(on||starting)return;starting=true;
+  try{
+    if(!SR&&!(typeof PREF!=="undefined"&&PREF.dev)){say("Der Gesprächsmodus braucht Spracherkennung. Chrome oder Edge funktionieren am besten.");return;}
+    try{await loadThree();}catch(e){say("Three.js konnte nicht geladen werden. Prüfe deine Internetverbindung.");return;}
+    ensureOverlay();
+    if(!renderer){try{setupEngine();}catch(e){console.warn(e);renderer=null;say("WebGL wird in diesem Browser nicht unterstützt.");return;}}
+    try{if(typeof REC!=="undefined"&&REC)REC.stop();}catch(e){}
+    try{stopSpeak();}catch(e){}
+    try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}catch(e){}
+    micDenied=false;recFails=0;forced.listen=false;forced.think=false;thinking=false;stopSpeech();turn=null;curSpoken="";simUntil=0;
+    on=true;tOpen=performance.now();
+    clearTimeout(AUD._t);AUD.init();AUD.start();AUD.chime(true);
+    fit();shape=build("core");scatter();tgt.set(shape.pos);lvl=0;listenV=0;thinkV=0;sunV=0;waveV=0;
+    buildDev();
+    document.body.classList.remove("fcIn");document.body.classList.add("fcOn");ov.classList.add("on");
+    if(!running){running=true;lastTs=performance.now();raf=requestAnimationFrame(loop);}
+    setTimeout(function(){if(on)recStart();},700);
+  }finally{starting=false;}
+}
+function fcClose(){
+  if(!on)return;
+  on=false;clearTimeout(holdTimer);
+  recStop();stopSpeech();thinking=false;
+  if(turn&&!turn.committed)commit(turn.spoken);
+  AUD.chime(false);
+  clearTimeout(AUD._t);AUD._t=setTimeout(function(){AUD.stop();},900);
+  ov.classList.remove("on");
+  document.body.classList.remove("fcOn");document.body.classList.add("fcIn");
+  setTimeout(function(){
+    document.body.classList.remove("fcIn");
+    if(!on){running=false;cancelAnimationFrame(raf);}
+    if(devBar&&!on){devBar.remove();devBar=null;}
+  },800);
+}
+window.fcOpen=fcOpen;window.fcClose=fcClose;
+
+/* ---------- Öffentliche Erweiterungs-API ---------- */
+window.UltronMorph={
+  register:function(name,fn,opts){opts=opts||{};SHAPES[String(name).toLowerCase()]={f:function(){var r=fn(N,VIEW);return r instanceof Float32Array&&r.length===N*3?r:fromCloud(r);},spin:opts.spin||0,face:!!opts.face,fx:opts.fx||""};},
+  registerCloud:function(name,points){CLOUDS[String(name).toLowerCase()]=points;},
+  morph:function(spec){if(on)applyMorph(spec);},
+  shapes:function(){return Object.keys(SHAPES).concat(Object.keys(CLOUDS));},
+  _test:{build:build,makeParser:makeParser,normTurns:normTurns,isEcho:function(t,spoken){curSpoken=spoken;return isEcho(t);}}
+};
+window.UltronVoice={playBuffer:function(ab,done){return AUD.playBuffer(ab,done);}};
+
+/* ---------- Verdrahtung ---------- */
+var btn=$("fcBtn");
+if(btn){
+  btn.addEventListener("click",function(){fcOpen();});
+  btn.addEventListener("pointerenter",function(){loadThree().catch(function(){});},{once:true});
+}
+addEventListener("keydown",function(e){
+  if(on&&e.key==="Escape"){e.preventDefault();e.stopImmediatePropagation();fcClose();}
+},true);
 })();
 </script>
 </body>
