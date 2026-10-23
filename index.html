@@ -1271,7 +1271,7 @@ $("mode").onclick=()=>{SPD=SPD==="auto"?"deep":SPD==="deep"?"fast":"auto";save()
 $("clear").onclick=()=>{if(!busy){if(hist.length){TRASH.unshift({id:Date.now(),title:(curChat().title||"Chat"),msgs:hist.slice(),del:Date.now()});saveTrash();toast("Chat im Papierkorb");}hist=[];save();refresh();plog("Sitzung zurückgesetzt");}};
 
 /* STANDALONE: eigene API-Keys, laeuft in jedem Browser */
-const DEF={anthropic:{n:"Claude (Anthropic)",f:"claude-haiku-4-5-20251001",m:"claude-sonnet-5-5"},openai:{n:"OpenAI",f:"gpt-4.1-mini",m:"gpt-4.1"},gemini:{n:"Gemini (Google)",f:"gemini-2.5-flash",m:"gemini-2.5-pro"},freellm:{n:"FreeLLMAPI (Gratis-Pool)",f:"auto:fast",m:"auto:smart",u:"http://localhost:3001",oc:1}};
+const DEF={anthropic:{n:"Claude (Anthropic)",f:"claude-haiku-4-5-20251001",m:"claude-sonnet-5-5"},openai:{n:"OpenAI",f:"gpt-4.1-mini",m:"gpt-4.1"},gemini:{n:"Gemini (Google)",f:"gemini-3.8-flash",m:"gemini-1.5-pro"},freellm:{n:"FreeLLMAPI (Gratis-Pool)",f:"auto:fast",m:"auto:smart",u:"http://localhost:3001",oc:1}};
 const baseU=p=>String((CFG[p]&&CFG[p].u)||(DEF[p]&&DEF[p].u)||"").trim().replace(/\/+$/,"").replace(/\/v1$/,"");
 let CFG={};try{CFG=JSON.parse(LS.get("ultron_cfg")||"{}");}catch(e){}
 const mdl=(p,t)=>(CFG[p]&&(CFG[p][t]||CFG[p]["a"+t]))||DEF[p][t];
