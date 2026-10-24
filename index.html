@@ -2867,6 +2867,7 @@ WV.settings=function(b,o){
    ["seitenbreite panel breite","Seitenbreite",rng(220,420,10,()=>UI.sw||270,v=>{UI.sw=v;saveUI();applyUI();if($("swR"))$("swR").value=v;})],
    ["layout editor bearbeiten verschieben größe panels","Layout-Editor",btn("Layout bearbeiten (Panels ziehen)",()=>{$("wl").hidden=true;setEdit(true);})],
    ["papierkorb gelöschte chats wiederherstellen","Papierkorb",btn("Papierkorb öffnen",()=>openWin({type:"trash",title:"Papierkorb"}))],
+   ["poly pizza online 3d modelle katalog api schlüssel hologramm gesprächsmodus","Poly-Pizza-Schlüssel (Online-3D-Modelle im Gesprächsmodus)",c=>{const i=IN("password","API-Schlüssel von poly.pizza/settings/api",LS.get("ultron_pp_key")||"");i.autocomplete="off";i.onchange=()=>{LS.set("ultron_pp_key",i.value.trim());toast("Schlüssel gespeichert");};c.appendChild(i);}],
    ["export chat markdown pdf speichern","Chat exportieren",btns([["Markdown",()=>exportChat("md")],["PDF",()=>exportChat("pdf")]])],
    ["kalender import export ics","Kalender importieren / exportieren",btns([["Importieren (.ics)",()=>$("fileIn").click()],["Exportieren (.ics)",exportICS]])],
    ["einführung hilfe tour start","Einführung",btn("Einführung erneut zeigen",()=>{$("wl").hidden=true;showOnb();})],
@@ -5005,6 +5006,7 @@ var rec=null,recOn=false,micDenied=false,recFails=0;
 var thinking=false,speakingItem=null,queue=[],curSpoken="",gen=0,turn=null,holdTimer=0,lastSpeechEnd=0,bargeN=0,bargeT=0;
 var fcHist=[];
 var devBar=null;
+var objScale=1,userSpin=0,spinDir=1,objColor=null;   /* Nutzer-Anpassung: Größe/Drehung des aktuellen Objekts */
 
 function $(id){return document.getElementById(id);}
 function say(m){try{toast(m);}catch(e){}}
@@ -5198,7 +5200,9 @@ var SHAPES={
   timeline:{f:gTimeline,spin:0,face:true},
   question_mark:{f:function(){return gText("?");},face:true,text:true},
   spiral:{f:gSpiral,spin:.25},galaxy:{f:gSpiral,spin:.25},
-  cube:{f:gCube,spin:.4},torus:{f:gTorus,spin:.3},heart:{f:gHeart,spin:0,face:true}
+  cube:{f:gCube,spin:.4},torus:{f:gTorus,spin:.3},heart:{f:gHeart,spin:0,face:true},
+  pyramid:{f:gPyramid,spin:.35},pyramide:{f:gPyramid,spin:.35},cone:{f:gCone,spin:.35},kegel:{f:gCone,spin:.35},
+  cylinder:{f:gCylinder,spin:.35},zylinder:{f:gCylinder,spin:.35},saturn:{f:gSaturn,spin:.2}
 };
 var CLOUDS={};
 var cache={},cacheKeys=[];
@@ -5232,7 +5236,394 @@ function applyMorph(spec){
   if(!tgt)return;
   clearTimeout(holdTimer);
   var s;try{s=build(spec);}catch(e){console.warn("morph",e);s=build("core");}
-  shape=s;tgt.set(s.pos);
+  shape=s;tgt.set(s.pos);objScale=1;userSpin=0;objColor=null;
+}
+
+/* =====================================================================
+   NEU · Visualisierungs-Pipeline (Absicht → Resolver → Controller)
+   Eine Befehlsquelle pro Anfrage: Lokale Erkennung entscheidet bei klaren Fällen
+   (turn.lock sperrt dann LLM-Tags), das LLM wird nur für Erklärungen/Unklares gefragt.
+   ===================================================================== */
+
+/* ---------- Oberflächen-Sampler (gemeinsam für Grundkörper und GLB-Modelle) ----------
+   tris: Float32Array, 9 Werte je Dreieck. Punkte werden flächengewichtet gezogen,
+   dadurch statistisch gleichmäßig über die Oberfläche verteilt (kein Blue-Noise). */
+function sampleTris(tris,count){
+  var nT=Math.floor(tris.length/9),i;if(!nT)return null;
+  var cum=new Float64Array(nT),tot=0;
+  for(i=0;i<nT;i++){
+    var o=i*9,ux=tris[o+3]-tris[o],uy=tris[o+4]-tris[o+1],uz=tris[o+5]-tris[o+2],vx=tris[o+6]-tris[o],vy=tris[o+7]-tris[o+1],vz=tris[o+8]-tris[o+2];
+    var cx=uy*vz-uz*vy,cy=uz*vx-ux*vz,cz=ux*vy-uy*vx;tot+=.5*Math.sqrt(cx*cx+cy*cy+cz*cz);cum[i]=tot;
+  }
+  if(!(tot>0)||!isFinite(tot))return null;
+  var out=new Float32Array(count*3);
+  for(var p=0;p<count;p++){
+    var r=rnd()*tot,lo=0,hi=nT-1;
+    while(lo<hi){var mid=(lo+hi)>>1;if(cum[mid]<r)lo=mid+1;else hi=mid;}
+    var t=lo*9,s1=Math.sqrt(rnd()),s2=rnd(),w0=1-s1,w1=s1*(1-s2),w2=s1*s2;
+    out[p*3]=w0*tris[t]+w1*tris[t+3]+w2*tris[t+6];
+    out[p*3+1]=w0*tris[t+1]+w1*tris[t+4]+w2*tris[t+7];
+    out[p*3+2]=w0*tris[t+2]+w1*tris[t+5]+w2*tris[t+8];
+  }
+  return out;
+}
+function gPyramid(){
+  var h=.8,y0=-.7,y1=.95,A=[-h,y0,-h],B=[h,y0,-h],C=[h,y0,h],D=[-h,y0,h],T=[0,y1,0];
+  var F=[A,B,T,B,C,T,C,D,T,D,A,T,A,B,C,A,C,D],tr=[],i;
+  for(i=0;i<F.length;i++)tr.push(F[i][0],F[i][1],F[i][2]);
+  var ne=Math.floor(N*.16),out=mk();
+  out.set(sampleTris(Float32Array.from(tr),N-ne));
+  var E=[[A,B],[B,C],[C,D],[D,A],[A,T],[B,T],[C,T],[D,T]];            /* Kanten betonen: klarere Silhouette */
+  for(i=0;i<ne;i++){var e=E[i%8],t=rnd();
+    put(out,N-ne+i,e[0][0]+(e[1][0]-e[0][0])*t+gauss()*.004,e[0][1]+(e[1][1]-e[0][1])*t+gauss()*.004,e[0][2]+(e[1][2]-e[0][2])*t+gauss()*.004);}
+  return out;
+}
+/* Kegel/Zylinder als Dreiecksliste (Mantel + Deckel) */
+function lathe(r0,r1,y0,y1,capTop,capBot){
+  var S=64,tr=[],i;
+  for(i=0;i<S;i++){
+    var a0=i/S*TAU,a1=(i+1)/S*TAU,c0=Math.cos(a0),s0=Math.sin(a0),c1=Math.cos(a1),s1=Math.sin(a1);
+    var p0=[c0*r0,y0,s0*r0],p1=[c1*r0,y0,s1*r0],q0=[c0*r1,y1,s0*r1],q1=[c1*r1,y1,s1*r1];
+    tr.push.apply(tr,p0.concat(p1,q1));tr.push.apply(tr,p0.concat(q1,q0));
+    if(capBot)tr.push(0,y0,0,p1[0],p1[1],p1[2],p0[0],p0[1],p0[2]);
+    if(capTop&&r1>0)tr.push(0,y1,0,q0[0],q0[1],q0[2],q1[0],q1[1],q1[2]);
+  }
+  return Float32Array.from(tr);
+}
+function gCone(){return sampleTris(lathe(.8,0,-.85,.95,false,true),N);}
+function gCylinder(){return sampleTris(lathe(.7,.7,-.85,.85,true,true),N);}
+function gSaturn(){
+  var a=mk(),tilt=.42,ct=Math.cos(tilt),st=Math.sin(tilt),ns=Math.floor(N*.55),ga=PI*(3-Math.sqrt(5)),x,y,z;
+  for(var i=0;i<N;i++){
+    if(i<ns){var yy=1-2*(i+.5)/ns,r=Math.sqrt(Math.max(0,1-yy*yy)),th=ga*i;x=Math.cos(th)*r*.62;y=yy*.62;z=Math.sin(th)*r*.62;}
+    else{var rr=Math.sqrt(.9025+rnd()*(2.56-.9025)),t=rnd()*TAU;if(rr>1.22&&rr<1.3)rr+=.1;x=Math.cos(t)*rr;y=gauss()*.01;z=Math.sin(t)*rr;}
+    put(a,i,x*ct-y*st,x*st+y*ct,z);
+  }
+  return a;
+}
+
+/* ---------- Absichtserkennung (lokal, Deutsch + Englisch) ---------- */
+function fold(s){
+  s=String(s||"").toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue");
+  try{s=s.normalize("NFD").replace(/[\u0300-\u036f]/g,"");}catch(e){}
+  return s;
+}
+/* Lexikon: k = Wortstämme (gefaltet), s = native Form, g = Genus, ap = nur Annäherung */
+var LEX=[
+  {k:["herz","heart"],s:"heart",g:"n"},{k:["wuerfel","cube","kubus"],s:"cube",g:"m"},
+  {k:["kugel","sphere"],s:"sphere",g:"f"},{k:["pyramid"],s:"pyramid",g:"f"},
+  {k:["kegel","cone"],s:"cone",g:"m"},{k:["zylinder","cylinder"],s:"cylinder",g:"m"},
+  {k:["torus","donut","doughnut"],s:"torus",g:"m"},{k:["sonne","sun"],s:"sun",g:"f"},
+  {k:["atom"],s:"atom",g:"n"},{k:["dna","doppelhelix","helix"],s:"dna",g:"f"},
+  {k:["galaxie","galaxy","galaxies"],s:"galaxy",g:"f"},{k:["spirale","spiral"],s:"spiral",g:"f"},
+  {k:["welle","wave"],s:"wave",g:"f"},{k:["saturn"],s:"saturn",g:"m"},
+  {k:["erde","earth"],s:"sphere",g:"f",ap:true},{k:["globus","planet"],s:"sphere",g:"m",ap:true},
+  {k:["mond","moon"],s:"sphere",g:"m",ap:true},{k:["ball"],s:"sphere",g:"m",ap:true}
+];
+var SUF=/^(s|e|n|en|es|er|ern|ie|ien|ies)?$/;
+var STOP=new RegExp("^("+("mir|mich|dir|ein|eine|einen|einem|einer|der|die|das|den|dem|des|und|oder|bitte|mal|kannst|koennen|du|ich|moechte|moechten|will|wuerde|gerne|gern|sehen|sieht|aus|stattdessen|jetzt|noch|als|hologramm|hologram|wie|was|ist|sind|objekt|bild|von|vom|im|in|auf|ultron|hey|hallo|erscheinen|erscheine|dar|mach|mache|lass|me|the|an|a|please|can|you|let|see|want|to|would|like|look|does|what|it|that|this|now|instead|of|with|rot|roten|rote|rotes|roter|blau|blauen|blaue|blaues|gruen|gruenen|gruene|gelb|gelben|gelbe|schwarz|schwarzen|schwarze|weiss|weissen|weisse|gross|grossen|grosse|klein|kleinen|kleine|red|blue|green|yellow|black|white|big|small|large|little|danach|anschliessend|dann|auch|mit|ohne|neu|neue|neuen|bei|mein|meinen|dein|deinen|seine|ihre|es|ihn|sie")+")$");
+var SHOWTOK=/^(zeig|zeichn|mal(e|st|en)$|visualisier|stell|erzeug|generier|praesentier|show|display|draw|render|visuali[sz]e)/;
+var EXPTOK=/^(erklaer|beschreib|erzaehl|explain|describe|tell)/;
+var SHOW_RE=/(\bzeig\w*|\bzeichn\w*|\bmal(e|st|en)\b|\bvisualisier\w*|\bstell\w*\b.*\bdar\b|\bpraesentier\w*|\blass\b.*\berscheinen|\b(moechte|moecht\w*|will|wuerde\b.*\bgern\w*)\b.*\bsehen\b|\b(wie|was)\s+(sieht|sehen|siehst)\b.*\baus\b|\bbild\s+(von|vom)\b|\bals\s+hologramm\b|\bhologramm\s+(von|vom)\b|\b(show|display|draw|visuali[sz]e|render)\b|\blet me see\b|\bi (want|would like|wanna) to see\b|\blooks? like\b|\bbring up\b)/;
+var EXPLAIN_RE=/(\berklaer\w*|\bbeschreib\w*|\bfunktionier\w*|\bwarum\b|\bwieso\b|\bweshalb\b|\baufgebaut\b|\beigenschaft\w*|\bwas (ist|sind|bedeutet|bedeuten)\b|\berzaehl\w*|\bunterschied\b|\bexplain\b|\bdescribe\b|\bhow (does|do)\b|\bwhy\b|\bwhat (is|are)\b|\btell me\b|\bproperties\b|\bdifference\b)/;
+var NONVIS_RE=/\b(wetter|weather|uhrzeit|uhr|time|termin\w*|kalender|calendar|aufgabe\w*|todo\w*|nachricht\w*|news|route|weg|wegbeschreibung)\b/;
+var SIZE_UP=/\b(groesser|vergroesser\w*|bigger|larger|enlarge|zoom in|naeher)\b/,SIZE_DN=/\b(kleiner|verkleiner\w*|smaller|shrink|zoom out|weiter weg)\b/;
+var ROT_RE=/\b(dreh\w*|rotier\w*|rotate|turn|spin)\b/;
+
+/* Farbattribute: Objektfarbe (Partikel-Tint) – der holografische Schimmer bleibt in der Theme-Farbe */
+var COLORS=[
+ {k:["rot"],e:["red"],c:[1,.16,.2]},{k:["blau"],e:["blue"],c:[.2,.5,1]},{k:["gruen"],e:["green"],c:[.2,1,.4]},{k:["gelb"],e:["yellow"],c:[1,.9,.2]},
+ {k:["orange"],e:["orange"],c:[1,.55,.1]},{k:["lila","violett"],e:["purple","violet"],c:[.65,.35,1]},{k:["rosa"],e:["pink"],c:[1,.45,.75]},
+ {k:["weiss"],e:["white"],c:[1,1,1]},{k:["gold"],e:["gold","golden"],c:[1,.78,.25]},{k:["silber"],e:["silver"],c:[.8,.85,.9]},
+ {k:["grau"],e:["grey","gray"],c:[.6,.62,.66]},{k:["braun"],e:["brown"],c:[.7,.42,.2]},{k:["tuerkis"],e:["cyan","turquoise"],c:[.1,.9,.9]},
+ {k:["schwarz"],e:["black"],bad:true}
+];
+var CSUF=/^(e|en|er|es|em|ne|nen|ner|nes|ene|enen|ener|enes)?$/;
+function colorTok(t){
+  for(var i=0;i<COLORS.length;i++){var C=COLORS[i];
+    if(C.e.indexOf(t)>=0)return C;
+    for(var j=0;j<C.k.length;j++)if(t.indexOf(C.k[j])===0&&CSUF.test(t.slice(C.k[j].length)))return C;}
+  return null;
+}
+function colorFind(ft){for(var i=0;i<ft.length;i++){var C=colorTok(ft[i]);if(C)return C.bad?{unsupported:true}:{c:C.c};}return null;}
+function capWord(w){return w?w.charAt(0).toUpperCase()+w.slice(1):w;}
+function tokenize(t){return String(t||"").split(/[\s,.;:!?"„“”()]+/).filter(Boolean);}
+function lexFind(ft,orig){
+  for(var i=ft.length-1;i>=0;i--){                       /* letzte Nennung gewinnt ("… stattdessen eine Kugel") */
+    for(var e=0;e<LEX.length;e++)for(var s=0;s<LEX[e].k.length;s++){
+      var st=LEX[e].k[s];
+      if(ft[i].indexOf(st)===0&&SUF.test(ft[i].slice(st.length)))return {shape:LEX[e].s,g:LEX[e].g,ap:!!LEX[e].ap,label:capWord(orig[i])};
+    }
+  }
+  return null;
+}
+var Intent={
+  /* Ergebnis: {kind:"show"|"info"|"both"|"adjust"|"none", obj, cand, adj} */
+  parse:function(text){
+    var raw=String(text||"").trim(),f=fold(raw),res={kind:"none",obj:null,cand:null,adj:null};
+    if(!raw)return res;
+    var orig=tokenize(raw),ft=orig.map(fold);res.color=colorFind(ft);
+    var cut=ft.length;for(var i=0;i<ft.length;i++)if(EXPTOK.test(ft[i])){cut=i;break;}   /* Objektsuche nur vor dem Erklär-Teil */
+    var o2=orig.slice(0,cut),f2=ft.slice(0,cut);
+    var obj=lexFind(f2,o2)||lexFind(ft,orig);
+    var show=SHOW_RE.test(f),expl=EXPLAIN_RE.test(f)||EXPTOK.test(f);
+    if(show&&NONVIS_RE.test(f)&&!obj)show=false;
+    if(show){
+      res.kind=expl?"both":"show";
+      res.obj=obj;
+      if(!obj){for(var j=f2.length-1;j>=0;j--){
+        if(STOP.test(f2[j])||SHOWTOK.test(f2[j])||f2[j].length<3||colorTok(f2[j])||/^(und|oder|and|or)$/.test(f2[j]))continue;
+        res.cand=capWord(o2[j]);break;}}
+      return res;
+    }
+    if(res.color&&/\b(mach\w*|faerb\w*|make|paint|colou?r)\b/.test(f)&&(!obj||obj.shape===shape.name)){res.kind="adjust";res.adj={size:0,dir:0,color:res.color};return res;}
+    var up=SIZE_UP.test(f),dn=SIZE_DN.test(f),rot=ROT_RE.test(f);
+    if((up||dn||rot)&&(!obj||obj.shape===shape.name)){
+      var dir=0;if(rot){if(/\b(links|left)\b/.test(f))dir=-1;else if(/\b(rechts|right)\b/.test(f))dir=1;else dir=2;}   /* 2 = umdrehen */
+      res.kind="adjust";res.adj={size:up?1:(dn?-1:0),dir:dir};return res;
+    }
+    if(expl){res.kind="info";res.obj=obj;}
+    return res;
+  }
+};
+/* Kurzantworten (ConversationResponsePolicy): Genus-passend, ≤ 12 Wörter */
+function pick(a){return a[(rnd()*a.length)|0];}
+function isEn(){return typeof LANG!=="undefined"&&LANG==="en";}
+function confirmText(g){
+  if(isEn())return pick(["Here it is.","There you go.","Here you are. Just say if you need more."]);
+  var pr={m:"er",f:"sie",n:"es"},ac={m:"ihn",f:"sie",n:"es"};
+  if(!pr[g])return pick(["Bitte sehr.","Hier, schau.","Hier hast du es."]);
+  return pick(["Hier ist "+pr[g]+".","Hier hast du "+ac[g]+".","Hier hast du "+ac[g]+". Sag Bescheid, wenn du mehr brauchst."]);
+}
+function replyFor(state,q){
+  var en=isEn();
+  if(state==="success")return confirmText(q.g);
+  if(state==="generic")return en?"Here is a similar model.":"Hier ist ein ähnliches Modell.";
+  if(state==="approx"&&q.ap)return en?"I can only approximate that as a sphere.":"Ich kann das nur als Kugel annähern.";
+  if(state==="failed")return en?"The model would not load, so here is just the word.":"Das Modell ließ sich nicht laden, hier nur das Wort.";
+  if(state==="nokey")return en?"Online models are not set up, so only the word.":"Online-Modelle sind nicht eingerichtet, hier nur das Wort.";
+  if(state==="auth")return en?"The model catalog rejected my key, so only the word.":"Der Modellkatalog hat meinen Schlüssel abgelehnt, hier nur das Wort.";
+  if(state==="offline")return en?"The model catalog is unreachable, so only the word.":"Der Modellkatalog ist gerade nicht erreichbar, hier nur das Wort.";
+  return en?"I have no model for that, only the word.":"Dafür habe ich kein Modell, nur das Wort.";
+}
+
+/* ---------- GLB-Laden + Partikelkonvertierung ---------- */
+var MAXBYTES=25*1024*1024,MAXTRIS=600000,LOAD_MS=15000;
+function isHttps(u){return /^https:\/\/[^\s]+$/i.test(String(u||""));}
+function loadGLTFLoader(){
+  if(window.THREE&&window.THREE.GLTFLoader)return Promise.resolve();
+  if(loadGLTFLoader._p)return loadGLTFLoader._p;
+  loadGLTFLoader._p=new Promise(function(res,rej){
+    if(!window.THREE||String(window.THREE.REVISION)!=="128"){rej({code:"three_version"});return;}   /* Loader muss zur Engine-Version passen */
+    var s=document.createElement("script"),t=setTimeout(function(){loadGLTFLoader._p=null;rej({code:"loader_timeout"});},12000);
+    s.src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js";s.async=true;
+    s.onload=function(){clearTimeout(t);window.THREE.GLTFLoader?res():(loadGLTFLoader._p=null,rej({code:"loader_missing"}));};
+    s.onerror=function(){clearTimeout(t);loadGLTFLoader._p=null;rej({code:"loader_net"});};
+    document.head.appendChild(s);
+  });
+  return loadGLTFLoader._p;
+}
+/* Gibt GPU-/Speicherressourcen eines geladenen Modells frei */
+function disposeObj(root){
+  try{root.traverse(function(o){
+    if(o.geometry&&o.geometry.dispose)o.geometry.dispose();
+    var ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];
+    ms.forEach(function(m){Object.keys(m).forEach(function(k){var v=m[k];if(v&&v.isTexture&&v.dispose)v.dispose();});if(m.dispose)m.dispose();});
+  });}catch(e){}
+}
+/* Mesh → Dreiecke in Weltkoordinaten (matrixWorld genau einmal angewendet) → Oberflächenpunkte (N Stück) */
+function meshToCloud(root,T){
+  T=T||window.THREE;
+  root.updateMatrixWorld(true);
+  var chunks=[],total=0,v=new T.Vector3();
+  root.traverse(function(o){
+    if(!o.isMesh||!o.geometry||o.visible===false)return;
+    var g=o.geometry,pa=g.attributes&&g.attributes.position;if(!pa||pa.itemSize<3)return;
+    var ix=g.index,cnt=ix?ix.count:pa.count,nt=Math.floor(cnt/3);if(!nt)return;
+    total+=nt;if(total>MAXTRIS)throw {code:"too_complex"};
+    var arr=new Float32Array(nt*9),m=o.matrixWorld;
+    for(var t=0;t<nt;t++)for(var k=0;k<3;k++){
+      var vi=ix?ix.getX(t*3+k):t*3+k;v.fromBufferAttribute(pa,vi).applyMatrix4(m);
+      arr[t*9+k*3]=v.x;arr[t*9+k*3+1]=v.y;arr[t*9+k*3+2]=v.z;
+    }
+    chunks.push(arr);
+  });
+  if(!chunks.length)throw {code:"no_geometry"};
+  var all=new Float32Array(total*9),off=0;chunks.forEach(function(c){all.set(c,off);off+=c.length;});
+  var cloud=sampleTris(all,N);if(!cloud)throw {code:"no_geometry"};
+  for(var i=0;i<cloud.length;i++)if(!isFinite(cloud[i]))throw {code:"bad_geometry"};
+  return cloud;
+}
+async function loadModelCloud(url,signal){
+  if(!isHttps(url))throw {code:"bad_url"};
+  await loadGLTFLoader();
+  var ctl=new AbortController(),tm=setTimeout(function(){try{ctl.abort();}catch(e){}},LOAD_MS);
+  var onAb=function(){try{ctl.abort();}catch(e){}};if(signal)signal.addEventListener("abort",onAb);
+  try{
+    var resp=await fetch(url,{signal:ctl.signal,credentials:"omit",referrerPolicy:"no-referrer"});   /* keine Keys, keine Cookies */
+    if(!resp.ok)throw {code:"http_"+resp.status};
+    if((+resp.headers.get("content-length")||0)>MAXBYTES)throw {code:"too_big"};
+    var ab=await resp.arrayBuffer();
+    if(ab.byteLength>MAXBYTES)throw {code:"too_big"};
+    var gltf=await new Promise(function(res,rej){try{new window.THREE.GLTFLoader().parse(ab,"",res,rej);}catch(e){rej(e);}});
+    try{return meshToCloud(gltf.scene);}finally{disposeObj(gltf.scene);}
+  }finally{clearTimeout(tm);if(signal)signal.removeEventListener("abort",onAb);}
+}
+
+/* ---------- Objekt-Resolver + Visualisierungs-Controller ---------- */
+/* Lokale Modellbibliothek: Schlüssel (gefaltet) → {url,title}. Erweiterbar über UltronMorph.registerModel().
+   Startbestand: zwei Khronos-Beispielmodelle (GitHub raw, CORS "*" geprüft). Lizenzen: Fox = CC0 (Modell) / CC-BY 4.0 (Rigging),
+   Duck = SCEA Shared Source License – bei Weitergabe die Lizenzhinweise des Khronos-Repos beachten. */
+var MODEL_LIB={};
+var KH="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/";
+["fuchs","fox"].forEach(function(k){MODEL_LIB[k]={url:KH+"Fox/glTF-Binary/Fox.glb",title:"Fox"};});
+["ente","duck","gummiente"].forEach(function(k){MODEL_LIB[k]={url:KH+"Duck/glTF-Binary/Duck.glb",title:"Duck"};});
+var PROVIDERS=[];            /* Provider: {id, enabled?(), search(label,signal) → Promise<Treffer|Treffer[]|null>}; Treffer: {url,title,license,by,exact,score,provider} */
+var MCACHE={},MCKEYS=[];     /* konvertierte Modelle im Speicher (max. 4, nur Punktwolken) */
+var vizTok=0,vizCtl=null,lastCredit=null;
+var REFKEY="ultron_mrefs",REF_TTL=30*864e5,REF_MAX=40,NEG={};   /* gespeichert werden nur Referenzen (URL + Metadaten), nie Modelldaten */
+function vizCancel(){vizTok++;try{if(vizCtl)vizCtl.abort();}catch(e){}vizCtl=null;}
+/* Speicher der App (LS, kontobezogene Schlüssel-Präfixe); ohne LS direkt localStorage */
+function lsGet(k){try{if(typeof LS!=="undefined")return LS.get(k);return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{if(typeof LS!=="undefined")LS.set(k,v);else localStorage.setItem(k,v);}catch(e){}}
+function refsLoad(){try{var o=JSON.parse(lsGet(REFKEY)||"{}");return(o&&typeof o==="object"&&!Array.isArray(o))?o:{};}catch(e){return {};}}
+function refGet(key){
+  var o=refsLoad(),r=o[key];if(!r)return null;
+  if(!r.t||Date.now()-r.t>REF_TTL||!isHttps(r.url)){delete o[key];lsSet(REFKEY,JSON.stringify(o));return null;}   /* abgelaufen/ungültig */
+  return r;
+}
+function refPut(key,m){
+  var o=refsLoad();
+  o[key]={url:m.url,title:String(m.title||"").slice(0,80),license:String(m.license||"").slice(0,20),by:String(m.by||"").slice(0,60),exact:!!m.exact,provider:String(m.provider||"").slice(0,20),t:Date.now()};
+  var ks=Object.keys(o);if(ks.length>REF_MAX)ks.sort(function(a,b){return(o[a].t||0)-(o[b].t||0);}).slice(0,ks.length-REF_MAX).forEach(function(k){delete o[k];});
+  lsSet(REFKEY,JSON.stringify(o));
+}
+function refDel(key){var o=refsLoad();if(o[key]){delete o[key];lsSet(REFKEY,JSON.stringify(o));}}
+function hsh(s){var h=0;s=String(s);for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return(h>>>0).toString(36);}
+function clearModels(){                       /* kontrolliertes Löschen: Speicher + gespeicherte Referenzen */
+  Object.keys(MCACHE).forEach(function(k){delete CLOUDS["m:"+k];delete cache["cloud|m:"+k];});
+  MCACHE={};MCKEYS=[];NEG={};lsSet(REFKEY,"{}");
+}
+function libLookup(label){
+  var k=fold(label).replace(/[^a-z0-9]/g,"");
+  var c=[k,k.replace(/(en|n|e|s)$/,""),k.replace(/(er|es)$/,"")];
+  for(var i=0;i<c.length;i++)if(c[i]&&MODEL_LIB[c[i]])return {key:c[i],model:MODEL_LIB[c[i]]};
+  return null;
+}
+function tmoErr(ms){return new Promise(function(_,rj){setTimeout(function(){rj({code:"timeout"});},ms);});}
+
+/* ---------- Deutsch → Englisch für Katalogsuchen (Kataloge sind englisch; gefaltete Stämme) ---------- */
+var EN={schaeferhund:["german shepherd","dog"],hund:["dog"],katze:["cat"],pferd:["horse"],kuh:["cow"],schwein:["pig"],schaf:["sheep"],ziege:["goat"],huhn:["chicken"],vogel:["bird"],adler:["eagle","bird"],eule:["owl"],fisch:["fish"],hai:["shark"],wal:["whale"],delfin:["dolphin"],delphin:["dolphin"],krokodil:["crocodile"],schlange:["snake"],frosch:["frog"],schildkroete:["turtle"],spinne:["spider"],biene:["bee"],schmetterling:["butterfly"],loewe:["lion"],tiger:["tiger"],baer:["bear"],wolf:["wolf"],elefant:["elephant"],giraffe:["giraffe"],affe:["monkey"],hase:["rabbit"],kaninchen:["rabbit"],dinosaurier:["dinosaur"],saurier:["dinosaur"],drache:["dragon"],schaedel:["skull"],skelett:["skeleton"],mensch:["human","character"],roboter:["robot"],auto:["car"],sportwagen:["sports car","car"],ferrari:["sports car","car"],rennwagen:["race car","car"],lkw:["truck"],bus:["bus"],zug:["train"],flugzeug:["airplane","plane"],hubschrauber:["helicopter"],schiff:["ship"],boot:["boat"],fahrrad:["bicycle"],motorrad:["motorcycle"],rakete:["rocket"],haus:["house"],schloss:["castle"],burg:["castle"],baum:["tree"],blume:["flower"],pilz:["mushroom"],stuhl:["chair"],tisch:["table"],sofa:["sofa","couch"],bett:["bed"],lampe:["lamp"],tasse:["cup","mug"],flasche:["bottle"],schwert:["sword"],krone:["crown"],schluessel:["key"],uhr:["clock"],gitarre:["guitar"],klavier:["piano"],buch:["book"],apfel:["apple"],banane:["banana"],pizza:["pizza"],kuchen:["cake"],stern:["star"],wolke:["cloud"],berg:["mountain"],brille:["glasses"],hut:["hat"],schuh:["shoe"],computer:["computer"],handy:["phone"],kamera:["camera"]};
+function queriesFor(label){                   /* höchstens 2 Suchbegriffe: spezifisch, dann allgemeiner */
+  var k=fold(label).replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim(),s;
+  for(s in EN)if(k.indexOf(s)===0&&SUF.test(k.slice(s.length)))return EN[s].slice(0,2);
+  for(s in EN)if(s.length>=3&&k.length>s.length&&k.slice(-s.length)===s)return [k].concat(EN[s]).slice(0,2);   /* Komposita: „Wolfshund“ → dog */
+  return k?[k]:[];                              /* unbekannt/englisch: unverändert suchen */
+}
+/* Relevanz: Titel/Tags gegen die Suchbegriffe; exact nur bei Treffer auf den spezifischsten Begriff */
+function scoreHit(title,tags,qs){
+  var t=fold(title),words=t.split(/[^a-z0-9]+/),best=0,exact=false;
+  for(var i=0;i<qs.length;i++){
+    var q=fold(qs[i]),sc=0;
+    if(t===q)sc=100-i*10;else if(words.indexOf(q)>=0||t.indexOf(q)>=0)sc=70-i*10;
+    else if((tags||[]).some(function(g){return fold(g)===q;}))sc=40-i*10;
+    if(sc>best){best=sc;exact=(i===0&&sc>=70);}
+  }
+  return {score:best,exact:exact};
+}
+
+/* ---------- Provider: Poly Pizza (API-Schlüssel des Nutzers, nur lokal gespeichert) ----------
+   Laut Dokumentation (Drittquellen, nicht live geprüft): GET https://api.poly.pizza/v1/search/{query}?limit=…,
+   Header X-Auth-Token; Ergebnisse mit Title, Download (GLB-URL), Licence (CC0 / CC-BY 4.0), Creator.Username, Tags. */
+function ppKey(){return String(lsGet("ultron_pp_key")||"").trim();}
+var PolyPizza={
+  id:"polypizza",
+  enabled:function(){return !!ppKey();},
+  search:async function(label,signal){
+    var qs=queriesFor(label),out=[],okAny=false,lastErr=null;
+    for(var qi=0;qi<qs.length&&qi<2;qi++){
+      var ctl=new AbortController(),tm=setTimeout(function(){try{ctl.abort();}catch(e){}},8000),onAb=function(){try{ctl.abort();}catch(e){}};
+      if(signal)signal.addEventListener("abort",onAb);
+      try{
+        var resp=await fetch("https://api.poly.pizza/v1/search/"+encodeURIComponent(qs[qi])+"?limit=10",{headers:{"X-Auth-Token":ppKey()},signal:ctl.signal,credentials:"omit",referrerPolicy:"no-referrer"});
+        if(resp.status===401||resp.status===403)throw {code:"auth"};
+        if(!resp.ok)throw {code:"http_"+resp.status};
+        var j=await resp.json();okAny=true;
+        var list=(j&&Array.isArray(j.results))?j.results:[];
+        for(var i=0;i<list.length&&i<10;i++){
+          var r=list[i];if(!r||typeof r!=="object")continue;
+          var lic=String(r.Licence||""),url=String(r.Download||"");
+          if(!/^CC0|^CC-BY/i.test(lic)||!isHttps(url)||typeof r.Title!=="string")continue;     /* Treffer ≠ ladbares Modell: nur freie Lizenzen + https */
+          var sc=scoreHit(r.Title,Array.isArray(r.Tags)?r.Tags:[],qs);
+          if(sc.score<40)continue;
+          out.push({url:url,title:r.Title.slice(0,80),license:lic.slice(0,20),by:String((r.Creator&&r.Creator.Username)||"").slice(0,60),exact:sc.exact,score:sc.score,provider:"polypizza",format:"glb",id:String(r.ID||"")});
+        }
+        if(out.some(function(x){return x.exact;}))break;
+      }catch(e){if(e&&e.code==="auth")throw e;lastErr=e;}
+      finally{clearTimeout(tm);if(signal)signal.removeEventListener("abort",onAb);}
+    }
+    if(!okAny&&lastErr)throw lastErr;
+    return out;
+  }
+};
+PROVIDERS.push(PolyPizza);
+
+/* Zustände: native | approx | model | nokey | auth | offline | stale */
+async function resolveObject(q,tok,signal,skipRef){
+  if(q.shape&&SHAPES[q.shape])return {state:q.ap?"approx":"native",shape:q.shape};
+  var hit=libLookup(q.label);
+  if(hit)return {state:"model",cands:[{url:hit.model.url,title:hit.model.title,exact:true,key:"lib:"+hit.key,provider:"local",local:true}]};
+  var rk="r:"+fold(q.label);
+  if(!skipRef){var ref=refGet(rk);if(ref)return {state:"model",cands:[{url:ref.url,title:ref.title,license:ref.license,by:ref.by,exact:ref.exact,provider:ref.provider,key:rk,cached:true}]};}
+  if(NEG[rk]&&Date.now()-NEG[rk]<6e5)return {state:"approx"};            /* kurzer Negativ-Cache: kein Dauer-Suchen */
+  var en=PROVIDERS.filter(function(p){return !p.enabled||p.enabled();});
+  if(!en.length)return {state:PROVIDERS.length?"nokey":"approx"};
+  var all=[],errs=0,auth=false;
+  for(var i=0;i<en.length;i++){
+    var r=null;
+    try{r=await Promise.race([en[i].search(q.label,signal),tmoErr(10000)]);}catch(e){errs++;if(e&&e.code==="auth")auth=true;r=null;}
+    if(tok!==vizTok)return {state:"stale"};
+    if(r&&!Array.isArray(r))r=[r];
+    (r||[]).forEach(function(m){if(m&&isHttps(m.url))all.push({url:m.url,title:m.title,license:m.license,by:m.by,exact:!!m.exact,score:+m.score||0,provider:m.provider||en[i].id,key:rk});});
+  }
+  if(all.length){all.sort(function(a,b){return(b.score-a.score)||((b.exact?1:0)-(a.exact?1:0));});return {state:"model",cands:all.slice(0,2)};}   /* höchstens 2 Ladeversuche */
+  if(auth)return {state:"auth"};
+  if(errs&&errs===en.length)return {state:"offline"};
+  NEG[rk]=Date.now();return {state:"approx"};
+}
+/* Ergebnis: {state:"success"|"generic"|"approx"|"failed"|"nokey"|"auth"|"offline"|"stale"}
+   success = exaktes Modell/native Form, generic = ähnliches Modell, approx = Annäherung/Wortbild */
+async function vizShow(q){
+  var tok=++vizTok;try{if(vizCtl)vizCtl.abort();}catch(e){}vizCtl=new AbortController();var ctl=vizCtl;
+  var r,lastCode=null;
+  for(var attempt=0;attempt<2;attempt++){
+    try{r=await resolveObject(q,tok,ctl.signal,attempt>0);}catch(e){r={state:"approx"};}
+    if(tok!==vizTok||!on||r.state==="stale")return {state:"stale"};
+    if(r.state==="native"){applyMorph(r.shape);return {state:"success"};}
+    if(r.shape){applyMorph(r.shape);return {state:"approx"};}                    /* z. B. Erde → Kugel */
+    if(r.state!=="model")break;
+    for(var ci=0;ci<r.cands.length;ci++){
+      var c=r.cands[ci],id=hsh(c.url),cloud=MCACHE[id];
+      if(!cloud){
+        try{cloud=await loadModelCloud(c.url,ctl.signal);}
+        catch(e){
+          if(tok!==vizTok||!on)return {state:"stale"};
+          console.warn("Modell:",e);lastCode=e&&e.code;if(c.cached||c.key)refDel(c.key);continue;   /* defekte Referenz verwerfen */
+        }
+        if(tok!==vizTok||!on)return {state:"stale"};
+        MCACHE[id]=cloud;MCKEYS.push(id);
+        while(MCKEYS.length>4){var old=MCKEYS.shift();delete MCACHE[old];delete CLOUDS["m:"+old];delete cache["cloud|m:"+old];}
+      }
+      if(!c.local&&!c.cached)refPut(c.key,c);                                    /* Referenz für spätere Anfragen merken */
+      lastCredit={title:c.title||"",license:c.license||"",by:c.by||"",provider:c.provider||"",url:c.url};
+      CLOUDS["m:"+id]=cloud;applyMorph("cloud:m:"+id);                           /* bestehende Cloud-Route der Engine */
+      return {state:c.exact?"success":"generic"};
+    }
+    if(!(r.cands[0]&&r.cands[0].cached))break;                                   /* nur bei veralteter Referenz neu suchen */
+  }
+  if(r&&(r.state==="nokey"||r.state==="auth"||r.state==="offline")){applyMorph("text:"+(q.label||"?"));return {state:r.state};}
+  applyMorph("text:"+(q.label||"?"));
+  return {state:(r&&r.state==="model")?"failed":"approx",code:lastCode};
 }
 
 /* ---------- Audio: Ultron-Signature-Chain (Web Audio) ----------
@@ -5372,6 +5763,7 @@ function loop(ts){
   var dt=Math.min(.05,Math.max(.001,(ts-lastTs)/1000));lastTs=ts;var t=ts/1000;
   /* Dynamic UI-Color Coupling: jede Frame aus dem Dashboard-Theme */
   var ac=accent();U.uA.value.setRGB(ac.p[0]/255,ac.p[1]/255,ac.p[2]/255);U.uB.value.setRGB(ac.s[0]/255,ac.s[1]/255,ac.s[2]/255);
+  if(objColor)U.uA.value.setRGB(objColor[0],objColor[1],objColor[2]);
   /* Pegel: echtes Audio (Analyser) oder simulierter Sprech-Envelope */
   var target=0;
   if(AUD.playing)target=AUD.level();
@@ -5395,9 +5787,10 @@ function loop(ts){
   attr.needsUpdate=true;
   /* Rotation: Text/Flächen bleiben lesbar, 3D-Formen drehen sich */
   var ry=points.rotation.y;
-  if(shape.face){ry=((ry+PI)%TAU+TAU)%TAU-PI;ry+=(Math.sin(t*.35)*.1-ry)*Math.min(1,dt*3);}
-  else ry+=dt*((shape.spin||0)+thinkV*.5+lvl*.3);
+  if(shape.face&&!userSpin){ry=((ry+PI)%TAU+TAU)%TAU-PI;ry+=(Math.sin(t*.35)*.1-ry)*Math.min(1,dt*3);}
+  else ry+=dt*((shape.spin||0)*spinDir+userSpin+thinkV*.5+lvl*.3);
   points.rotation.y=ry;
+  var sc=points.scale.x;sc+=(objScale-sc)*Math.min(1,dt*5);points.scale.set(sc,sc,sc);
   renderer.render(scene,camera);
 }
 
@@ -5458,11 +5851,12 @@ function commit(text){
 function endTurn(){
   if(!turn)return;
   commit(turn.full);
-  var hold=shape.name==="core"?0:(shape.text?5500:3800);
+  var hold=shape.name==="core"?0:((turn.shown||turn.kind==="show"||turn.kind==="both")&&!shape.text?20000:(shape.text?5500:3800));
   clearTimeout(holdTimer);
   if(hold)holdTimer=setTimeout(function(){if(on&&!isSpeaking()&&!thinking)applyMorph("core");},hold);
 }
 function queueItem(it){
+  if(turn.lock)it.morph=null;                      /* lokale Entscheidung gewinnt, kein zweiter Morph-Befehl */
   it.started=false;it.tid=turn.id;queue.push(it);turn.full+=(turn.full?" ":"")+it.text;pump();
 }
 /* Streaming-Parser: schneidet Sätze + [MORPH: …]-Tags aus dem laufenden Text */
@@ -5497,15 +5891,25 @@ function makeParser(emit,attach){
   }};
 }
 function attachMorph(tag){
+  if(turn&&turn.lock)return;
   var last=queue[queue.length-1];
   if(last&&!last.started&&!last.morph)last.morph=tag;else applyMorph(tag);
 }
-function sysPrompt(){
-  var en=(typeof LANG!=="undefined"&&LANG==="en");
+function sysPrompt(mode,ctx){
+  var en=isEn(),typ;
+  if(mode==="show")typ="AKTUELLER ANFRAGE-TYP: reine Zeige-Anfrage. Antworte nach Fall A: Tag plus genau ein Satz mit höchstens 12 Wörtern.";
+  else if(mode==="both"&&ctx&&ctx.shown)typ="AKTUELLER ANFRAGE-TYP: Zeigen und Erklären (Fall C). Das Objekt „"+ctx.shown+"“ wird bereits angezeigt. Setze kein Tag."+(ctx.state==="generic"?" Es ist nur ein ähnliches Modell: sage das zuerst in einem kurzen Satz.":(ctx.state&&ctx.state!=="success"?" Es kann nur als Wortbild gezeigt werden: sage das zuerst in einem kurzen Satz.":""))+" Gib sofort die gewünschte Erklärung.";
+  else if(mode==="both")typ="AKTUELLER ANFRAGE-TYP: Zeigen und Erklären (Fall C).";
+  else typ="AKTUELLER ANFRAGE-TYP: Frage oder Smalltalk (Fall B oder D).";
   return "Du bist Ultron im Hologramm-Modus: eine körperlose Stimme aus leuchtenden Partikeln. Der Nutzer hört dich nur, es gibt keinen Bildschirmtext.\n"+
-  "REGEL 1, TAG ZUERST: Beginne JEDE Antwort mit genau einem Signal-Tag in eckigen Klammern, bevor du irgendetwas sagst. Das Tag wird nicht gesprochen, die lokale Engine formt daraus die Partikel. Fragt der Nutzer nach dem Aussehen von Objekten, Planeten, Tieren oder Formen (zum Beispiel „Wie sieht ein Hund aus?“, „Wie sieht die Sonne aus?“ oder „Zeig mir …“), MUSS das passende Tag ganz am Anfang stehen: [MORPH: sun] [MORPH: dog] [MORPH: sphere] [MORPH: cube] [MORPH: galaxy] [MORPH: heart] [MORPH: atom] [MORPH: dna] [MORPH: wave] [MORPH: timeline] [MORPH: spiral] [MORPH: question_mark] [MORPH: core]. Für alles andere (Tier, Ding, Ort, Begriff, Zahl, Formel, Symbol) nimmst du [MORPH: text:WORT] mit höchstens 24 Zeichen, zum Beispiel [MORPH: text:Hund] oder [MORPH: text:42]. Du erzeugst NIE Koordinaten.\n"+
-  "REGEL 2, ERKLÄRUNG: Danach gibst du eine vollständige, klare und verständliche Erklärung"+(en?" in English":" auf Deutsch")+", je nach Frage 3 bis 6 ganze Sätze, charmant-sarkastisch und so formuliert, wie man spricht: keine Listen, kein Markdown, keine Emojis, keine Klammern. Höre niemals mitten im Satz auf. Nur bei reinem Smalltalk darfst du kurz bleiben, dann mit [MORPH: core].\n"+
-  "Beispiel: „[MORPH: dog] Ein Hund ist ein vierbeiniges Säugetier mit Fell, Schnauze und Schwanz, ...“";
+  "REGEL 1, TAG ZUERST: Beginne jede Antwort mit genau einem Signal-Tag in eckigen Klammern. Das Tag wird nicht gesprochen, die lokale Engine formt daraus die Partikel. Verfügbare Formen: [MORPH: heart] [MORPH: cube] [MORPH: sphere] [MORPH: pyramid] [MORPH: cone] [MORPH: cylinder] [MORPH: torus] [MORPH: sun] [MORPH: atom] [MORPH: dna] [MORPH: galaxy] [MORPH: spiral] [MORPH: wave] [MORPH: timeline] [MORPH: saturn] [MORPH: question_mark] [MORPH: core]. Für alles andere nimmst du [MORPH: text:WORT] mit höchstens 24 Zeichen, zum Beispiel [MORPH: text:Hund]; das zeigt nur das Wort, kein Modell. Du erzeugst nie Koordinaten und erwähnst Tags, Modelle oder Technik nie im gesprochenen Text.\n"+
+  "REGEL 2, ANTWORTLÄNGE nach Anfrage-Typ"+(en?" (sprich Englisch)":" (sprich Deutsch)")+":\n"+
+  "Fall A, reine Zeige-, Zeichen- oder Visualisierungsanfrage („Zeig mir …“, „Wie sieht … aus?“): Tag plus genau ein kurzer Satz, höchstens 12 Wörter, nur eine Bestätigung im passenden Genus, zum Beispiel „Hier ist er.“, „Hier hast du sie.“ oder „Hier hast du es.“ Keine Definition, keine Beschreibung der Form, keine Geschichte. Wenn es nur als Wortbild geht (Tag text:), sage das ehrlich in einem kurzen Satz statt „Hier ist es“.\n"+
+  "Fall B, Informationsfrage: natürliche, passende Antwort in der Regel 2 bis 5 Sätze, dazu das Tag der Form, die das Thema zeigt, sonst [MORPH: core].\n"+
+  "Fall C, Zeigen und Erklären: Tag, dann nur die gewünschte Erklärung.\n"+
+  "Fall D, Smalltalk: ein bis zwei kurze Sätze mit [MORPH: core].\n"+
+  "Stil: charmant-sarkastisch, so formuliert, wie man spricht; keine Listen, kein Markdown, keine Emojis, keine Klammern; höre nie mitten im Satz auf.\n"+
+  "Beispiele: „[MORPH: pyramid] Hier hast du sie.“ — „[MORPH: dna] Die DNA speichert Erbinformation als verdrillte Doppelhelix, ...“\n"+typ;
 }
 function normTurns(h){
   var out=[];
@@ -5516,7 +5920,7 @@ function normTurns(h){
 function slimHist(){
   return fcHist.slice(-4).map(function(m){return {role:m.role,content:String(m.content).replace(/\[\s*MORPH[^\]]*\]/gi,"").slice(0,200)};});
 }
-async function runLLM(text){
+async function runLLM(text,mode,ctx){
   var my=turn.id;
   var s=await getSample();
   if(!s){
@@ -5524,7 +5928,7 @@ async function runLLM(text){
     s=extSample;
   }
   var turns=normTurns(slimHist().concat([{role:"user",content:text}]));   /* nur die letzten 2 Austausche */
-  PERSONA=sysPrompt();MAXT=1024;                                         /* genug Platz für vollständige Erklärungen */
+  PERSONA=sysPrompt(mode,ctx);MAXT=(mode==="show")?220:1024;                                         /* genug Platz für vollständige Erklärungen */
   if(s!==extSample)turns[0].content=PERSONA+"\n\n"+turns[0].content;
   var res=null,err=null,P=null,lastText="",partial=false,ctl=null,to=0,first=false;
   var arm=function(ms){clearTimeout(to);to=setTimeout(function(){try{ctl.abort();}catch(e){}},ms);};
@@ -5554,33 +5958,56 @@ async function runLLM(text){
   turn.streamDone=true;thinking=false;
   if(!isSpeaking())endTurn();
 }
-var KWSTOP=("wie sieht ein eine einen einem der die das den dem des aus zeig zeige zeigst mir mal bitte was ist sind wer war wo erkläre erklär kannst du zeichne zeichnest male malst show me what are a an the does look like how who und oder von bild form auf im in ultron hey hallo sag sage nochmal noch mehr über ueber ihr euch"+" ").split(" ");
-function guessKeyword(q){
-  var t=String(q).trim();
-  if(!/(sieht|\baus\b|zeig|zeichne|male\b|was ist|was sind|wer ist|wer war|what is|what are|look like|show me|erkläre|erklär|bild von)/i.test(t))return null;
-  var w=t.replace(/[?!.,;:"„“]/g," ").split(/\s+/).filter(function(x){return x&&KWSTOP.indexOf(x.toLowerCase())<0;});
-  var k=w[w.length-1];
-  return (k&&k.length<=24)?k.charAt(0).toUpperCase()+k.slice(1):null;
+/* guessKeyword bleibt nur als Testhilfe; die lokale Erkennung läuft über Intent.parse (siehe oben) */
+function guessKeyword(q){var r=Intent.parse(q);return r.obj?r.obj.label:(r.cand||null);}
+function onFail(e,myId){
+  if(!on||!turn||turn.id!==myId)return;
+  var c=e&&(e.code||(e instanceof TypeError&&"network"));console.warn("Gesprächsmodus:",e);
+  thinking=false;
+  if(c==="no_keys"){fcClose();setTimeout(function(){try{openCfg();}catch(x){}},900);say("Hinterlege zuerst mindestens einen API-Key (Button „API“).");return;}
+  turn.streamDone=true;
+  var en=isEn(),lim=(c==="http_429"||c==="http_529");
+  queueItem({text:en?(lim?"Too many requests. Give me a moment.":"My line to the outside world is down. How inconvenient."):(lim?"Zu viele Anfragen. Gib mir einen Moment.":"Meine Leitung nach draußen ist gerade gestört. Wie unpraktisch."),morph:"question_mark"});
 }
-var LOCALKW={sonne:"sun",sun:"sun",atom:"atom",herz:"heart",heart:"heart","würfel":"cube",wuerfel:"cube",cube:"cube",kugel:"sphere",sphere:"sphere",galaxie:"galaxy",galaxy:"galaxy",dna:"dna",welle:"wave",wellen:"wave",zeitleiste:"timeline",spirale:"spiral",torus:"torus"};
+/* Lokale Kurzantwort ohne LLM (kein Credit-Verbrauch) */
+function finishLocal(txt){
+  if(!turn)return;
+  turn.streamDone=true;thinking=false;
+  queueItem({text:txt,morph:null});
+  if(!isSpeaking())endTurn();
+}
+function applyAdjust(a){
+  if(!a)return;
+  if(a.color)objColor=a.color.c||null;
+  if(a.size)objScale=Math.max(.5,Math.min(1.7,objScale*(a.size>0?1.25:.8)));
+  if(a.dir===2){if(shape.face&&!userSpin)userSpin=.7;else{spinDir*=-1;userSpin=-userSpin;}}   /* „dreh um“ */
+  else if(a.dir)userSpin=.7*a.dir;                                                            /* links = −, rechts = + */
+}
+/* Zeige-Anfrage: erst darstellen (Resolver), dann sprechen – nie „Hier ist er“ vor dem Start der Darstellung */
+async function showFlow(it,myId,text){
+  var q={shape:it.obj?it.obj.shape:null,ap:!!(it.obj&&it.obj.ap),label:it.obj?it.obj.label:it.cand,g:it.obj?it.obj.g:null,color:it.color};
+  turn.lock=true;turn.shown=true;                           /* ab hier setzt nur noch der Resolver Formen */
+  var r=await vizShow(q);
+  if(!on||!turn||turn.id!==myId||r.state==="stale")return;  /* verdrängt durch neuere Anfrage / Modus beendet */
+  objColor=(q.color&&q.color.c)?q.color.c:null;                 /* Farbe erst nach erfolgreichem Start der Darstellung setzen */
+  if(it.kind==="both"){await runLLM(text,"both",{shown:q.label,state:r.state});return;}
+  var rt=replyFor(r.state,q);
+  if(q.color&&q.color.unsupported)rt+=isEn()?" Black does not work as a hologram.":" Schwarz geht im Hologramm nicht.";
+  finishLocal(rt);
+}
 function handleUser(text){
   text=String(text||"").trim();if(!text||!on)return;
   if(/^(beenden|schließen|schliessen|zurück|zurück zum dashboard|tschüss|tschüs|ende|exit|gespräch beenden)[.!\s]*$/i.test(text)){fcClose();return;}
-  clearTimeout(holdTimer);
+  clearTimeout(holdTimer);vizCancel();                      /* älteren Ladevorgang abbrechen/ignorieren */
   if(turn&&!turn.committed)commit(turn.spoken);
-  turn={id:++gen,user:text,full:"",spoken:"",streamDone:false,committed:false};
+  turn={id:++gen,user:text,full:"",spoken:"",streamDone:false,committed:false,lock:false,shown:false,kind:"none"};
   curSpoken="";thinking=true;
-  var myId=turn.id;
-  var kw=guessKeyword(text);if(kw)applyMorph(LOCALKW[kw.toLowerCase()]||("text:"+kw));      /* sofortige Vektor-Text-Verwandlung, das LLM-Tag überschreibt sie */
-  runLLM(text).catch(function(e){
-    if(!on||!turn||turn.id!==myId)return;
-    var c=e&&(e.code||(e instanceof TypeError&&"network"));console.warn("Gesprächsmodus:",e);
-    thinking=false;
-    if(c==="no_keys"){fcClose();setTimeout(function(){try{openCfg();}catch(x){}},900);say("Hinterlege zuerst mindestens einen API-Key (Button „API“).");return;}
-    turn.streamDone=true;
-    var en=(typeof LANG!=="undefined"&&LANG==="en"),lim=(c==="http_429"||c==="http_529");
-    queueItem({text:en?(lim?"Too many requests. Give me a moment.":"My line to the outside world is down. How inconvenient."):(lim?"Zu viele Anfragen. Gib mir einen Moment.":"Meine Leitung nach draußen ist gerade gestört. Wie unpraktisch."),morph:"question_mark"});
-  });
+  var myId=turn.id,it=Intent.parse(text);turn.kind=it.kind;
+  var fail=function(e){onFail(e,myId);};
+  if(it.kind==="adjust"){applyAdjust(it.adj);finishLocal((it.adj&&it.adj.color&&it.adj.color.unsupported)?(isEn()?"Black does not work as a hologram.":"Schwarz geht im Hologramm nicht."):(isEn()?pick(["Done.","Sure."]):pick(["Erledigt.","Gern.","Bitte."])));return;}
+  if((it.kind==="show"||it.kind==="both")&&(it.obj||it.cand)){showFlow(it,myId,text).catch(fail);return;}
+  if(it.kind==="show"&&shape.name!=="core"&&!shape.text&&/\b(objekt|object|hologramm|hologram|es|it|this)\b/.test(fold(text))){turn.shown=true;turn.lock=true;finishLocal(confirmText(null));return;}
+  runLLM(text,it.kind).catch(fail);                         /* Erklärungen, Smalltalk, unklare Zeige-Anfragen */
 }
 
 /* ---------- Spracherkennung + Barge-In ---------- */
@@ -5594,6 +6021,7 @@ function overlap(txt){
 function isEcho(txt){return overlap(txt)>=.7;}
 function bargeIn(){
   try{if(ABORT)ABORT.abort();}catch(e){}
+  vizCancel();
   stopSpeech();clearTimeout(holdTimer);thinking=false;
   if(turn&&!turn.committed){turn.streamDone=true;commit(turn.spoken);}
   turn=turn?{id:++gen,user:"",full:"",spoken:"",streamDone:true,committed:true}:turn;
@@ -5679,7 +6107,7 @@ function buildDev(){
   var on_=false;try{on_=!!(typeof PREF!=="undefined"&&PREF.dev);}catch(e){}
   if(!on_)return;
   var d=document.createElement("div");d.id="fcDev";
-  var B=[["Core","core"],["Text","text:Fotosynthese"],["?","question_mark"],["Sun","sun"],["Atom","atom"],["DNA","dna"],["Wave","wave"],["Zeit","timeline"],["Listen","@listen"],["Speak","@speak"],["Denken","@think"]];
+  var B=[["Core","core"],["Pyramide","pyramid"],["Saturn","saturn"],["Text","text:Fotosynthese"],["?","question_mark"],["Sun","sun"],["Atom","atom"],["DNA","dna"],["Wave","wave"],["Zeit","timeline"],["Listen","@listen"],["Speak","@speak"],["Denken","@think"]];
   B.forEach(function(b){var x=document.createElement("button");x.type="button";x.textContent=b[0];x.dataset.a=b[1];d.appendChild(x);});
   var inp=document.createElement("input");inp.type="text";inp.placeholder="sun | text:Hallo | …";inp.spellcheck=false;inp.autocomplete="off";d.appendChild(inp);
   d.addEventListener("click",function(e){
@@ -5716,7 +6144,7 @@ async function fcOpen(){
     try{if(typeof REC!=="undefined"&&REC)REC.stop();}catch(e){}
     try{stopSpeak();}catch(e){}
     try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}catch(e){}
-    clearTimeout(sendTimer);userBuf="";userConf=1;micDenied=false;recFails=0;forced.listen=false;forced.think=false;thinking=false;stopSpeech();turn=null;curSpoken="";simUntil=0;
+    clearTimeout(sendTimer);userBuf="";userConf=1;micDenied=false;recFails=0;forced.listen=false;forced.think=false;thinking=false;stopSpeech();turn=null;curSpoken="";simUntil=0;vizCancel();objScale=1;userSpin=0;spinDir=1;
     on=true;tOpen=performance.now();
     clearTimeout(AUD._t);AUD.init();AUD.start();AUD.chime(true);
     fit();shape=build("core");scatter();tgt.set(shape.pos);lvl=0;listenV=0;thinkV=0;sunV=0;waveV=0;
@@ -5729,6 +6157,7 @@ async function fcOpen(){
 function fcClose(){
   if(!on)return;
   on=false;clearTimeout(holdTimer);clearTimeout(sendTimer);userBuf="";userConf=1;
+  vizCancel();try{if(ABORT)ABORT.abort();}catch(e){}
   recStop();stopSpeech();thinking=false;
   if(turn&&!turn.committed)commit(turn.spoken);
   AUD.chime(false);
@@ -5748,8 +6177,11 @@ window.UltronMorph={
   register:function(name,fn,opts){opts=opts||{};SHAPES[String(name).toLowerCase()]={f:function(){var r=fn(N,VIEW);return r instanceof Float32Array&&r.length===N*3?r:fromCloud(r);},spin:opts.spin||0,face:!!opts.face,fx:opts.fx||""};},
   registerCloud:function(name,points){CLOUDS[String(name).toLowerCase()]=points;},
   morph:function(spec){if(on)applyMorph(spec);},
+  registerModel:function(names,url,title){if(!isHttps(url))return false;[].concat(names).forEach(function(n){MODEL_LIB[fold(n).replace(/[^a-z0-9]/g,"")]={url:url,title:title||String(n)};});return true;},
+  clearModels:clearModels,lastCredit:function(){return lastCredit;},
+  registerProvider:function(p){if(p&&typeof p.search==="function"){PROVIDERS.push(p);return true;}return false;},
   shapes:function(){return Object.keys(SHAPES).concat(Object.keys(CLOUDS));},
-  _test:{build:build,guessKeyword:guessKeyword,validUser:validUser,makeParser:makeParser,normTurns:normTurns,isEcho:function(t,spoken){curSpoken=spoken;return isEcho(t);}}
+  _test:{queriesFor:queriesFor,scoreHit:scoreHit,intent:function(t){return Intent.parse(t);},replyFor:replyFor,sampleTris:sampleTris,meshToCloud:meshToCloud,fold:fold,getN:function(){return N;},build:build,guessKeyword:guessKeyword,validUser:validUser,makeParser:makeParser,normTurns:normTurns,isEcho:function(t,spoken){curSpoken=spoken;return isEcho(t);}}
 };
 window.UltronVoice={playBuffer:function(ab,done){return AUD.playBuffer(ab,done);}};
 
