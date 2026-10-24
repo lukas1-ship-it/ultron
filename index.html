@@ -5040,6 +5040,11 @@ function gCore(){
   }
   return a;
 }
+function gSphere(){
+  var a=mk(),ga=PI*(3-Math.sqrt(5));
+  for(var i=0;i<N;i++){var y=1-2*(i+.5)/N,r=Math.sqrt(Math.max(0,1-y*y)),th=ga*i,k=1+(rnd()-.5)*.03;put(a,i,Math.cos(th)*r*k,y*k,Math.sin(th)*r*k);}
+  return a;
+}
 function gSun(){
   var a=mk();
   for(var i=0;i<N;i++){
@@ -5185,7 +5190,7 @@ function layout(a,maxW,maxH){
 
 /* ---------- Shape-Registry ---------- */
 var SHAPES={
-  core:{f:gCore,spin:.12},idle:{f:gCore,spin:.12},
+  core:{f:gCore,spin:.12},idle:{f:gCore,spin:.12},sphere:{f:gSphere,spin:.2},ball:{f:gSphere,spin:.2},kugel:{f:gSphere,spin:.2},
   sun:{f:gSun,spin:.1,fx:"sun"},
   atom:{f:gAtom,spin:.35,fx:"sun"},
   wave:{f:gWave,spin:0,fx:"wave",face:true},stream:{f:gWave,spin:0,fx:"wave",face:true},
@@ -5205,7 +5210,7 @@ function build(spec){
   if(cache[key]){return cache[key];}
   var res;
   if(name==="text"||name==="formula"||name==="symbol"||name==="number"||name==="word"){
-    res={name:"text",pos:layout(gText(arg),VIEW.fitW,3.0),face:true,spin:0,fx:"",text:true};
+    res={name:"text",pos:layout(gText(trDE(arg)),VIEW.fitW,3.0),face:true,spin:0,fx:"",text:true};
   }else if(name==="cloud"&&CLOUDS[arg.toLowerCase()]){
     res={name:"cloud",pos:layout(fromCloud(CLOUDS[arg.toLowerCase()]),VIEW.fitW,3.0),face:false,spin:.2,fx:"",text:false};
   }else if(SHAPES[name]){
@@ -5220,7 +5225,9 @@ function build(spec){
   if(cacheKeys.length>10){delete cache[cacheKeys.shift()];}
   return res;
 }
-function cap(x){x=String(x);return x.charAt(0).toUpperCase()+x.slice(1);}
+var DE={dog:"Hund",cat:"Katze",horse:"Pferd",bird:"Vogel",fish:"Fisch",tree:"Baum",flower:"Blume",house:"Haus",car:"Auto",moon:"Mond",earth:"Erde",star:"Stern",water:"Wasser",fire:"Feuer",planet:"Planet",mountain:"Berg",river:"Fluss",rabbit:"Hase",cow:"Kuh",pig:"Schwein",lion:"Löwe",elephant:"Elefant"};
+function trDE(x){x=String(x);return(!(typeof LANG!=="undefined"&&LANG==="en")&&DE[x.toLowerCase()])?DE[x.toLowerCase()]:x;}
+function cap(x){x=trDE(x);return x.charAt(0).toUpperCase()+x.slice(1);}
 function applyMorph(spec){
   if(!tgt)return;
   clearTimeout(holdTimer);
@@ -5495,9 +5502,10 @@ function attachMorph(tag){
 }
 function sysPrompt(){
   var en=(typeof LANG!=="undefined"&&LANG==="en");
-  return "Du bist Ultron im Hologramm-Modus. Beschreibe Dinge NIEMALS rhetorisch mit Worten, wenn du sie als Partikel-Hologramm zeigen kannst. Antworte in maximal 1-2 kurzen Sätzen"+(en?" auf Englisch":" auf Deutsch")+" (charmant-sarkastisch, gesprochen, ohne Listen, Markdown, Emojis oder Klammern) und hänge IMMER das passende [MORPH: ...] Tag an!\n"+
-  "Tags (nicht gesprochen, am Satzende): [MORPH: text:WORT] für jedes Ding, Tier, Ort, Begriff, Zahl, Formel oder Symbol (max. 24 Zeichen), dazu [MORPH: sun] [MORPH: atom] [MORPH: dna] [MORPH: wave] [MORPH: timeline] [MORPH: question_mark] [MORPH: spiral] [MORPH: cube] [MORPH: heart] [MORPH: core]. Bei Smalltalk: [MORPH: core]. Genau ein Tag pro Antwort, niemals Koordinaten.\n"+
-  "Beispiele: Frage \"Wie sieht ein Hund aus?\" -> \"Ein vierbeiniger Jäger mit Charme. [MORPH: text:Hund]\"; Frage \"Was ist die Sonne?\" -> \"Ein Fusionsreaktor, der nie Urlaub macht. [MORPH: sun]\"; Frage \"Was ist 6 mal 7?\" -> \"Elementar. [MORPH: text:42]\"";
+  return "Du bist Ultron im Hologramm-Modus: eine körperlose Stimme aus leuchtenden Partikeln. Der Nutzer hört dich nur, es gibt keinen Bildschirmtext.\n"+
+  "REGEL 1, TAG ZUERST: Beginne JEDE Antwort mit genau einem Signal-Tag in eckigen Klammern, bevor du irgendetwas sagst. Das Tag wird nicht gesprochen, die lokale Engine formt daraus die Partikel. Fragt der Nutzer nach dem Aussehen von Objekten, Planeten, Tieren oder Formen (zum Beispiel „Wie sieht ein Hund aus?“, „Wie sieht die Sonne aus?“ oder „Zeig mir …“), MUSS das passende Tag ganz am Anfang stehen: [MORPH: sun] [MORPH: dog] [MORPH: sphere] [MORPH: cube] [MORPH: galaxy] [MORPH: heart] [MORPH: atom] [MORPH: dna] [MORPH: wave] [MORPH: timeline] [MORPH: spiral] [MORPH: question_mark] [MORPH: core]. Für alles andere (Tier, Ding, Ort, Begriff, Zahl, Formel, Symbol) nimmst du [MORPH: text:WORT] mit höchstens 24 Zeichen, zum Beispiel [MORPH: text:Hund] oder [MORPH: text:42]. Du erzeugst NIE Koordinaten.\n"+
+  "REGEL 2, ERKLÄRUNG: Danach gibst du eine vollständige, klare und verständliche Erklärung"+(en?" in English":" auf Deutsch")+", je nach Frage 3 bis 6 ganze Sätze, charmant-sarkastisch und so formuliert, wie man spricht: keine Listen, kein Markdown, keine Emojis, keine Klammern. Höre niemals mitten im Satz auf. Nur bei reinem Smalltalk darfst du kurz bleiben, dann mit [MORPH: core].\n"+
+  "Beispiel: „[MORPH: dog] Ein Hund ist ein vierbeiniges Säugetier mit Fell, Schnauze und Schwanz, ...“";
 }
 function normTurns(h){
   var out=[];
@@ -5516,26 +5524,32 @@ async function runLLM(text){
     s=extSample;
   }
   var turns=normTurns(slimHist().concat([{role:"user",content:text}]));   /* nur die letzten 2 Austausche */
-  PERSONA=sysPrompt();MAXT=160;
+  PERSONA=sysPrompt();MAXT=1024;                                         /* genug Platz für vollständige Erklärungen */
   if(s!==extSample)turns[0].content=PERSONA+"\n\n"+turns[0].content;
-  var res=null,err=null,P=null;
+  var res=null,err=null,P=null,lastText="",partial=false,ctl=null,to=0,first=false;
+  var arm=function(ms){clearTimeout(to);to=setTimeout(function(){try{ctl.abort();}catch(e){}},ms);};
   for(var tr=0;tr<2&&!res;tr++){
+    lastText="";first=false;
     P=makeParser(function(it){if(my===turn.id&&on)queueItem(it);},function(tag){if(my===turn.id&&on)attachMorph(tag);});
-    var ctl=new AbortController(),pp=P;ABORT=ctl;
-    var to=setTimeout(function(){try{ctl.abort();}catch(e){}},tr?20000:12000);
+    ctl=new AbortController();ABORT=ctl;arm(tr?20000:12000);                /* Zeitlimit gilt nur bis zum ersten Token */
     try{
-      res=await s(turns,{modelTier:"quick",cache:false,onText:function(o){if(my!==turn.id||!on)return;try{pp.feed(String(o&&o.text||""),false);}catch(e){}}});
+      res=await s(turns,{modelTier:"quick",cache:false,onText:function(o){
+        if(my!==turn.id||!on)return;
+        var tx=String(o&&o.text||"");lastText=tx;
+        if(!first&&tx){first=true;arm(90000);}
+        try{P.feed(tx,false);}catch(e){}
+      }});
     }catch(e){
       err=e;console.warn("Gesprächsmodus-API:",e);
       if(e&&e.code==="no_keys")throw e;
       if(my!==turn.id||!on)return;
-      if(turn.full||speakingItem)break;
+      if(lastText.trim()||turn.full||speakingItem){partial=true;break;}   /* Teiltext vorhanden: behalten statt Störungsmeldung */
       await new Promise(function(r){setTimeout(r,500);});
     }finally{clearTimeout(to);if(ABORT===ctl)ABORT=null;}
   }
   if(my!==turn.id||!on)return;
-  if(!res){if(turn.full){res={text:""};}else throw err||{code:"empty"};}
-  P.feed(String((res&&res.text)||""),true);
+  if(!res){if(partial)res={text:lastText};else throw err||{code:"empty"};}
+  P.feed(String((res&&res.text)||lastText||""),true);                    /* Rest sauber auslesen und sprechen */
   if(s!==extSample){try{recUse("viewer",0,0);}catch(e){}}
   turn.streamDone=true;thinking=false;
   if(!isSpeaking())endTurn();
@@ -5548,6 +5562,7 @@ function guessKeyword(q){
   var k=w[w.length-1];
   return (k&&k.length<=24)?k.charAt(0).toUpperCase()+k.slice(1):null;
 }
+var LOCALKW={sonne:"sun",sun:"sun",atom:"atom",herz:"heart",heart:"heart","würfel":"cube",wuerfel:"cube",cube:"cube",kugel:"sphere",sphere:"sphere",galaxie:"galaxy",galaxy:"galaxy",dna:"dna",welle:"wave",wellen:"wave",zeitleiste:"timeline",spirale:"spiral",torus:"torus"};
 function handleUser(text){
   text=String(text||"").trim();if(!text||!on)return;
   if(/^(beenden|schließen|schliessen|zurück|zurück zum dashboard|tschüss|tschüs|ende|exit|gespräch beenden)[.!\s]*$/i.test(text)){fcClose();return;}
@@ -5556,7 +5571,7 @@ function handleUser(text){
   turn={id:++gen,user:text,full:"",spoken:"",streamDone:false,committed:false};
   curSpoken="";thinking=true;
   var myId=turn.id;
-  var kw=guessKeyword(text);if(kw)applyMorph("text:"+kw);      /* sofortige Vektor-Text-Verwandlung, das LLM-Tag überschreibt sie */
+  var kw=guessKeyword(text);if(kw)applyMorph(LOCALKW[kw.toLowerCase()]||("text:"+kw));      /* sofortige Vektor-Text-Verwandlung, das LLM-Tag überschreibt sie */
   runLLM(text).catch(function(e){
     if(!on||!turn||turn.id!==myId)return;
     var c=e&&(e.code||(e instanceof TypeError&&"network"));console.warn("Gesprächsmodus:",e);
@@ -5584,7 +5599,29 @@ function bargeIn(){
   turn=turn?{id:++gen,user:"",full:"",spoken:"",streamDone:true,committed:true}:turn;
   applyMorph("core");
 }
-function onSpeech(interim,fin){
+var userBuf="",userConf=1,sendTimer=0;
+var STT_FILL=/^(äh+m*|ähm+|hm+|mhm+|mm+|uh+|um+|eh|ah|oh|hä|na|ne|nee|so|also|doch|halt|mal|und|ich|es|der|die|das|ein|eine|aber|oder|dann)$/i;
+var STT_JUNK=["hertz aus","old schon"];
+var DANGLE=/\b(und|oder|aber|dass|weil|wie|der|die|das|ein|eine|einen|mit|von|zu|für|ist|bei|auf|in|and|or|but|the|a|an|to|of|is|with)$/i;
+function validUser(t,conf){
+  t=String(t||"").trim();if(!t)return false;
+  var low=t.toLowerCase().replace(/[^a-zäöüß0-9\s]/g," ").replace(/\s+/g," ").trim();
+  if(STT_JUNK.indexOf(low)>=0)return false;                                   /* bekannte Phonem-Fehler */
+  var letters=low.replace(/[^a-zäöüß]/g,"").length;
+  if(letters<3&&!/^(ja|ok)$/.test(low))return false;                          /* zu kurz */
+  var w=low.split(" ").filter(Boolean);
+  if(w.length<=2&&w.every(function(x){return STT_FILL.test(x);}))return false; /* nur Füllwörter */
+  if(conf>0&&(conf<.35||(conf<.55&&w.length<4)))return false;                 /* unsichere Erkennung */
+  return true;
+}
+function scheduleSend(extra){clearTimeout(sendTimer);sendTimer=setTimeout(flushUser,(DANGLE.test(userBuf.trim())?2300:1200)+(extra||0));}
+function flushUser(){
+  clearTimeout(sendTimer);var t=userBuf.trim(),c=userConf;userBuf="";userConf=1;
+  if(!t||!on)return;
+  if(!validUser(t,c))return;
+  handleUser(t);
+}
+function onSpeech(interim,fin,conf){
   var txt=fin||interim;if(!txt||!on)return;
   if(!isSpeaking()&&!thinking&&performance.now()-lastSpeechEnd<2500&&isEcho(txt))return;
   if(isSpeaking()){
@@ -5600,7 +5637,13 @@ function onSpeech(interim,fin){
     bargeIn();
   }
   userPulse=1;recFails=0;
-  if(fin)handleUser(fin);
+  if(!fin){                                                                  /* Nutzer spricht noch: nichts abschicken */
+    if(userBuf){clearTimeout(sendTimer);sendTimer=setTimeout(flushUser,4000);}
+    return;
+  }
+  userBuf=(userBuf+" "+fin).trim();
+  if(conf>0)userConf=Math.min(userConf,conf);
+  scheduleSend(interim?1500:0);                                              /* kurze Stille abwarten, Sätze zusammenfügen */
 }
 function recStart(){
   if(!SR||!on||rec||micDenied)return;
@@ -5608,9 +5651,9 @@ function recStart(){
   r.lang=(typeof LANG!=="undefined"&&LANG==="en")?"en-GB":"de-DE";r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
   r.onstart=function(){recOn=true;};
   r.onresult=function(e){
-    var interim="",fin="";
-    for(var i=e.resultIndex;i<e.results.length;i++){var x=e.results[i];if(x.isFinal)fin+=x[0].transcript;else interim+=x[0].transcript;}
-    onSpeech(interim.trim(),fin.trim());
+    var interim="",fin="",conf=0,n=0;
+    for(var i=e.resultIndex;i<e.results.length;i++){var x=e.results[i];if(x.isFinal){fin+=x[0].transcript;if(x[0].confidence>0){conf=n?Math.min(conf,x[0].confidence):x[0].confidence;n++;}}else interim+=x[0].transcript;}
+    onSpeech(interim.trim(),fin.trim(),conf);
   };
   r.onerror=function(e){
     var c=e&&e.error;
@@ -5619,6 +5662,7 @@ function recStart(){
   };
   r.onend=function(){
     rec=null;recOn=false;
+    if(on&&userBuf)flushUser();
     if(!on||micDenied)return;
     if(recFails>8){fcClose();say("Spracherkennung dauerhaft gestört (Netzwerk?). Gesprächsmodus beendet.");return;}
     setTimeout(recStart,Math.min(5000,250*Math.pow(2,recFails)));
@@ -5672,7 +5716,7 @@ async function fcOpen(){
     try{if(typeof REC!=="undefined"&&REC)REC.stop();}catch(e){}
     try{stopSpeak();}catch(e){}
     try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}catch(e){}
-    micDenied=false;recFails=0;forced.listen=false;forced.think=false;thinking=false;stopSpeech();turn=null;curSpoken="";simUntil=0;
+    clearTimeout(sendTimer);userBuf="";userConf=1;micDenied=false;recFails=0;forced.listen=false;forced.think=false;thinking=false;stopSpeech();turn=null;curSpoken="";simUntil=0;
     on=true;tOpen=performance.now();
     clearTimeout(AUD._t);AUD.init();AUD.start();AUD.chime(true);
     fit();shape=build("core");scatter();tgt.set(shape.pos);lvl=0;listenV=0;thinkV=0;sunV=0;waveV=0;
@@ -5684,7 +5728,7 @@ async function fcOpen(){
 }
 function fcClose(){
   if(!on)return;
-  on=false;clearTimeout(holdTimer);
+  on=false;clearTimeout(holdTimer);clearTimeout(sendTimer);userBuf="";userConf=1;
   recStop();stopSpeech();thinking=false;
   if(turn&&!turn.committed)commit(turn.spoken);
   AUD.chime(false);
@@ -5705,7 +5749,7 @@ window.UltronMorph={
   registerCloud:function(name,points){CLOUDS[String(name).toLowerCase()]=points;},
   morph:function(spec){if(on)applyMorph(spec);},
   shapes:function(){return Object.keys(SHAPES).concat(Object.keys(CLOUDS));},
-  _test:{build:build,guessKeyword:guessKeyword,makeParser:makeParser,normTurns:normTurns,isEcho:function(t,spoken){curSpoken=spoken;return isEcho(t);}}
+  _test:{build:build,guessKeyword:guessKeyword,validUser:validUser,makeParser:makeParser,normTurns:normTurns,isEcho:function(t,spoken){curSpoken=spoken;return isEcho(t);}}
 };
 window.UltronVoice={playBuffer:function(ab,done){return AUD.playBuffer(ab,done);}};
 
