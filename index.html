@@ -5521,6 +5521,17 @@ function tmoErr(ms){return new Promise(function(_,rj){setTimeout(function(){rj({
 
 /* ---------- Deutsch → Englisch für Katalogsuchen (Kataloge sind englisch; gefaltete Stämme) ---------- */
 var EN={schaeferhund:["german shepherd","dog"],hund:["dog"],katze:["cat"],pferd:["horse"],kuh:["cow"],schwein:["pig"],schaf:["sheep"],ziege:["goat"],huhn:["chicken"],vogel:["bird"],adler:["eagle","bird"],eule:["owl"],fisch:["fish"],hai:["shark"],wal:["whale"],delfin:["dolphin"],delphin:["dolphin"],krokodil:["crocodile"],schlange:["snake"],frosch:["frog"],schildkroete:["turtle"],spinne:["spider"],biene:["bee"],schmetterling:["butterfly"],loewe:["lion"],tiger:["tiger"],baer:["bear"],wolf:["wolf"],elefant:["elephant"],giraffe:["giraffe"],affe:["monkey"],hase:["rabbit"],kaninchen:["rabbit"],dinosaurier:["dinosaur"],saurier:["dinosaur"],drache:["dragon"],schaedel:["skull"],skelett:["skeleton"],mensch:["human","character"],roboter:["robot"],auto:["car"],sportwagen:["sports car","car"],ferrari:["sports car","car"],rennwagen:["race car","car"],lkw:["truck"],bus:["bus"],zug:["train"],flugzeug:["airplane","plane"],hubschrauber:["helicopter"],schiff:["ship"],boot:["boat"],fahrrad:["bicycle"],motorrad:["motorcycle"],rakete:["rocket"],haus:["house"],schloss:["castle"],burg:["castle"],baum:["tree"],blume:["flower"],pilz:["mushroom"],stuhl:["chair"],tisch:["table"],sofa:["sofa","couch"],bett:["bed"],lampe:["lamp"],tasse:["cup","mug"],flasche:["bottle"],schwert:["sword"],krone:["crown"],schluessel:["key"],uhr:["clock"],gitarre:["guitar"],klavier:["piano"],buch:["book"],apfel:["apple"],banane:["banana"],pizza:["pizza"],kuchen:["cake"],stern:["star"],wolke:["cloud"],berg:["mountain"],brille:["glasses"],hut:["hat"],schuh:["shoe"],computer:["computer"],handy:["phone"],kamera:["camera"]};
+function dictHit(label){                        /* nur Präfix-/Exakt-Treffer zählen als „Wörterbuch kennt das Wort“ */
+  var k=fold(label).replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+  for(var s in EN)if(k.indexOf(s)===0&&SUF.test(k.slice(s.length)))return true;
+  return false;
+}
+function englishQueries(en,label){              /* LLM-Begriff zuerst, dann Hauptwort bzw. Wörterbuch (höchstens 2 Suchen) */
+  var e=fold(en).replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim(),out=e?[e]:[],w=e.split(" ");
+  if(w.length>1)out.push(w[w.length-1]);
+  else queriesFor(label).forEach(function(x){if(out.indexOf(x)<0)out.push(x);});
+  return out.slice(0,2);
+}
 function queriesFor(label){                   /* höchstens 2 Suchbegriffe: spezifisch, dann allgemeiner */
   var k=fold(label).replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim(),s;
   for(s in EN)if(k.indexOf(s)===0&&SUF.test(k.slice(s.length)))return EN[s].slice(0,2);
@@ -5567,8 +5578,8 @@ async function ppFetch(url,key,signal){
 var PolyPizza={
   id:"polypizza",
   enabled:function(){return !!ppKey();},
-  search:async function(label,signal){
-    var qs=queriesFor(label),out=[],okAny=false,lastErr=null;
+  search:async function(label,signal,q){
+    var qs=(q&&q.en)?englishQueries(q.en,label):queriesFor(label),out=[],okAny=false,lastErr=null;
     for(var qi=0;qi<qs.length&&qi<2;qi++){
       var ctl=new AbortController(),tm=setTimeout(function(){try{ctl.abort();}catch(e){}},8000),onAb=function(){try{ctl.abort();}catch(e){}};
       if(signal)signal.addEventListener("abort",onAb);
@@ -5594,6 +5605,27 @@ var PolyPizza={
 };
 PROVIDERS.push(PolyPizza);
 
+/* LLM-Übersetzung eines unbekannten Objektnamens ins Englische (kurz, gecacht, Fehler → null = Wörterbuch/Rohbegriff) */
+var TRKEY="ultron_mtr";
+function trGet(k){try{var o=JSON.parse(lsGet(TRKEY)||"{}");return(o&&typeof o[k]==="string")?o[k]:null;}catch(e){return null;}}
+function trPut(k,v){try{var o=JSON.parse(lsGet(TRKEY)||"{}");if(!o||typeof o!=="object")o={};delete o[k];o[k]=v;var ks=Object.keys(o);while(ks.length>100)delete o[ks.shift()];lsSet(TRKEY,JSON.stringify(o));}catch(e){}}
+async function translateTerm(label){
+  var k=fold(label),c=trGet(k);if(c)return c;
+  if(typeof getSample!=="function")return null;
+  var ctl=null,to=0;
+  try{
+    var s=await getSample();if(!s){if(typeof activeP==="function"&&!activeP().length)return null;s=extSample;}
+    var P="Übersetze den Objektnamen in den einfachsten, gebräuchlichsten englischen Hauptbegriff, wie er in Low-Poly-3D-Modellkatalogen heißt. Antworte nur mit dem englischen Begriff in Kleinbuchstaben, ein bis drei Wörter, ohne Satzzeichen und ohne Erklärung. Bei Zusammensetzungen wähle den wichtigsten Gegenstand (Feuerwehrauto → fire truck, Raumschiff → spaceship, Schäferhund → dog).";
+    PERSONA=P;MAXT=24;
+    ctl=new AbortController();ABORT=ctl;to=setTimeout(function(){try{ctl.abort();}catch(e){}},8000);
+    var res=await s([{role:"user",content:(s===extSample?"":P+"\n\n")+"Objekt: "+label}],{modelTier:"quick",cache:false});
+    if(s!==extSample){try{recUse("viewer",0,0);}catch(e){}}
+    var t=String((res&&res.text)||"").toLowerCase().split("\n")[0].replace(/\[\s*morph\s*:|\]/g,"").replace(/[^a-z0-9 \-]/g,"").replace(/\s+/g," ").trim();
+    if(!t||t.length<2||t.length>30||t.split(" ").length>3)return null;
+    trPut(k,t);return t;
+  }catch(e){return null;}
+  finally{clearTimeout(to);if(ctl&&ABORT===ctl)ABORT=null;}
+}
 /* Zustände: native | approx | model | nokey | auth | offline | stale */
 async function resolveObject(q,tok,signal,skipRef){
   if(q.shape&&SHAPES[q.shape])return {state:q.ap?"approx":"native",shape:q.shape};
@@ -5607,7 +5639,7 @@ async function resolveObject(q,tok,signal,skipRef){
   var all=[],errs=0,auth=false;
   for(var i=0;i<en.length;i++){
     var r=null;
-    try{r=await Promise.race([en[i].search(q.label,signal),tmoErr(10000)]);}catch(e){errs++;if(e&&e.code==="auth")auth=true;r=null;}
+    try{r=await Promise.race([en[i].search(q.label,signal,q),tmoErr(10000)]);}catch(e){errs++;if(e&&e.code==="auth")auth=true;r=null;}
     if(tok!==vizTok)return {state:"stale"};
     if(r&&!Array.isArray(r))r=[r];
     (r||[]).forEach(function(m){if(m&&isHttps(m.url))all.push({url:m.url,title:m.title,license:m.license,by:m.by,exact:!!m.exact,score:+m.score||0,provider:m.provider||en[i].id,key:rk});});
@@ -5839,7 +5871,7 @@ function pump(){
   if(speakingItem||!queue.length||!on)return;
   var it=queue.shift();speakingItem=it;
   if(!("speechSynthesis" in window)){
-    it.started=true;thinking=false;if(it.morph)applyMorph(it.morph);turn.spoken+=" "+it.text;
+    it.started=true;thinking=false;if(it.morph)tagMorph(it.morph);turn.spoken+=" "+it.text;
     setTimeout(function(){if(speakingItem===it)itemDone(it);},Math.min(6000,300+it.text.length*55));return;
   }
   var u=new SpeechSynthesisUtterance(it.text);
@@ -5851,7 +5883,7 @@ function pump(){
   u.onstart=function(){
     if(speakingItem!==it)return;
     it.started=true;thinking=false;curSpoken+=" "+it.text;if(turn)turn.spoken+=" "+it.text;
-    if(it.morph)applyMorph(it.morph);
+    if(it.morph)tagMorph(it.morph);
     AUD.start();
   };
   u.onboundary=function(){pulse=1;};
@@ -5916,10 +5948,21 @@ function makeParser(emit,attach){
     flush(final);
   }};
 }
+/* Bekannte Form/Text/Cloud → Engine direkt; sonst gilt der Tag als englischer Objektbegriff → Resolver (Poly Pizza) */
+function tagKnown(spec){
+  var t=String(spec||"").trim(),m=t.match(/^([a-zA-Z_]+)\s*:/),n=(m?m[1]:t).toLowerCase();
+  return !!(SHAPES[n]||CLOUDS[n]||(m&&/^(text|formula|symbol|number|word|cloud)$/.test(n)));
+}
+function tagMorph(spec){
+  if(tagKnown(spec)){applyMorph(spec);return;}
+  var label=String(spec||"").trim();
+  if(!/^[a-zA-Z0-9][a-zA-Z0-9 \-]{1,39}$/.test(label)){applyMorph(spec);return;}      /* unsauberer Tag → altes Verhalten */
+  vizShow({shape:null,ap:false,label:capWord(label.toLowerCase()),g:null,en:label.toLowerCase(),color:null}).catch(function(){});
+}
 function attachMorph(tag){
   if(turn&&turn.lock)return;
   var last=queue[queue.length-1];
-  if(last&&!last.started&&!last.morph)last.morph=tag;else applyMorph(tag);
+  if(last&&!last.started&&!last.morph)last.morph=tag;else tagMorph(tag);
 }
 function sysPrompt(mode,ctx){
   var en=isEn(),typ;
@@ -5928,7 +5971,7 @@ function sysPrompt(mode,ctx){
   else if(mode==="both")typ="AKTUELLER ANFRAGE-TYP: Zeigen und Erklären (Fall C).";
   else typ="AKTUELLER ANFRAGE-TYP: Frage oder Smalltalk (Fall B oder D).";
   return "Du bist Ultron im Hologramm-Modus: eine körperlose Stimme aus leuchtenden Partikeln. Der Nutzer hört dich nur, es gibt keinen Bildschirmtext.\n"+
-  "REGEL 1, TAG ZUERST: Beginne jede Antwort mit genau einem Signal-Tag in eckigen Klammern. Das Tag wird nicht gesprochen, die lokale Engine formt daraus die Partikel. Verfügbare Formen: [MORPH: heart] [MORPH: cube] [MORPH: sphere] [MORPH: pyramid] [MORPH: cone] [MORPH: cylinder] [MORPH: torus] [MORPH: sun] [MORPH: atom] [MORPH: dna] [MORPH: galaxy] [MORPH: spiral] [MORPH: wave] [MORPH: timeline] [MORPH: saturn] [MORPH: question_mark] [MORPH: core]. Für alles andere nimmst du [MORPH: text:WORT] mit höchstens 24 Zeichen, zum Beispiel [MORPH: text:Hund]; das zeigt nur das Wort, kein Modell. Du erzeugst nie Koordinaten und erwähnst Tags, Modelle oder Technik nie im gesprochenen Text.\n"+
+  "REGEL 1, TAG ZUERST: Beginne jede Antwort mit genau einem Signal-Tag in eckigen Klammern. Das Tag wird nicht gesprochen, die lokale Engine formt daraus die Partikel. Verfügbare Formen: [MORPH: heart] [MORPH: cube] [MORPH: sphere] [MORPH: pyramid] [MORPH: cone] [MORPH: cylinder] [MORPH: torus] [MORPH: sun] [MORPH: atom] [MORPH: dna] [MORPH: galaxy] [MORPH: spiral] [MORPH: wave] [MORPH: timeline] [MORPH: saturn] [MORPH: question_mark] [MORPH: core]. Für JEDES andere visualisierbare Objekt (Tier, Fahrzeug, Gegenstand, Figur, Gebäude …) gibst du im Tag IMMER direkt die präzise, gebräuchliche ENGLISCHE Bezeichnung aus, egal in welcher Sprache gefragt wurde: „Zeig mir einen Löwen“ → [MORPH: lion], „Erstelle einen Baum“ → [MORPH: tree], „Zeig mir ein Feuerwehrauto“ → [MORPH: fire truck], „Ein Hubschrauber bitte“ → [MORPH: helicopter]. Aus diesem Begriff wird ein echtes 3D-Modell in einem Low-Poly-Katalog gesucht: Wähle bei komplexen oder zusammengesetzten Begriffen den einfachsten englischen Hauptbegriff, der in solchen Katalogen vorkommt (Raumschiff → spaceship, Schäferhund → dog), ein bis drei Wörter, nur Kleinbuchstaben. [MORPH: text:WORT] mit höchstens 24 Zeichen nur für Dinge ohne greifbares Objekt (Zahl, Formel, abstrakter Begriff). Du erzeugst nie Koordinaten und erwähnst Tags, Modelle oder Technik nie im gesprochenen Text.\n"+
   "REGEL 2, ANTWORTLÄNGE nach Anfrage-Typ"+(en?" (sprich Englisch)":" (sprich Deutsch)")+":\n"+
   "Fall A, reine Zeige-, Zeichen- oder Visualisierungsanfrage („Zeig mir …“, „Wie sieht … aus?“): Tag plus genau ein kurzer Satz, höchstens 12 Wörter, nur eine Bestätigung im passenden Genus, zum Beispiel „Hier ist er.“, „Hier hast du sie.“ oder „Hier hast du es.“ Keine Definition, keine Beschreibung der Form, keine Geschichte. Wenn es nur als Wortbild geht (Tag text:), sage das ehrlich in einem kurzen Satz statt „Hier ist es“.\n"+
   "Fall B, Informationsfrage: natürliche, passende Antwort in der Regel 2 bis 5 Sätze, dazu das Tag der Form, die das Thema zeigt, sonst [MORPH: core].\n"+
@@ -6013,6 +6056,11 @@ function applyAdjust(a){
 async function showFlow(it,myId,text){
   var q={shape:it.obj?it.obj.shape:null,ap:!!(it.obj&&it.obj.ap),label:it.obj?it.obj.label:it.cand,g:it.obj?it.obj.g:null,color:it.color};
   turn.lock=true;turn.shown=true;                           /* ab hier setzt nur noch der Resolver Formen */
+  if(!q.shape&&q.label&&!libLookup(q.label)&&!refGet("r:"+fold(q.label))&&!dictHit(q.label)&&PolyPizza.enabled()){
+    var en=await translateTerm(q.label);                    /* universell statt starrer Liste: LLM liefert den englischen Suchbegriff */
+    if(!on||!turn||turn.id!==myId)return;
+    if(en){if(SHAPES[en])q.shape=en;else q.en=en;}
+  }
   var r=await vizShow(q);
   if(!on||!turn||turn.id!==myId||r.state==="stale")return;  /* verdrängt durch neuere Anfrage / Modus beendet */
   objColor=(q.color&&q.color.c)?q.color.c:null;                 /* Farbe erst nach erfolgreichem Start der Darstellung setzen */
