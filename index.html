@@ -5402,8 +5402,8 @@ function replyFor(state,q){
   if(state==="approx"&&q.ap)return en?"I can only approximate that as a sphere.":"Ich kann das nur als Kugel annähern.";
   if(state==="failed")return en?"The model would not load, so here is just the word.":"Das Modell ließ sich nicht laden, hier nur das Wort.";
   if(state==="nokey")return en?"Online models are not set up, so only the word.":"Online-Modelle sind nicht eingerichtet, hier nur das Wort.";
-  if(state==="auth")return en?"The model catalog rejected my key, so only the word.":"Der Modellkatalog hat meinen Schlüssel abgelehnt, hier nur das Wort.";
-  if(state==="offline")return en?"The model catalog is unreachable, so only the word.":"Der Modellkatalog ist gerade nicht erreichbar, hier nur das Wort.";
+  if(state==="auth")return en?"Poly Pizza key invalid.":"Poly Pizza Schlüssel ungültig.";
+  if(state==="offline")return en?"I have no model for that, only the word.":"Dafür habe ich kein Modell, nur das Wort.";   /* Verbindung trotz Proxy gescheitert → sauberer Rückfall aufs Wortbild */
   return en?"I have no model for that, only the word.":"Dafür habe ich kein Modell, nur das Wort.";
 }
 
@@ -5460,7 +5460,13 @@ async function loadModelCloud(url,signal){
   var ctl=new AbortController(),tm=setTimeout(function(){try{ctl.abort();}catch(e){}},LOAD_MS);
   var onAb=function(){try{ctl.abort();}catch(e){}};if(signal)signal.addEventListener("abort",onAb);
   try{
-    var resp=await fetch(url,{signal:ctl.signal,credentials:"omit",referrerPolicy:"no-referrer"});   /* keine Keys, keine Cookies */
+    var resp=null,fo={signal:ctl.signal,credentials:"omit",referrerPolicy:"no-referrer"};   /* keine Keys, keine Cookies */
+    try{resp=await fetch(url,fo);}
+    catch(e){                                                   /* vermutlich CORS/Netz: über Proxys erneut versuchen (ohne Schlüssel) */
+      if(ctl.signal.aborted||(signal&&signal.aborted))throw e;
+      for(var pi=0;pi<PROXIES.length&&!resp;pi++){try{var rr=await fetch(PROXIES[pi].p+encodeURIComponent(url),fo);if(rr.ok)resp=rr;}catch(e2){if(ctl.signal.aborted)throw e2;}}
+      if(!resp)throw {code:"network"};
+    }
     if(!resp.ok)throw {code:"http_"+resp.status};
     if((+resp.headers.get("content-length")||0)>MAXBYTES)throw {code:"too_big"};
     var ab=await resp.arrayBuffer();
@@ -5536,6 +5542,27 @@ function scoreHit(title,tags,qs){
    Laut Dokumentation (Drittquellen, nicht live geprüft): GET https://api.poly.pizza/v1/search/{query}?limit=…,
    Header X-Auth-Token; Ergebnisse mit Title, Download (GLB-URL), Licence (CC0 / CC-BY 4.0), Creator.Username, Tags. */
 function ppKey(){return String(lsGet("ultron_pp_key")||"").trim();}
+/* CORS-Proxys (der Browser blockiert api.poly.pizza direkt). Reihenfolge = Priorität.
+   hdr:true  → Proxy reicht den Header X-Auth-Token durch (corsproxy.io, laut Anbieter – nicht live geprüft)
+   hdr:false → Proxy kann keine eigenen Header senden (allorigins /raw); ein 401 dort heißt „Header fehlt“, nicht „Schlüssel falsch“.
+   Achtung: Der Schlüssel läuft über Drittanbieter-Server. Eigener Proxy: UltronMorph.registerProxy("https://dein-worker.example/?url=") */
+var PROXIES=[{p:"https://corsproxy.io/?",hdr:true},{p:"https://api.allorigins.win/raw?url=",hdr:false}];
+async function ppFetch(url,key,signal){
+  var lastErr=null;
+  for(var i=0;i<PROXIES.length;i++){
+    if(signal&&signal.aborted)throw {code:"aborted"};
+    var P=PROXIES[i];
+    try{
+      var o={signal:signal,credentials:"omit",referrerPolicy:"no-referrer"};
+      if(P.hdr)o.headers={"X-Auth-Token":key};
+      var resp=await fetch(P.p+encodeURIComponent(url),o);
+      if(resp.status===401||resp.status===403){if(P.hdr)throw {code:"auth"};lastErr={code:"proxy_no_header"};continue;}
+      if(!resp.ok){lastErr={code:"http_"+resp.status};continue;}
+      return resp;                                    /* erster funktionierender Weg gewinnt */
+    }catch(e){if(e&&e.code==="auth")throw e;lastErr=e;}
+  }
+  throw lastErr||{code:"network"};
+}
 var PolyPizza={
   id:"polypizza",
   enabled:function(){return !!ppKey();},
@@ -5545,9 +5572,7 @@ var PolyPizza={
       var ctl=new AbortController(),tm=setTimeout(function(){try{ctl.abort();}catch(e){}},8000),onAb=function(){try{ctl.abort();}catch(e){}};
       if(signal)signal.addEventListener("abort",onAb);
       try{
-        var resp=await fetch("https://api.poly.pizza/v1/search/"+encodeURIComponent(qs[qi])+"?limit=10",{headers:{"X-Auth-Token":ppKey()},signal:ctl.signal,credentials:"omit",referrerPolicy:"no-referrer"});
-        if(resp.status===401||resp.status===403)throw {code:"auth"};
-        if(!resp.ok)throw {code:"http_"+resp.status};
+        var resp=await ppFetch("https://api.poly.pizza/v1/search/"+encodeURIComponent(qs[qi])+"?limit=10",ppKey(),ctl.signal);
         var j=await resp.json();okAny=true;
         var list=(j&&Array.isArray(j.results))?j.results:[];
         for(var i=0;i<list.length&&i<10;i++){
@@ -6179,6 +6204,7 @@ window.UltronMorph={
   morph:function(spec){if(on)applyMorph(spec);},
   registerModel:function(names,url,title){if(!isHttps(url))return false;[].concat(names).forEach(function(n){MODEL_LIB[fold(n).replace(/[^a-z0-9]/g,"")]={url:url,title:title||String(n)};});return true;},
   clearModels:clearModels,lastCredit:function(){return lastCredit;},
+  registerProxy:function(prefix,hdr){if(isHttps(prefix)){PROXIES.unshift({p:prefix,hdr:hdr!==false});return true;}return false;},
   registerProvider:function(p){if(p&&typeof p.search==="function"){PROVIDERS.push(p);return true;}return false;},
   shapes:function(){return Object.keys(SHAPES).concat(Object.keys(CLOUDS));},
   _test:{queriesFor:queriesFor,scoreHit:scoreHit,intent:function(t){return Intent.parse(t);},replyFor:replyFor,sampleTris:sampleTris,meshToCloud:meshToCloud,fold:fold,getN:function(){return N;},build:build,guessKeyword:guessKeyword,validUser:validUser,makeParser:makeParser,normTurns:normTurns,isEcho:function(t,spoken){curSpoken=spoken;return isEcho(t);}}
