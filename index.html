@@ -5400,7 +5400,7 @@ function replyFor(state,q){
   if(state==="success")return confirmText(q.g);
   if(state==="generic")return en?"Here is a similar model.":"Hier ist ein ähnliches Modell.";
   if(state==="approx"&&q.ap)return en?"I can only approximate that as a sphere.":"Ich kann das nur als Kugel annähern.";
-  if(state==="failed")return en?"The model would not load, so here is just the word.":"Das Modell ließ sich nicht laden, hier nur das Wort.";
+  if(state==="failed")return en?"I have no model for that, only the word.":"Dafür habe ich kein Modell, nur das Wort.";
   if(state==="nokey")return en?"Online models are not set up, so only the word.":"Online-Modelle sind nicht eingerichtet, hier nur das Wort.";
   if(state==="auth")return en?"Poly Pizza key invalid.":"Poly Pizza Schlüssel ungültig.";
   if(state==="offline")return en?"I have no model for that, only the word.":"Dafür habe ich kein Modell, nur das Wort.";   /* Verbindung trotz Proxy gescheitert → sauberer Rückfall aufs Wortbild */
@@ -5460,13 +5460,14 @@ async function loadModelCloud(url,signal){
   var ctl=new AbortController(),tm=setTimeout(function(){try{ctl.abort();}catch(e){}},LOAD_MS);
   var onAb=function(){try{ctl.abort();}catch(e){}};if(signal)signal.addEventListener("abort",onAb);
   try{
-    var resp=null,fo={signal:ctl.signal,credentials:"omit",referrerPolicy:"no-referrer"};   /* keine Keys, keine Cookies */
-    try{resp=await fetch(url,fo);}
-    catch(e){                                                   /* vermutlich CORS/Netz: über Proxys erneut versuchen (ohne Schlüssel) */
-      if(ctl.signal.aborted||(signal&&signal.aborted))throw e;
-      for(var pi=0;pi<PROXIES.length&&!resp;pi++){try{var rr=await fetch(PROXIES[pi].p+encodeURIComponent(url),fo);if(rr.ok)resp=rr;}catch(e2){if(ctl.signal.aborted)throw e2;}}
-      if(!resp)throw {code:"network"};
+    var resp=null,fo={signal:ctl.signal,credentials:"omit",referrerPolicy:"no-referrer"},lastE=null;   /* keine Keys, keine Cookies */
+    var routes=[];PROXIES.forEach(function(P){routes.push(P.p+encodeURIComponent(url));});
+    if(/^https:\/\/raw\.githubusercontent\.com\//i.test(url))routes.unshift(url);else routes.push(url);   /* Worker zuerst, Direktabruf nur als letzter Ausweg */
+    for(var ri=0;ri<routes.length&&!resp;ri++){
+      try{var rr=await fetch(routes[ri],fo);if(rr.ok)resp=rr;else lastE={code:"http_"+rr.status};}
+      catch(e){if(ctl.signal.aborted||(signal&&signal.aborted))throw e;lastE=e;}
     }
+    if(!resp)throw lastE||{code:"network"};
     if(!resp.ok)throw {code:"http_"+resp.status};
     if((+resp.headers.get("content-length")||0)>MAXBYTES)throw {code:"too_big"};
     var ab=await resp.arrayBuffer();
@@ -5542,11 +5543,11 @@ function scoreHit(title,tags,qs){
    Laut Dokumentation (Drittquellen, nicht live geprüft): GET https://api.poly.pizza/v1/search/{query}?limit=…,
    Header X-Auth-Token; Ergebnisse mit Title, Download (GLB-URL), Licence (CC0 / CC-BY 4.0), Creator.Username, Tags. */
 function ppKey(){return String(lsGet("ultron_pp_key")||"").trim();}
-/* CORS-Proxys (der Browser blockiert api.poly.pizza direkt). Reihenfolge = Priorität.
-   hdr:true  → Proxy reicht den Header X-Auth-Token durch (corsproxy.io, laut Anbieter – nicht live geprüft)
-   hdr:false → Proxy kann keine eigenen Header senden (allorigins /raw); ein 401 dort heißt „Header fehlt“, nicht „Schlüssel falsch“.
-   Achtung: Der Schlüssel läuft über Drittanbieter-Server. Eigener Proxy: UltronMorph.registerProxy("https://dein-worker.example/?url=") */
-var PROXIES=[{p:"https://corsproxy.io/?",hdr:true},{p:"https://api.allorigins.win/raw?url=",hdr:false}];
+/* Eigener Cloudflare-Worker als CORS-Tunnel (leitet X-Auth-Token an api.poly.pizza weiter, ergänzt CORS-Header).
+   Alle Poly-Pizza-Suchen UND GLB-Downloads laufen darüber. Öffentliche Proxys sind bewusst entfernt (sie würden den Schlüssel sehen).
+   Weitere/andere Proxys: UltronMorph.registerProxy("https://…/?url="). */
+var WORKER="https://still-dust-5d50.lukasholzknecht1.workers.dev/?url=";
+var PROXIES=[{p:WORKER,hdr:true}];
 async function ppFetch(url,key,signal){
   var lastErr=null;
   for(var i=0;i<PROXIES.length;i++){
