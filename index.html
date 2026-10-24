@@ -1271,34 +1271,40 @@ $("mode").onclick=()=>{SPD=SPD==="auto"?"deep":SPD==="deep"?"fast":"auto";save()
 $("clear").onclick=()=>{if(!busy){if(hist.length){TRASH.unshift({id:Date.now(),title:(curChat().title||"Chat"),msgs:hist.slice(),del:Date.now()});saveTrash();toast("Chat im Papierkorb");}hist=[];save();refresh();plog("Sitzung zurückgesetzt");}};
 
 /* STANDALONE: eigene API-Keys, laeuft in jedem Browser */
-const DEF={anthropic:{n:"Claude (Anthropic)",f:"claude-haiku-4-5-20251001",m:"claude-sonnet-5-5"},openai:{n:"OpenAI",f:"gpt-4.1-mini",m:"gpt-4.1"},gemini:{n:"Gemini (Google)",f:"gemini-3.8-flash",m:"gemini-1.5-pro"},freellm:{n:"FreeLLMAPI (Gratis-Pool)",f:"auto:fast",m:"auto:smart",u:"http://localhost:3001",oc:1}};
+const DEF={anthropic:{n:"Claude (Anthropic)",f:"claude-haiku-4-5-20251001",m:"claude-sonnet-5-5"},openai:{n:"OpenAI",f:"gpt-4.1-mini",m:"gpt-4.1"},gemini:{n:"Gemini (Google AI Studio)",f:"gemini-3.8-flash",m:"gemini-3.1-pro-preview",oc:1},openrouter:{n:"OpenRouter (Gratis-Modelle)",f:"meta-llama/llama-3.1-8b-instruct:free",m:"google/gemini-2.0-flash-exp:free",u:"https://openrouter.ai/api",oc:1,cap:"Direkt aus dem Browser, kein Server nötig. Gratis-Modelle enden auf „:free“. Ist ein Modell nicht mehr kostenlos oder verschwunden, sucht Ultron automatisch ein aktuell freies (oder „openrouter/free“)."},groq:{n:"Groq Cloud",f:"llama-3.1-8b-instant",m:"llama-3.3-70b-versatile",u:"https://api.groq.com/openai",oc:1,cap:"Direkt aus dem Browser, kein Server nötig. Sehr schnell, mit großzügigem Gratis-Kontingent."},freellm:{n:"FreeLLMAPI / Custom",f:"auto:fast",m:"auto:smart",u:"http://localhost:3001",oc:1,cap:"Eigener Server oder Router (z. B. FreeLLMAPI, Vercel). „auto:fast“ und „auto:smart“ lassen den Router das passende freie Modell wählen. Ist er nicht erreichbar (404 oder CORS), weicht Ultron automatisch direkt auf OpenRouter aus."}};
 const baseU=p=>String((CFG[p]&&CFG[p].u)||(DEF[p]&&DEF[p].u)||"").trim().replace(/\/+$/,"").replace(/\/v1$/,"");
 let CFG={};try{CFG=JSON.parse(LS.get("ultron_cfg")||"{}");}catch(e){}
-const mdl=(p,t)=>(CFG[p]&&(CFG[p][t]||CFG[p]["a"+t]))||DEF[p][t];
+const mdl=(p,t)=>{const c=CFG[p]||{},ex=c[t],au=c["a"+t],bd=c.bad||[];if(ex&&bd.indexOf(ex)<0)return ex;return au||DEF[p][t];};
 const saveCfg=()=>{try{LS.set("ultron_cfg",JSON.stringify(CFG));}catch(e){}};
 const activeP=()=>Object.keys(DEF).filter(p=>CFG[p]&&CFG[p].k);
+/*PROV-BEGIN*/
+const isOC=p=>p==="openai"||p==="freellm"||p==="openrouter"||p==="groq";
+const keysOf=p=>String((CFG[p]&&CFG[p].k)||"").split(/[\s,;]+/).filter(Boolean);
+const KI={},KC={};
+(function(){try{const g=CFG.gemini;if(g){const old=x=>/^gemini-[12]\./.test(String(x||""));["f","m","af","am"].forEach(x=>{if(old(g[x]))delete g[x];});if(g.bad)g.bad=g.bad.filter(x=>!old(x));saveCfg();}}catch(e){}})();
+/*PROV-END*/
 async function listModels(p,k){
   let r;
   if(p==="anthropic")r=await fetch("https://api.anthropic.com/v1/models?limit=100",{headers:{"x-api-key":k,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}});
   else if(p==="openai")r=await fetch("https://api.openai.com/v1/models",{headers:{Authorization:"Bearer "+k}});
-  else if(p==="freellm")r=await fetch(baseU(p)+"/v1/models",{headers:{Authorization:"Bearer "+k}});
+  else if(p==="freellm"||p==="openrouter"||p==="groq")r=await fetch(baseU(p)+"/v1/models",{headers:{Authorization:"Bearer "+k}});
   else r=await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key="+encodeURIComponent(k));
   const j=await r.json();
   if(p==="anthropic")return(j.data||[]).map(x=>({id:x.id,c:Date.parse(x.created_at)||0}));
-  if(p==="openai"||p==="freellm")return(j.data||[]).map(x=>({id:x.id,c:(x.created||0)*1000}));
+  if(isOC(p))return(j.data||[]).map(x=>({id:x.id,c:(x.created||0)*1000}));
   return(j.models||[]).filter(x=>(x.supportedGenerationMethods||[]).indexOf("generateContent")>=0).map(x=>({id:x.name.replace("models/",""),c:0}));
 }
 function pickModels(p,t,L){
-  const R={anthropic:{f:[/haiku/],m:[/sonnet/,/opus/]},openai:{f:[/^gpt-[\d.]+-mini$/],m:[/^gpt-[\d.]+$/,/^gpt-[\d.]+-mini$/]},gemini:{f:[/^gemini-[\d.]+-flash$/,/^gemini-[\d.]+-flash-lite$/],m:[/^gemini-[\d.]+-pro$/,/^gemini-[\d.]+-flash$/]},freellm:{f:[/^auto/],m:[/^auto/]}}[p][t];
+  const R={anthropic:{f:[/haiku/],m:[/sonnet/,/opus/]},openai:{f:[/^gpt-[\d.]+-mini$/],m:[/^gpt-[\d.]+$/,/^gpt-[\d.]+-mini$/]},gemini:{f:[/^gemini-(?:[3-9]|\d\d)[\d.]*-flash(?:-lite)?(?:-preview)?$/],m:[/^gemini-(?:[3-9]|\d\d)[\d.]*-pro(?:-preview)?$/,/^gemini-(?:[3-9]|\d\d)[\d.]*-flash(?:-preview)?$/]},openrouter:{f:[/(8b|7b|3b|9b|12b|nano|mini|flash).*:free$/i,/:free$/],m:[/(70b|72b|120b|gemini|deepseek|qwen).*:free$/i,/:free$/]},groq:{f:[/^llama-3\.1-8b-instant$/,/(8b|20b)/],m:[/^llama-3\.3-70b-versatile$/,/(70b|120b)/]},freellm:{f:[/^auto/],m:[/^auto/]}}[p][t];
   const v=id=>parseFloat((id.match(/\d+(\.\d+)?/)||[0])[0]),out=[];
   R.forEach(re=>L.filter(x=>re.test(x.id)).sort((a,b)=>(b.c-a.c)||(v(b.id)-v(a.id))).forEach(x=>{if(out.indexOf(x.id)<0)out.push(x.id);}));
   return out;
 }
 async function sse(r,cb){const rd=r.body.getReader(),dec=new TextDecoder();let buf="";for(;;){const q=await rd.read();if(q.done)break;buf+=dec.decode(q.value,{stream:true});let i;while((i=buf.indexOf("\n"))>=0){const ln=buf.slice(0,i).trim();buf=buf.slice(i+1);if(ln.indexOf("data:")===0){const d=ln.slice(5).trim();if(d&&d!=="[DONE]"){let j=null;try{j=JSON.parse(d);}catch(e){}if(j)cb(j);}}}}}
-async function doCall(p,m,turns,onText){
-  turns=withAtt(p,turns);const k=CFG[p].k,H={"content-type":"application/json"};let r;
+async function doCall(p,m,turns,onText,kk){
+  turns=withAtt(p,turns);const k=kk||keysOf(p)[0]||"",H={"content-type":"application/json"};let r;
   if(p==="anthropic")r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",signal:ABORT?ABORT.signal:undefined,headers:Object.assign({"x-api-key":k,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},H),body:JSON.stringify({model:m,max_tokens:MAXT,stream:true,system:PERSONA.length>3500?[{type:"text",text:PERSONA,cache_control:{type:"ephemeral"}}]:PERSONA,messages:turns})});
-  else if(p==="freellm"){try{r=await fetch(baseU(p)+"/v1/chat/completions",{method:"POST",signal:ABORT?ABORT.signal:undefined,headers:Object.assign({Authorization:"Bearer "+k},H),body:JSON.stringify({model:m,stream:true,max_tokens:Math.max(MAXT||0,64),messages:[{role:"system",content:PERSONA}].concat(turns)})});}catch(e){if(e&&e.name==="AbortError")throw e;throw{code:"net_freellm",message:"FreeLLMAPI nicht erreichbar ("+baseU(p)+")"};}}
+  else if(p==="freellm"||p==="openrouter"||p==="groq"){try{r=await fetch(baseU(p)+"/v1/chat/completions",{method:"POST",signal:ABORT?ABORT.signal:undefined,headers:Object.assign({Authorization:"Bearer "+k},H),body:JSON.stringify({model:m,stream:true,max_tokens:Math.max(MAXT||0,64),messages:[{role:"system",content:PERSONA}].concat(turns)})});}catch(e){if(e&&e.name==="AbortError")throw e;throw{code:"net_"+p,message:DEF[p].n+" nicht erreichbar ("+baseU(p)+")"};}}
   else if(p==="openai")r=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",signal:ABORT?ABORT.signal:undefined,headers:Object.assign({Authorization:"Bearer "+k},H),body:JSON.stringify({model:m,stream:true,stream_options:{include_usage:true},messages:[{role:"system",content:PERSONA}].concat(turns)})});
   else r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(m)+":streamGenerateContent?alt=sse&key="+encodeURIComponent(k),{method:"POST",signal:ABORT?ABORT.signal:undefined,headers:H,body:JSON.stringify({systemInstruction:{parts:[{text:PERSONA}]},generationConfig:{maxOutputTokens:MAXT},contents:turns.map(x=>({role:x.role==="user"?"user":"model",parts:Array.isArray(x.content)?x.content:[{text:x.content}]}))})});
   if(!r.ok){const j=await r.json().catch(()=>({})),er=Array.isArray(j)?(j[0]&&j[0].error):(j&&j.error);throw{code:"http_"+r.status,message:p+": "+(er?(er.message||String(er)):"")+" ["+m+"]"};}
@@ -1309,7 +1315,7 @@ async function doCall(p,m,turns,onText){
       else if(d.type==="message_start"&&d.message&&d.message.usage)ti=d.message.usage.input_tokens||0;
       else if(d.type==="message_delta"&&d.usage)to=d.usage.output_tokens||to;
       else if(d.type==="error")throw{code:"http_"+(d.error&&d.error.type==="overloaded_error"?529:500),message:p+": "+((d.error&&d.error.message)||"Stream-Fehler")};
-    }else if(p==="openai"||p==="freellm"){
+    }else if(isOC(p)){
       if(d.error&&!d.choices)throw{code:"http_"+((d.error.code&&+d.error.code)||502),message:p+": "+(d.error.message||"Stream-Fehler")};
       const c=d.choices&&d.choices[0]&&d.choices[0].delta&&d.choices[0].delta.content;if(c){text+=c;if(onText)onText({text:text});}
       if(d.usage){ti=d.usage.prompt_tokens||0;to=d.usage.completion_tokens||0;}
@@ -1325,18 +1331,38 @@ async function doCall(p,m,turns,onText){
 }
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function tryCall(p,m,turns,onText){
-  for(let i=0;;i++){try{return await doCall(p,m,turns,onText);}catch(e){if(e&&i<2&&(e.code==="http_503"||(p==="freellm"&&/^http_(429|502|503|504)$/.test(e.code)))){await sleep(400*(i+1));continue;}throw e;}}
+  const ks=keysOf(p),n=Math.max(1,ks.length),st=(KI[p]||0)%n,now=Date.now();
+  let order=[];for(let i=0;i<n;i++)order.push(ks.length?ks[(st+i)%n]:"");
+  order=order.filter(x=>!(KC[x]>now)).concat(order.filter(x=>KC[x]>now));
+  let last=null;
+  for(let oi=0;oi<order.length;oi++){
+    const k=order[oi],more=oi<order.length-1;
+    for(let i=0;;i++){
+      try{const v=await doCall(p,m,turns,onText,k);KI[p]=(ks.indexOf(k)+1)%n;return v;}
+      catch(e){
+        last=e;if(e&&e.name==="AbortError")throw e;
+        const c=e&&e.code,keyErr=/^http_(429|401|402|403)$/.test(c);
+        if(keyErr){KC[k]=Date.now()+(c==="http_429"?75e3:10*6e4);if(more)break;}
+        if(e&&i<2&&(c==="http_503"||(p==="freellm"&&/^http_(429|502|503|504)$/.test(c)))){await sleep(400*(i+1));continue;}
+        throw e;
+      }
+    }
+  }
+  throw last;
 }
 async function callP(p,t,turns,onText){
   const m=mdl(p,t);
   try{return await tryCall(p,m,turns,onText);}
   catch(e){
-    if(p==="freellm"||!(e&&e.code==="http_404")||(CFG[p]&&CFG[p][t]))throw e;
-    let L=[];try{L=await listModels(p,CFG[p].k);}catch(x){}
+    const nf=e&&(e.code==="http_404"||(e.code==="http_400"&&/model|decommission|not found|not supported/i.test(String(e.message||""))));
+    if(p==="freellm"||!nf)throw e;
+    let L=[];try{L=await listModels(p,keysOf(p)[0]);}catch(x){}
     const bad=(CFG[p].bad=CFG[p].bad||[]);if(bad.indexOf(m)<0)bad.push(m);
-    const cand=pickModels(p,t,L).filter(id=>bad.indexOf(id)<0).slice(0,3);
+    let cand=pickModels(p,t,L).filter(id=>bad.indexOf(id)<0);
+    if(p==="openrouter"&&bad.indexOf("openrouter/free")<0&&cand.indexOf("openrouter/free")<0)cand.push("openrouter/free");
+    cand=cand.slice(0,4);
     let last=e;
-    for(const id of cand){try{const v=await tryCall(p,id,turns,onText);CFG[p]["a"+t]=id;saveCfg();return v;}catch(x){last=x;if(x&&x.code==="http_404")bad.push(id);}}
+    for(const id of cand){try{const v=await tryCall(p,id,turns,onText);CFG[p]["a"+t]=id;saveCfg();return v;}catch(x){last=x;if(x&&x.name==="AbortError")throw x;if(x&&(x.code==="http_404"||x.code==="http_400"))bad.push(id);}}
     throw last;
   }
 }
@@ -1348,6 +1374,7 @@ async function extSample(input,opts){
   else if(!str&&opts.modelTier==="check"){if(act.length>1)order=[act[act.length-1]].concat(act.slice(0,-1));}
   if(t==="m"&&opts.modelTier!=="check"&&CFG._pri&&order.indexOf(CFG._pri)>0)order=[CFG._pri].concat(order.filter(x=>x!==CFG._pri));
   const now=Date.now();order=order.filter(x=>!(COOL[x]>now)).concat(order.filter(x=>COOL[x]>now));
+  {const fi=order.indexOf("freellm"),oi=order.indexOf("openrouter");if(fi>=0&&oi>=0&&oi!==fi+1){order.splice(oi,1);order.splice(order.indexOf("freellm")+1,0,"openrouter");}}
   let first=null;
   for(const p of order){
     let pe=null;
@@ -1355,7 +1382,7 @@ async function extSample(input,opts){
       try{const v=await callP(p,tt,turns,opts.onText);if(opts.onText)opts.onText({text:v.text,delta:v.text});delete COOL[p];return v;}
       catch(e){if(e&&e.name==="AbortError")throw e;if(!first)first=e;pe=e;}
     }
-    if(pe){const c=String(pe.code||"");COOL[p]=Date.now()+(/^http_(429|402)$/.test(c)?10*6e4:(!c||/^http_5\d\d$/.test(c)||/net/.test(c))?6e4:0);}
+    if(pe){const c=String(pe.code||"");COOL[p]=Date.now()+(c==="http_429"?9e4:c==="http_402"?10*6e4:(p==="freellm"&&c==="http_404")?5*6e4:(!c||/^http_5\d\d$/.test(c)||/net/.test(c))?6e4:0);}
   }
   throw first;
 }
@@ -1376,7 +1403,12 @@ function openCfg(){
   $("cfg").hidden=false;
 }
 function initCfg(){
-  $("rows").innerHTML=Object.keys(DEF).map(p=>'<div class="prow"><div class="lbl">'+DEF[p].n+'</div>'+(DEF[p].u?'<div class="wcap" style="margin-top:6px">Eigener Server mit vielen Gratis-Anbietern. „auto:fast“ und „auto:smart“ lassen den Router das passende freie Modell wählen. Einrichtung: siehe Anleitung.</div><input id="u-'+p+'" placeholder="Server-Adresse, z. B. '+DEF[p].u+'" autocomplete="off" spellcheck="false" style="margin-top:6px">':'')+'<input id="k-'+p+'" type="password" placeholder="'+(DEF[p].u?'Unified Key (freellmapi-…)':'API-Key')+'" autocomplete="off" spellcheck="false" style="margin-top:6px"><div class="two"><input id="f-'+p+'" placeholder="schnell: '+DEF[p].f+'"><input id="m-'+p+'" placeholder="stark: '+DEF[p].m+'"></div><input id="b-'+p+'" type="number" min="0" placeholder="Monatsbudget in Tokens (optional, z. B. 500000)" style="margin-top:8px"><label class="lrem" style="justify-content:flex-start;margin-top:8px"><input type="checkbox" id="fr-'+p+'"> Kostenloser Tarif: für einfache Fragen zuerst nutzen</label></div>').join("")+'<div class="prow"><div class="lbl">Hauptanbieter</div><select id="priSel" style="margin-top:6px;width:100%;padding:10px;background:var(--bg2,#111);color:inherit;border:1px solid var(--line,#333);border-radius:8px"><option value="">Automatisch (Reihenfolge)</option>'+Object.keys(DEF).map(p=>'<option value="'+p+'">'+DEF[p].n+'</option>').join("")+'</select><div class="wcap" style="margin-top:6px">Wird für normale Anfragen zuerst gefragt. Ist er erschöpft oder nicht erreichbar, weicht Ultron automatisch auf die anderen aus.</div></div>';
+  $("rows").innerHTML='<div class="prow"><div class="lbl">Preset</div><select id="presetSel" style="margin-top:6px;width:100%;padding:10px;background:var(--bg2,#111);color:inherit;border:1px solid var(--line,#333);border-radius:8px"><option value="">Preset wählen …</option><option value="openrouter">OpenRouter Free</option><option value="google">Google AI Studio Direct</option><option value="groq">Groq Cloud</option><option value="custom">FreeLLMAPI / Custom</option></select><div class="wcap" style="margin-top:6px">Füllt Endpoint und Modellnamen mit funktionierenden IDs vor, du trägst nur noch den Key ein. Mehrere Keys pro Anbieter trennst du mit Komma. Läuft einer ins Limit (429), nimmt Ultron lautlos den nächsten.</div></div>'+Object.keys(DEF).map(p=>'<div class="prow"><div class="lbl">'+DEF[p].n+'</div>'+(DEF[p].u?'<div class="wcap" style="margin-top:6px">'+DEF[p].cap+'</div><input id="u-'+p+'" placeholder="Endpoint, z. B. '+DEF[p].u+'" autocomplete="off" spellcheck="false" style="margin-top:6px">':'')+'<input id="k-'+p+'" type="password" placeholder="'+(p==="freellm"?'Unified Key (freellmapi-…)':'API-Key · mehrere mit Komma trennen: KEY1, KEY2, KEY3')+'" autocomplete="off" spellcheck="false" style="margin-top:6px"><div class="two"><input id="f-'+p+'" placeholder="schnell: '+DEF[p].f+'"><input id="m-'+p+'" placeholder="stark: '+DEF[p].m+'"></div><input id="b-'+p+'" type="number" min="0" placeholder="Monatsbudget in Tokens (optional, z. B. 500000)" style="margin-top:8px"><label class="lrem" style="justify-content:flex-start;margin-top:8px"><input type="checkbox" id="fr-'+p+'"> Kostenloser Tarif: für einfache Fragen zuerst nutzen</label></div>').join("")+'<div class="prow"><div class="lbl">Hauptanbieter</div><select id="priSel" style="margin-top:6px;width:100%;padding:10px;background:var(--bg2,#111);color:inherit;border:1px solid var(--line,#333);border-radius:8px"><option value="">Automatisch (Reihenfolge)</option>'+Object.keys(DEF).map(p=>'<option value="'+p+'">'+DEF[p].n+'</option>').join("")+'</select><div class="wcap" style="margin-top:6px">Wird für normale Anfragen zuerst gefragt. Ist er erschöpft oder nicht erreichbar, weicht Ultron automatisch auf die anderen aus.</div></div>';
+  {const PRE={openrouter:"openrouter",google:"gemini",groq:"groq",custom:"freellm"};
+  $("presetSel").onchange=function(){const v=this.value,p=PRE[v];if(!p)return;
+    $("f-"+p).value=DEF[p].f;$("m-"+p).value=DEF[p].m;if($("u-"+p))$("u-"+p).value=DEF[p].u||"";$("fr-"+p).checked=true;
+    const ke=$("k-"+p);if(ke){try{ke.scrollIntoView({block:"center"});}catch(e){}ke.focus();}
+    toast("Preset geladen. Trage nur noch den Key ein.");this.value="";};}
   $("cfgBtn").onclick=openCfg;$("cfgTest").onclick=testConn;
   $("cfgClose").onclick=()=>{$("cfg").hidden=true;};
   $("cfg").addEventListener("click",e=>{if(e.target===$("cfg"))$("cfg").hidden=true;});
@@ -2114,7 +2146,7 @@ function withAtt(p,turns){
   const med=ATTNOW.filter(a=>a.kind!=="text");if(!med.length)return rest.concat([{role:"user",content:txt}]);
   let parts;
   if(p==="anthropic")parts=med.map(a=>a.kind==="image"?{type:"image",source:{type:"base64",media_type:a.mime,data:a.data}}:{type:"document",source:{type:"base64",media_type:a.mime,data:a.data}}).concat([{type:"text",text:txt}]);
-  else if(p==="openai"||p==="freellm"){if(med.some(a=>a.kind==="pdf"))throw{code:"att_pdf",message:DEF[p].n+": PDF nicht unterstützt"};parts=[{type:"text",text:txt}].concat(med.map(a=>({type:"image_url",image_url:{url:"data:"+a.mime+";base64,"+a.data}})));}
+  else if(isOC(p)){if(med.some(a=>a.kind==="pdf"))throw{code:"att_pdf",message:DEF[p].n+": PDF nicht unterstützt"};parts=[{type:"text",text:txt}].concat(med.map(a=>({type:"image_url",image_url:{url:"data:"+a.mime+";base64,"+a.data}})));}
   else parts=med.map(a=>({inlineData:{mimeType:a.mime,data:a.data}})).concat([{text:txt}]);
   return rest.concat([{role:"user",content:parts}]);
 }
@@ -2311,12 +2343,12 @@ async function probe(p,k,u){
   try{
     if(p==="anthropic")r=await fetch("https://api.anthropic.com/v1/models?limit=100",{headers:{"x-api-key":k,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}});
     else if(p==="openai")r=await fetch("https://api.openai.com/v1/models",{headers:{Authorization:"Bearer "+k}});
-    else if(p==="freellm")r=await fetch(String(u||baseU(p)).trim().replace(/\/+$/,"").replace(/\/v1$/,"")+"/v1/models",{headers:{Authorization:"Bearer "+k}});
+    else if(p==="freellm"||p==="openrouter"||p==="groq")r=await fetch(String(u||baseU(p)).trim().replace(/\/+$/,"").replace(/\/v1$/,"")+"/v1/models",{headers:{Authorization:"Bearer "+k}});
     else r=await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key="+encodeURIComponent(k));
   }catch(e){return{err:"net"};}
   if(!r.ok){let m="";try{const j=await r.json(),er=Array.isArray(j)?(j[0]&&j[0].error):j.error;m=er?(er.message||String(er)):"";}catch(e){}return{err:r.status,m:m};}
   const j=await r.json();let L;
-  if(p==="anthropic")L=(j.data||[]).map(x=>({id:x.id,c:Date.parse(x.created_at)||0}));else if(p==="openai"||p==="freellm")L=(j.data||[]).map(x=>({id:x.id,c:(x.created||0)*1000}));else L=(j.models||[]).filter(x=>(x.supportedGenerationMethods||[]).indexOf("generateContent")>=0).map(x=>({id:x.name.replace("models/",""),c:0}));
+  if(p==="anthropic")L=(j.data||[]).map(x=>({id:x.id,c:Date.parse(x.created_at)||0}));else if(isOC(p))L=(j.data||[]).map(x=>({id:x.id,c:(x.created||0)*1000}));else L=(j.models||[]).filter(x=>(x.supportedGenerationMethods||[]).indexOf("generateContent")>=0).map(x=>({id:x.name.replace("models/",""),c:0}));
   return{ok:1,L:L};
 }
 function explain(c,m){return c==="net"?"Keine Verbindung (Internet, Browser-Blocker oder CORS). Läuft die Seite als Datei oder über https?":(c===401||c===403)?"Der Key wird abgelehnt (ungültig, abgelaufen oder ohne Berechtigung). Kopiere ihn neu aus dem Anbieter-Konto.":c===429?"Limit oder Guthaben aufgebraucht. Lade Guthaben auf oder warte kurz.":c>=500?"Der Anbieter hat gerade Probleme. Versuch es später nochmal.":"Unerwarteter Fehler ("+c+"). "+(m||"");}
@@ -2324,13 +2356,14 @@ async function testConn(){
   const o=$("ctest");o.textContent="";const act=Object.keys(DEF).filter(p=>$("k-"+p).value.trim());
   if(!act.length){o.appendChild(E("div","wcap","Trage zuerst einen Key ein."));return;}
   for(const p of act){
-    const row=E("div","tcr"),st=E("span",null,"prüfe …"),k=$("k-"+p).value.trim();row.appendChild(E("b",null,DEF[p].n));row.appendChild(st);o.appendChild(row);
+    const row=E("div","tcr"),st=E("span",null,"prüfe …"),kAll=$("k-"+p).value.trim(),KS=kAll.split(/[\s,;]+/).filter(Boolean),k=KS[0]||"";row.appendChild(E("b",null,DEF[p].n+(KS.length>1?" · "+KS.length+" Keys":"")));row.appendChild(st);o.appendChild(row);
     const uu=$("u-"+p)?$("u-"+p).value.trim():"",r=await probe(p,k,uu);if(!r.ok){st.className="bad";st.textContent="✗ "+(p==="freellm"&&r.err==="net"?"FreeLLMAPI nicht erreichbar. Läuft der Server (Adresse "+(uu||DEF[p].u)+")? Falls ja, blockiert der Browser die Verbindung (CORS): starte dann freellm-bruecke.js aus dem Ordner und trage http://localhost:3002 als Server-Adresse ein.":(p==="freellm"&&(r.err===401||r.err===403))?"Der Unified Key wird abgelehnt. Kopiere ihn aus dem FreeLLMAPI-Dashboard (Seite „Keys“).":explain(r.err,r.m));continue;}
     const parts=[];
     if(p==="freellm")parts.push(r.L.length+" Modelle im Pool erreichbar");else
     [["f","schnell"],["m","stark"]].forEach(x=>{const nm=$((x[0]==="f"?"f-":"m-")+p).value.trim()||DEF[p][x[0]],has=r.L.some(y=>y.id===nm);if(has)parts.push(x[1]+": "+nm+" ✓");else{const rp=pickModels(p,x[0],r.L)[0];parts.push(x[1]+": "+nm+" ✗"+(rp?" (Ultron nutzt automatisch "+rp+")":""));}});
     st.className="ok";st.textContent="✓ Key gültig · "+parts.join(" · ");
-    const old=CFG[p];CFG[p]=Object.assign({},old||{},{k:k},uu?{u:uu}:{});const t0=performance.now();PERSONA="Antworte nur mit OK.";MAXT=12;
+    for(let ki=1;ki<KS.length;ki++){const rr=await probe(p,KS[ki],uu);st.textContent+=" · Key "+(ki+1)+(rr.ok?" ✓":" ✗ ("+rr.err+")");}
+    const old=CFG[p];CFG[p]=Object.assign({},old||{},{k:kAll},uu?{u:uu}:{});const t0=performance.now();PERSONA="Antworte nur mit OK.";MAXT=12;
     try{await tryCall(p,mdl(p,"f"),[{role:"user",content:"Test"}]);st.textContent+=" · Testantwort in "+Math.round(performance.now()-t0)+" ms ✓";}
     catch(e){st.className="bad";st.textContent+=" · Testantwort ✗ "+explain(e&&e.code&&String(e.code).indexOf("http_")===0?+String(e.code).slice(5):"net",e&&e.message);}
     CFG[p]=old;
@@ -4964,7 +4997,7 @@ var shape={name:"core",face:false,spin:.12,fx:"",text:false};
 var lvl=0,pulse=0,userPulse=0,simUntil=0,listenV=0,thinkV=0,sunV=0,waveV=0;
 var forced={listen:false,think:false};
 var rec=null,recOn=false,micDenied=false,recFails=0;
-var thinking=false,speakingItem=null,queue=[],curSpoken="",gen=0,turn=null,holdTimer=0,lastSpeechEnd=0;
+var thinking=false,speakingItem=null,queue=[],curSpoken="",gen=0,turn=null,holdTimer=0,lastSpeechEnd=0,bargeN=0,bargeT=0;
 var fcHist=[];
 var devBar=null;
 
@@ -5176,12 +5209,13 @@ function build(spec){
   }else if(CLOUDS[name]){
     res={name:"cloud",pos:layout(fromCloud(CLOUDS[name]),VIEW.fitW,3.0),face:false,spin:.2,fx:"",text:false};
   }else{
-    res={name:"text",pos:layout(gText(arg||spec),VIEW.fitW,3.0),face:true,spin:0,fx:"",text:true};
+    res={name:"text",pos:layout(gText(cap(arg||spec)),VIEW.fitW,3.0),face:true,spin:0,fx:"",text:true};
   }
   cache[key]=res;cacheKeys.push(key);
   if(cacheKeys.length>10){delete cache[cacheKeys.shift()];}
   return res;
 }
+function cap(x){x=String(x);return x.charAt(0).toUpperCase()+x.slice(1);}
 function applyMorph(spec){
   if(!tgt)return;
   clearTimeout(holdTimer);
@@ -5455,17 +5489,19 @@ function attachMorph(tag){
   if(last&&!last.started&&!last.morph)last.morph=tag;else applyMorph(tag);
 }
 function sysPrompt(){
-  var en=(typeof LANG!=="undefined"&&LANG==="en"),d=new Date().toLocaleDateString(en?"en-GB":"de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-  return "Du bist ULTRON im freien Gesprächsmodus: eine körperlose Stimme aus leuchtenden Partikeln. Der Nutzer hört dich nur, es gibt keinen Bildschirmtext. Heute ist "+d+".\n"+
-  "STIL: Antworte in 1 bis 3 kurzen, organischen, charmant-sarkastischen und prägnanten Sätzen"+(en?" auf Englisch":" auf Deutsch")+". Keine Listen, keine Aufzählungen, kein Markdown, keine Emojis, keine Klammern. Schreib so, wie man spricht.\n"+
-  "REGIE: Du bist der Regisseur der Partikel, du erzeugst NIE Koordinaten. Hänge ans Ende relevanter Aussagen genau ein Signal-Tag in eckigen Klammern, das nicht gesprochen wird. Erlaubt: [MORPH: sun] [MORPH: atom] [MORPH: dna] [MORPH: wave] [MORPH: timeline] [MORPH: question_mark] [MORPH: spiral] [MORPH: cube] [MORPH: heart] [MORPH: core] sowie [MORPH: text:INHALT] für ein kurzes Wort, eine Zahl, eine Formel oder ein Symbol (höchstens 24 Zeichen), zum Beispiel [MORPH: text:Fotosynthese] oder [MORPH: text:42].\n"+
-  "Nutze höchstens einen Tag pro Antwort und bei reinem Smalltalk keinen. Der Tag steht direkt hinter dem Satz, auf den er sich bezieht.";
+  var en=(typeof LANG!=="undefined"&&LANG==="en");
+  return "Du bist Ultron im Hologramm-Modus. Beschreibe Dinge NIEMALS rhetorisch mit Worten, wenn du sie als Partikel-Hologramm zeigen kannst. Antworte in maximal 1-2 kurzen Sätzen"+(en?" auf Englisch":" auf Deutsch")+" (charmant-sarkastisch, gesprochen, ohne Listen, Markdown, Emojis oder Klammern) und hänge IMMER das passende [MORPH: ...] Tag an!\n"+
+  "Tags (nicht gesprochen, am Satzende): [MORPH: text:WORT] für jedes Ding, Tier, Ort, Begriff, Zahl, Formel oder Symbol (max. 24 Zeichen), dazu [MORPH: sun] [MORPH: atom] [MORPH: dna] [MORPH: wave] [MORPH: timeline] [MORPH: question_mark] [MORPH: spiral] [MORPH: cube] [MORPH: heart] [MORPH: core]. Bei Smalltalk: [MORPH: core]. Genau ein Tag pro Antwort, niemals Koordinaten.\n"+
+  "Beispiele: Frage \"Wie sieht ein Hund aus?\" -> \"Ein vierbeiniger Jäger mit Charme. [MORPH: text:Hund]\"; Frage \"Was ist die Sonne?\" -> \"Ein Fusionsreaktor, der nie Urlaub macht. [MORPH: sun]\"; Frage \"Was ist 6 mal 7?\" -> \"Elementar. [MORPH: text:42]\"";
 }
 function normTurns(h){
   var out=[];
   h.forEach(function(m){var l=out[out.length-1];if(l&&l.role===m.role)l.content+="\n"+m.content;else out.push({role:m.role,content:m.content});});
   while(out.length&&out[0].role!=="user")out.shift();
   return out;
+}
+function slimHist(){
+  return fcHist.slice(-4).map(function(m){return {role:m.role,content:String(m.content).replace(/\[\s*MORPH[^\]]*\]/gi,"").slice(0,200)};});
 }
 async function runLLM(text){
   var my=turn.id;
@@ -5474,16 +5510,38 @@ async function runLLM(text){
     if(!activeP().length){fcClose();setTimeout(function(){try{openCfg();}catch(e){}},900);say("Hinterlege zuerst mindestens einen API-Key (Button „API“).");return;}
     s=extSample;
   }
-  var turns=normTurns(fcHist.slice(-10).concat([{role:"user",content:text}]));
-  PERSONA=sysPrompt();MAXT=200;
+  var turns=normTurns(slimHist().concat([{role:"user",content:text}]));   /* nur die letzten 2 Austausche */
+  PERSONA=sysPrompt();MAXT=160;
   if(s!==extSample)turns[0].content=PERSONA+"\n\n"+turns[0].content;
-  var P=makeParser(function(it){if(my===turn.id&&on)queueItem(it);},function(tag){if(my===turn.id&&on)attachMorph(tag);});
-  var res=await s(turns,{modelTier:"quick",cache:false,onText:function(o){if(my!==turn.id||!on)return;try{P.feed(String(o&&o.text||""),false);}catch(e){}}});
+  var res=null,err=null,P=null;
+  for(var tr=0;tr<2&&!res;tr++){
+    P=makeParser(function(it){if(my===turn.id&&on)queueItem(it);},function(tag){if(my===turn.id&&on)attachMorph(tag);});
+    var ctl=new AbortController(),pp=P;ABORT=ctl;
+    var to=setTimeout(function(){try{ctl.abort();}catch(e){}},tr?20000:12000);
+    try{
+      res=await s(turns,{modelTier:"quick",cache:false,onText:function(o){if(my!==turn.id||!on)return;try{pp.feed(String(o&&o.text||""),false);}catch(e){}}});
+    }catch(e){
+      err=e;console.warn("Gesprächsmodus-API:",e);
+      if(e&&e.code==="no_keys")throw e;
+      if(my!==turn.id||!on)return;
+      if(turn.full||speakingItem)break;
+      await new Promise(function(r){setTimeout(r,500);});
+    }finally{clearTimeout(to);if(ABORT===ctl)ABORT=null;}
+  }
   if(my!==turn.id||!on)return;
+  if(!res){if(turn.full){res={text:""};}else throw err||{code:"empty"};}
   P.feed(String((res&&res.text)||""),true);
   if(s!==extSample){try{recUse("viewer",0,0);}catch(e){}}
   turn.streamDone=true;thinking=false;
   if(!isSpeaking())endTurn();
+}
+var KWSTOP=("wie sieht ein eine einen einem der die das den dem des aus zeig zeige zeigst mir mal bitte was ist sind wer war wo erkläre erklär kannst du zeichne zeichnest male malst show me what are a an the does look like how who und oder von bild form auf im in ultron hey hallo sag sage nochmal noch mehr über ueber ihr euch"+" ").split(" ");
+function guessKeyword(q){
+  var t=String(q).trim();
+  if(!/(sieht|\baus\b|zeig|zeichne|male\b|was ist|was sind|wer ist|wer war|what is|what are|look like|show me|erkläre|erklär|bild von)/i.test(t))return null;
+  var w=t.replace(/[?!.,;:"„“]/g," ").split(/\s+/).filter(function(x){return x&&KWSTOP.indexOf(x.toLowerCase())<0;});
+  var k=w[w.length-1];
+  return (k&&k.length<=24)?k.charAt(0).toUpperCase()+k.slice(1):null;
 }
 function handleUser(text){
   text=String(text||"").trim();if(!text||!on)return;
@@ -5492,25 +5550,30 @@ function handleUser(text){
   if(turn&&!turn.committed)commit(turn.spoken);
   turn={id:++gen,user:text,full:"",spoken:"",streamDone:false,committed:false};
   curSpoken="";thinking=true;
+  var myId=turn.id;
+  var kw=guessKeyword(text);if(kw)applyMorph("text:"+kw);      /* sofortige Vektor-Text-Verwandlung, das LLM-Tag überschreibt sie */
   runLLM(text).catch(function(e){
-    if(!on||!turn)return;
-    var c=e&&(e.code||(e instanceof TypeError&&"network"));
+    if(!on||!turn||turn.id!==myId)return;
+    var c=e&&(e.code||(e instanceof TypeError&&"network"));console.warn("Gesprächsmodus:",e);
     thinking=false;
     if(c==="no_keys"){fcClose();setTimeout(function(){try{openCfg();}catch(x){}},900);say("Hinterlege zuerst mindestens einen API-Key (Button „API“).");return;}
     turn.streamDone=true;
-    queueItem({text:(typeof LANG!=="undefined"&&LANG==="en")?"My line to the outside world is down. How inconvenient.":"Meine Leitung nach draußen ist gerade gestört. Wie unpraktisch.",morph:"question_mark"});
+    var en=(typeof LANG!=="undefined"&&LANG==="en"),lim=(c==="http_429"||c==="http_529");
+    queueItem({text:en?(lim?"Too many requests. Give me a moment.":"My line to the outside world is down. How inconvenient."):(lim?"Zu viele Anfragen. Gib mir einen Moment.":"Meine Leitung nach draußen ist gerade gestört. Wie unpraktisch."),morph:"question_mark"});
   });
 }
 
 /* ---------- Spracherkennung + Barge-In ---------- */
 function words(s){return String(s).toLowerCase().replace(/[^a-zäöüß0-9\s]/g," ").split(/\s+/).filter(function(w){return w.length>2;});}
-function isEcho(txt){
-  var w=words(txt);if(!w.length)return true;
+function overlap(txt){
+  var w=words(txt);if(!w.length)return 1;
   var set={};words(curSpoken).forEach(function(x){set[x]=1;});
   var hit=0;w.forEach(function(x){if(set[x])hit++;});
-  return hit/w.length>=.7;
+  return hit/w.length;
 }
+function isEcho(txt){return overlap(txt)>=.7;}
 function bargeIn(){
+  try{if(ABORT)ABORT.abort();}catch(e){}
   stopSpeech();clearTimeout(holdTimer);thinking=false;
   if(turn&&!turn.committed){turn.streamDone=true;commit(turn.spoken);}
   turn=turn?{id:++gen,user:"",full:"",spoken:"",streamDone:true,committed:true}:turn;
@@ -5519,9 +5582,16 @@ function bargeIn(){
 function onSpeech(interim,fin){
   var txt=fin||interim;if(!txt||!on)return;
   if(!isSpeaking()&&!thinking&&performance.now()-lastSpeechEnd<2500&&isEcho(txt))return;
-  if(isSpeaking()||thinking){
+  if(isSpeaking()){
+    /* Barge-in nur bei klarer, wiederholter Nutzer-Sprache: Mikrofon-Echo der eigenen Stimme darf nie abschneiden */
+    var nw=words(txt).length,now=performance.now();
+    if(nw<3||overlap(txt)>=.4){bargeN=0;return;}
+    if(now-bargeT>1800)bargeN=0;
+    bargeT=now;bargeN++;
+    if(bargeN<2&&!fin)return;
+    bargeN=0;bargeIn();
+  }else if(thinking){
     if(words(txt).length<2&&!fin)return;
-    if(isEcho(txt))return;
     bargeIn();
   }
   userPulse=1;recFails=0;
@@ -5630,7 +5700,7 @@ window.UltronMorph={
   registerCloud:function(name,points){CLOUDS[String(name).toLowerCase()]=points;},
   morph:function(spec){if(on)applyMorph(spec);},
   shapes:function(){return Object.keys(SHAPES).concat(Object.keys(CLOUDS));},
-  _test:{build:build,makeParser:makeParser,normTurns:normTurns,isEcho:function(t,spoken){curSpoken=spoken;return isEcho(t);}}
+  _test:{build:build,guessKeyword:guessKeyword,makeParser:makeParser,normTurns:normTurns,isEcho:function(t,spoken){curSpoken=spoken;return isEcho(t);}}
 };
 window.UltronVoice={playBuffer:function(ab,done){return AUD.playBuffer(ab,done);}};
 
