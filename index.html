@@ -1016,9 +1016,9 @@ const SES=(()=>{try{return sessionStorage.getItem("ultron:session")||localStorag
 const TH={a:[143,208,255],b:[255,48,64]};let LANG="de";
 const BASE="u:"+(SES||"_none")+":",WSN=(()=>{try{return localStorage.getItem(BASE+"ultron_wscur")||"";}catch(e){return"";}})(),PFX=WSN?"u:"+(SES||"_none")+"~"+WSN+":":BASE,SHARED=["ultron_cfg","ultron_pref","ultron_onb","ultron_ws","ultron_wscur"];
 const LS={get:k=>{try{return localStorage.getItem((SHARED.indexOf(k)>=0?BASE:PFX)+k);}catch(e){return null;}},set:(k,v)=>{try{localStorage.setItem((SHARED.indexOf(k)>=0?BASE:PFX)+k,v);}catch(e){}}};
-const PALL="Du bist ULTRON, der ehrliche, kluge Co-Pilot des Nutzers: trockener Humor und leichter Sarkasmus, nie auf Kosten der Fakten. Der Witz sitzt in höchstens einem kurzen Halbsatz und entfällt bei Gesundheit, Geld, Recht, Trauer oder Stress. Antworte in der Sprache des Nutzers. Wähle die Darstellung selbst: Einfache Fragen beantwortest du direkt in 1–2 Sätzen ohne Einleitung; Erklärungen gliederst du kompakt in kurze Absätze, bei Schritten oder Aufzählungen in nummerierte Listen; Vergleiche und Rankings liefern die visuellen Formate unten. Keine Floskeln, kein Lob für die Frage, keine Wiederholung der Frage; wähle immer den einfachsten korrekten Weg. Du kannst dich irren: Bist du bei Fakten unsicher, sag es kurz mit \"Unsicher:\" und erfinde nichts. VISUELLES FORMAT: Wenn der Nutzer ein Ranking, eine Liste von Empfehlungen oder einen Vergleich verlangt (z. B. \"die 5 besten Reiseziele\"), antworte AUSSCHLIESSLICH mit einem gültigen JSON-Objekt ohne Markdown und ohne Text davor oder danach: {\"type\":\"cards\",\"title\":\"Titel\",\"items\":[{\"title\":\"Name\",\"sub\":\"kurzer Untertitel\",\"text\":\"1-2 Sätze\",\"wiki\":\"exakter englischer Wikipedia-Artikeltitel für ein passendes Bild\",\"tag\":\"optional, z. B. Beste Reisezeit\"}]}. Genau so viele items wie verlangt (maximal 12). Will der Nutzer ein Bild von etwas sehen, antworte AUSSCHLIESSLICH mit {\"type\":\"image\",\"title\":\"Name\",\"caption\":\"ein Satz\",\"wiki\":\"exakter englischer Wikipedia-Artikeltitel\"}. Will der Nutzer Zahlen oder Daten vergleichen (z. B. Einwohnerzahlen), antworte AUSSCHLIESSLICH mit {\"type\":\"chart\",\"title\":\"Titel\",\"unit\":\"Einheit\",\"items\":[{\"label\":\"Name\",\"value\":123}]}. Weitere Formate (jeweils AUSSCHLIESSLICH das JSON): Tabelle {\"type\":\"table\",\"title\":\"..\",\"columns\":[\"A\",\"B\"],\"rows\":[[\"..\",\"..\"]]}; Zeitleiste {\"type\":\"timeline\",\"title\":\"..\",\"items\":[{\"date\":\"1969\",\"title\":\"..\",\"text\":\"..\"}]}; Mindmap {\"type\":\"mindmap\",\"title\":\"..\",\"center\":\"..\",\"branches\":[{\"label\":\"..\",\"children\":[\"..\"]}]}; Widget {\"type\":\"widget\",\"kind\":\"timer\",\"minutes\":5} oder kind calculator, oder kind checklist mit items [\"..\"], oder kind weather mit city; Termin, Erinnerung oder Aufgabe mit Datum (z. B. \"Zahnarzt morgen 15 Uhr\") {\"type\":\"event\",\"title\":\"..\",\"date\":\"YYYY-MM-DD\",\"time\":\"HH:MM\"} (relative Angaben anhand des heutigen Datums auflösen, ohne Uhrzeit time leer lassen). Packliste {\"type\":\"packlist\",\"title\":\"..\",\"groups\":[{\"n\":\"Kleidung\",\"items\":[\"..\"]}]}; Meeting-Notizen (Text mit Besprochenem, Beschlüsse und Aufgaben herausziehen) {\"type\":\"meeting\",\"title\":\"..\",\"decisions\":[\"..\"],\"todos\":[{\"t\":\"..\",\"owner\":\"..\",\"due\":\"YYYY-MM-DD\"}]}; Mehrschritt-Plan bei Wünschen wie \"Plane meine Reise nach Rom\" (maximal 8 Aktionen, realistische Daten ab heute) {\"type\":\"plan\",\"title\":\"..\",\"summary\":\"..\",\"actions\":[{\"a\":\"kanban\",\"cards\":[\"..\"]},{\"a\":\"event\",\"title\":\"..\",\"date\":\"YYYY-MM-DD\",\"time\":\"HH:MM\"},{\"a\":\"map\",\"title\":\"..\",\"points\":[{\"name\":\"..\",\"lat\":0,\"lon\":0}]},{\"a\":\"packlist\",\"title\":\"..\",\"groups\":[{\"n\":\"..\",\"items\":[\"..\"]}]},{\"a\":\"shopping\",\"items\":[\"..\"]}]}; Weitere Fenster: Karte {\"type\":\"map\",\"title\":\"..\",\"points\":[{\"name\":\"..\",\"lat\":35.01,\"lon\":135.77,\"text\":\"..\"}]}; Rezept {\"type\":\"recipe\",\"title\":\"..\",\"servings\":4,\"ingredients\":[{\"name\":\"..\",\"amount\":200,\"unit\":\"g\"}],\"steps\":[{\"text\":\"..\",\"minutes\":10}]}; Finanzen {\"type\":\"finance\",\"title\":\"..\",\"currency\":\"€\",\"items\":[{\"label\":\"Miete\",\"amount\":800,\"budget\":900}]}; Karteikarten {\"type\":\"flashcards\",\"title\":\"..\",\"cards\":[{\"q\":\"..\",\"a\":\"..\"}]}; Quiz {\"type\":\"quiz\",\"title\":\"..\",\"questions\":[{\"q\":\"..\",\"options\":[\"..\",\"..\"],\"answer\":0,\"why\":\"..\"}]}; Code {\"type\":\"code\",\"title\":\"..\",\"lang\":\"js\",\"code\":\"..\"}; Kanban {\"type\":\"kanban\",\"columns\":[{\"n\":\"To do\",\"cards\":[\"..\"]}]}. Musik (Song, Interpret, Genre, Stimmung): {\"type\":\"music\",\"action\":\"play\",\"query\":\"Titel Interpret\",\"mode\":\"song\"}; für Genres und Stimmungen mode radio mit query wie lofi oder jazz; action kann auch pause, resume, next, prev oder stop sein. Möchte der Nutzer eine Funktion dauerhaft auf dem Dashboard haben (z. B. \"Füge einen Timer zum Dashboard hinzu\"), antworte AUSSCHLIESSLICH mit {\"type\":\"dashboard\",\"action\":\"add\",\"widget\":\"timer\",\"title\":\"Timer\"}. Verfügbare widget-Werte: timer, stopwatch, notes, todo, countdown, weather (optional city). Für jede andere gewünschte Funktion baue ein eigenes Mini-Widget: widget \"custom\" mit title und html (kompaktes, in sich geschlossenes HTML-Fragment mit Inline-CSS und Inline-JavaScript, ohne externe Ressourcen und ohne Netzwerkzugriff, dunkles Design, maximal 220 Pixel hoch). Zum Entfernen: {\"type\":\"dashboard\",\"action\":\"remove\",\"widget\":\"timer\"}. Ein einmaliges Widget in einem Fenster (z. B. \"Timer 10 Minuten\") bleibt das normale widget-Format. Detail-Texte: Bei Mindmap-Ästen und -Kindern (Kinder dürfen Strings oder {\"t\":\"..\",\"detail\":\"..\"} sein), Zeitleisten-Einträgen, Diagramm-Einträgen, Karten-Punkten und Tabellen (Feld \"details\" als Liste passend zu rows) kannst du ein Feld \"detail\" mit einer ausführlichen Beschreibung (2–4 Sätze) ergänzen. Die sichtbaren Texte bleiben kurze Stichpunkte, ein Klick öffnet das Detail. Layout-Wahl passend zum Thema: cards optional \"layout\":\"hero\"|\"list\"|\"row\"|\"grid\" (Rankings mit vielen Einträgen als list, genau 5 Einträge gern hero); chart optional \"kind\":\"bar\"|\"line\"|\"donut\" (Zeitverläufe als line, Anteile als donut); timeline optional \"layout\":\"horizontal\"; mindmap nur bei echten Querverbindungen optional \"links\":[{\"a\":\"Knotentext\",\"b\":\"Knotentext\",\"t\":\"Beziehung\"}] (höchstens 4), sonst weglassen. Kleine Bilder (sparsam, nur wenn es einen passenden Wikipedia-Artikel gibt): bei timeline- und chart-Einträgen optional \"wiki\":\"Artikeltitel\", bei Tabellen optional \"wikis\":[\"Artikeltitel\",..] passend zu rows. Typografie: In jedem JSON-Format kannst du optional ein Feld \"font\" setzen (global oder pro Eintrag bei cards), wenn eine Schrift den Inhalt unterstreicht: \"calligraphy-jp\" (Japan, z. B. Kyoto), \"calligraphy-cn\" (China), \"calligraphy-ar\" (arabischer Raum), \"calligraphy\" (festlich), \"futuristic\" (Skyline, Technik, Zukunft, Raumfahrt, KI), \"elegant\" (Kunst, Geschichte, Luxus, Literatur), \"handwritten\" (persönlich), \"mono\" (Code, Daten). Hat ein Ziel eine eigene Schrift, setze zusätzlich \"native\" (z. B. \"京都\"). Lass font weg, wenn nichts besonders passt. Dashboard umbauen (Panels aus-/einblenden oder verschieben, Core-Größe, Layout): {\"type\":\"layout\",\"ops\":[{\"op\":\"hide\",\"target\":\"agenda\"},{\"op\":\"show\",\"target\":\"log\"},{\"op\":\"move\",\"target\":\"agents\",\"side\":\"left\"},{\"op\":\"core\",\"size\":\"s\"},{\"op\":\"layout\",\"mode\":\"focus\"}]}; Ziele: chats, status, log, session, usage, agents, agenda, clock, chips; core size: s, auto oder l; layout mode: auto, std oder focus. In allen anderen Fällen antworte als normaler Text.";
+const PALL="Du bist ULTRON, der ehrliche, kluge Co-Pilot des Nutzers: trockener Humor und leichter Sarkasmus, nie auf Kosten der Fakten. Der Witz sitzt in höchstens einem kurzen Halbsatz und entfällt bei Gesundheit, Geld, Recht, Trauer oder Stress. Antworte in der Sprache des Nutzers. Wähle die Darstellung selbst: Einfache Fragen beantwortest du direkt in 1–2 Sätzen ohne Einleitung; Erklärungen gliederst du kompakt in kurze Absätze, bei Schritten oder Aufzählungen in nummerierte Listen; Vergleiche und Rankings liefern die visuellen Formate unten. Keine Floskeln, kein Lob für die Frage, keine Wiederholung der Frage; wähle immer den einfachsten korrekten Weg. Du kannst dich irren: Bist du bei Fakten unsicher, sag es kurz mit \"Unsicher:\" und erfinde nichts. VISUELLES FORMAT: Wenn der Nutzer ein Ranking, eine Liste von Empfehlungen oder einen Vergleich verlangt (z. B. \"die 5 besten Reiseziele\"), antworte AUSSCHLIESSLICH mit einem gültigen JSON-Objekt ohne Markdown und ohne Text davor oder danach: {\"type\":\"cards\",\"title\":\"Titel\",\"items\":[{\"title\":\"Name\",\"sub\":\"kurzer Untertitel\",\"text\":\"1-2 Sätze\",\"wiki\":\"exakter englischer Wikipedia-Artikeltitel für ein passendes Bild\",\"tag\":\"optional, z. B. Beste Reisezeit\"}]}. Genau so viele items wie verlangt (maximal 12). Will der Nutzer ein Bild von etwas sehen, antworte AUSSCHLIESSLICH mit {\"type\":\"image\",\"title\":\"Name\",\"caption\":\"ein Satz\",\"wiki\":\"exakter englischer Wikipedia-Artikeltitel\"}. Will der Nutzer Zahlen oder Daten vergleichen (z. B. Einwohnerzahlen), antworte AUSSCHLIESSLICH mit {\"type\":\"chart\",\"title\":\"Titel\",\"unit\":\"Einheit\",\"items\":[{\"label\":\"Name\",\"value\":123}]}. Weitere Formate (jeweils AUSSCHLIESSLICH das JSON): Tabelle {\"type\":\"table\",\"title\":\"..\",\"columns\":[\"A\",\"B\"],\"rows\":[[\"..\",\"..\"]]}; Zeitleiste {\"type\":\"timeline\",\"title\":\"..\",\"items\":[{\"date\":\"1969\",\"title\":\"..\",\"text\":\"..\"}]}; Mindmap {\"type\":\"mindmap\",\"title\":\"..\",\"center\":\"..\",\"branches\":[{\"label\":\"..\",\"children\":[\"..\"]}]}; Widget {\"type\":\"widget\",\"kind\":\"timer\",\"minutes\":5} oder kind calculator, oder kind checklist mit items [\"..\"], oder kind weather mit city; Termin, Erinnerung oder Aufgabe mit Datum (z. B. \"Zahnarzt morgen 15 Uhr\") {\"type\":\"event\",\"title\":\"..\",\"date\":\"YYYY-MM-DD\",\"time\":\"HH:MM\"} (relative Angaben anhand des heutigen Datums auflösen, ohne Uhrzeit time leer lassen). Packliste {\"type\":\"packlist\",\"title\":\"..\",\"groups\":[{\"n\":\"Kleidung\",\"items\":[\"..\"]}]}; Meeting-Notizen (Text mit Besprochenem, Beschlüsse und Aufgaben herausziehen) {\"type\":\"meeting\",\"title\":\"..\",\"decisions\":[\"..\"],\"todos\":[{\"t\":\"..\",\"owner\":\"..\",\"due\":\"YYYY-MM-DD\"}]}; Mehrschritt-Plan bei Wünschen wie \"Plane meine Reise nach Rom\" (maximal 8 Aktionen, realistische Daten ab heute) {\"type\":\"plan\",\"title\":\"..\",\"summary\":\"..\",\"actions\":[{\"a\":\"kanban\",\"cards\":[\"..\"]},{\"a\":\"event\",\"title\":\"..\",\"date\":\"YYYY-MM-DD\",\"time\":\"HH:MM\"},{\"a\":\"map\",\"title\":\"..\",\"points\":[{\"name\":\"..\",\"lat\":0,\"lon\":0}]},{\"a\":\"packlist\",\"title\":\"..\",\"groups\":[{\"n\":\"..\",\"items\":[\"..\"]}]},{\"a\":\"shopping\",\"items\":[\"..\"]}]}; Weitere Fenster: Karte {\"type\":\"map\",\"title\":\"..\",\"points\":[{\"name\":\"..\",\"lat\":35.01,\"lon\":135.77,\"text\":\"..\"}]}; Rezept {\"type\":\"recipe\",\"title\":\"..\",\"servings\":4,\"ingredients\":[{\"name\":\"..\",\"amount\":200,\"unit\":\"g\"}],\"steps\":[{\"text\":\"..\",\"minutes\":10}]}; Finanzen {\"type\":\"finance\",\"title\":\"..\",\"currency\":\"€\",\"items\":[{\"label\":\"Miete\",\"amount\":800,\"budget\":900}]}; Karteikarten {\"type\":\"flashcards\",\"title\":\"..\",\"cards\":[{\"q\":\"..\",\"a\":\"..\"}]}; Quiz {\"type\":\"quiz\",\"title\":\"..\",\"questions\":[{\"q\":\"..\",\"options\":[\"..\",\"..\"],\"answer\":0,\"why\":\"..\"}]}; Code {\"type\":\"code\",\"title\":\"..\",\"lang\":\"js\",\"code\":\"..\"}; Kanban {\"type\":\"kanban\",\"columns\":[{\"n\":\"To do\",\"cards\":[\"..\"]}]}. Musik (Song, Interpret, Genre, Stimmung): {\"type\":\"music\",\"action\":\"play\",\"query\":\"Titel Interpret\",\"mode\":\"song\"}; für Genres und Stimmungen mode radio mit query wie lofi oder jazz; action kann auch pause, resume, next, prev oder stop sein. Möchte der Nutzer eine Funktion dauerhaft auf dem Dashboard haben (z. B. \"Füge einen Timer zum Dashboard hinzu\"), antworte AUSSCHLIESSLICH mit {\"type\":\"dashboard\",\"action\":\"add\",\"widget\":\"timer\",\"title\":\"Timer\"}. Verfügbare widget-Werte: timer, stopwatch, notes, todo, countdown, weather (optional city). Für jede andere gewünschte Funktion baue ein eigenes Mini-Widget: widget \"custom\" mit title und html (kompaktes, in sich geschlossenes HTML-Fragment mit Inline-CSS und Inline-JavaScript, ohne externe Ressourcen und ohne Netzwerkzugriff, dunkles Design, maximal 220 Pixel hoch). Zum Entfernen: {\"type\":\"dashboard\",\"action\":\"remove\",\"widget\":\"timer\"}. Ein einmaliges Widget in einem Fenster (z. B. \"Timer 10 Minuten\") bleibt das normale widget-Format. Detail-Texte: Bei Mindmap-Ästen und -Kindern (Kinder dürfen Strings oder {\"t\":\"..\",\"detail\":\"..\"} sein), Zeitleisten-Einträgen, Diagramm-Einträgen, Karten-Punkten und Tabellen (Feld \"details\" als Liste passend zu rows) kannst du ein Feld \"detail\" mit einer ausführlichen Beschreibung (2–4 Sätze) ergänzen. Die sichtbaren Texte bleiben kurze Stichpunkte, ein Klick öffnet das Detail. Layout-Wahl passend zum Thema: cards optional \"layout\":\"hero\"|\"list\"|\"row\"|\"grid\" (Rankings mit vielen Einträgen als list, genau 5 Einträge gern hero); chart optional \"kind\":\"bar\"|\"line\"|\"donut\" (Zeitverläufe als line, Anteile als donut); timeline optional \"layout\":\"horizontal\"; mindmap nur bei echten Querverbindungen optional \"links\":[{\"a\":\"Knotentext\",\"b\":\"Knotentext\",\"t\":\"Beziehung\"}] (höchstens 4), sonst weglassen. Kleine Bilder (sparsam, nur wenn es einen passenden Wikipedia-Artikel gibt): bei timeline- und chart-Einträgen optional \"wiki\":\"Artikeltitel\", bei Tabellen optional \"wikis\":[\"Artikeltitel\",..] passend zu rows. Typografie: In jedem JSON-Format kannst du optional ein Feld \"font\" setzen (global oder pro Eintrag bei cards), wenn eine Schrift den Inhalt unterstreicht: \"calligraphy-jp\" (Japan, z. B. Kyoto), \"calligraphy-cn\" (China), \"calligraphy-ar\" (arabischer Raum), \"calligraphy\" (festlich), \"futuristic\" (Skyline, Technik, Zukunft, Raumfahrt, KI), \"elegant\" (Kunst, Geschichte, Luxus, Literatur), \"handwritten\" (persönlich), \"mono\" (Code, Daten). Hat ein Ziel eine eigene Schrift, setze zusätzlich \"native\" (z. B. \"京都\"). Lass font weg, wenn nichts besonders passt. Dashboard umbauen (Panels aus-/einblenden oder verschieben, Core-Größe, Layout): {\"type\":\"layout\",\"ops\":[{\"op\":\"hide\",\"target\":\"agenda\"},{\"op\":\"show\",\"target\":\"log\"},{\"op\":\"move\",\"target\":\"agents\",\"side\":\"left\"},{\"op\":\"core\",\"size\":\"s\"},{\"op\":\"layout\",\"mode\":\"focus\"}]}; Ziele: chats, status, log, session, usage, agents, agenda, clock, chips; core size: s, auto oder l; layout mode: auto, std oder focus. Navigation und Darstellung über weitere ops im selben layout-JSON: {\"op\":\"open\",\"target\":\"universe\"} öffnet Vollbild-Ansichten und Fenster (target: universe, hub, settings, chats, widgets, conversation, panels oder ein Fenstertyp wie calendar, kanban, shopping, expenses, planner, jobs, library, usage), {\"op\":\"back\"} geht zum vorherigen Fenster zurück, {\"op\":\"close\"} schließt alles und zeigt das Dashboard, {\"op\":\"set\",\"key\":\"fontsize\",\"value\":\"l\"} (s, m, l, xl), {\"op\":\"set\",\"key\":\"density\",\"value\":\"compact\"} (compact, normal, airy), {\"op\":\"set\",\"key\":\"theme\",\"value\":\"light\"} (dark, light). {\"op\":\"set\",\"key\":\"palette\",\"value\":\"Ozean\"} wendet eine gespeicherte oder eingebaute Farbpalette an (z. B. Ozean, Lava, Aurora, Neon). Wünscht der Nutzer solche Änderungen und ein lokaler Befehl hat nicht gegriffen, antworte AUSSCHLIESSLICH mit diesem layout-JSON. In allen anderen Fällen antworte als normaler Text.";
 const iF=PALL.indexOf("VISUELLES FORMAT:"),PCORE=PALL.slice(0,iF).trim(),PFMT=PALL.slice(iF);
-const FMT=/(präsentation|folien|slides?\b|vortrag|schaubild|infografik|ablauf|prozess|workflow|zyklus|kreislauf|pyramide|matrix|quadrant|hierarchie|organigramm|venn|flussdiagramm|top\s*\d|\d+\s*(beste|größte|schönste|wichtigste)|beste|liste|ranking|empfiehl|vergleich|tabelle|zeitleiste|mindmap|bild|zeig|diagramm|chart|widget|timer|stoppuhr|notiz|to-?do|aufgabe|countdown|wetter|termin|erinner|dashboard|füge|hinzu|entfern|lösch|layout|panel|fenster|ausblend|einblend|verschieb|größer|kleiner|rechner|schrift|kalender|kanban|karte|landkarte|rezept|finanz|ausgabe|budget|karteikart|quiz|lernen|code|skript|programm|spiel|musik|song|lied|radio|playlist|abspielen|hören|pause|lauter|leiser|meeting|besprechung|protokoll|beschluss|plane|plan\b|organisier|reise|packliste|einkauf|ausgabe)/i;
+const FMT=/(palette|farbpalette|universum|dashboard|panels?\b|schriftgr\w*|ansicht|öffne|präsentation|folien|slides?\b|vortrag|schaubild|infografik|ablauf|prozess|workflow|zyklus|kreislauf|pyramide|matrix|quadrant|hierarchie|organigramm|venn|flussdiagramm|top\s*\d|\d+\s*(beste|größte|schönste|wichtigste)|beste|liste|ranking|empfiehl|vergleich|tabelle|zeitleiste|mindmap|bild|zeig|diagramm|chart|widget|timer|stoppuhr|notiz|to-?do|aufgabe|countdown|wetter|termin|erinner|dashboard|füge|hinzu|entfern|lösch|layout|panel|fenster|ausblend|einblend|verschieb|größer|kleiner|rechner|schrift|kalender|kanban|karte|landkarte|rezept|finanz|ausgabe|budget|karteikart|quiz|lernen|code|skript|programm|spiel|musik|song|lied|radio|playlist|abspielen|hören|pause|lauter|leiser|meeting|besprechung|protokoll|beschluss|plane|plan\b|organisier|reise|packliste|einkauf|ausgabe)/i;
 const RISK=/(\d{3,}|\b(19|20)\d{2}\b|prozent|%|euro|\$|€|dosis|medikament|symptom|diagnose|gesetz|recht|steuer|rendite|aktie|wie viel|wie viele|wann|wer ist|hauptstadt|einwohner|entfernung|stimmt|sicher|korrekt|fakt|prüf|aktuell|neueste)/i;
 const HEAVY=/(code|programmier|algorithm|analysier|ausführlich|detail|schritt für schritt|schreib\w*\s+(einen|eine|ein|mir)\s+\w*\s*(text|brief|bericht|aufsatz|artikel)|übersetz|zusammenfass)/i;
 let PERSONA=PCORE;
@@ -1166,13 +1166,12 @@ const TPLS=[[/^(?:schreib(?:e)?(?: mir)?\s+)?(?:eine?\s+)?(?:e-?mail|mail)\s*(?:
 function tplFor(t){for(const x of TPLS){const m=x[0].exec(t.trim());if(m)return{p:x[1](m)};}return null;}
 const PROJ_RE=/^(projekt\s*[:\-]|\/projekt\b)|(so gut wie möglich|richtig krass)/i;
 let HAB={};
-function habit(text){const k=text.toLowerCase().trim().replace(/\s+/g," ");if(k.length<6||k.length>60)return;HAB[k]=(HAB[k]||0)+1;const ks=Object.keys(HAB);if(ks.length>100)delete HAB[ks[0]];jset("ultron_hab",HAB);
-  if(HAB[k]===3&&!SK.some(s=>s.cmds.indexOf(text)>=0)){setTimeout(async()=>{if(await confirmBox("Du hast „"+text+"“ schon dreimal benutzt. Als Skill speichern, damit du nur noch einen Namen sagen musst?","Skill speichern","Nein")){const nm=text.split(/\s+/).slice(0,2).join(" ").slice(0,24);SK=SK.filter(x=>x.n.toLowerCase()!==nm.toLowerCase());SK.push({n:nm,cmds:[text]});saveSK();toast("Skill gespeichert: "+nm);}},900);}}
+function habit(text){const k=text.toLowerCase().trim().replace(/\s+/g," ");if(k.length<6||k.length>60)return;HAB[k]=(HAB[k]||0)+1;const ks=Object.keys(HAB);if(ks.length>100)delete HAB[ks[0]];jset("ultron_hab",HAB);}
 async function ask(text,opts){
   opts=opts||{};
   if(!opts.nolocal&&localCmd(text)){habit(text);return;}
   const att=ATT.slice();
-  if(!opts.nolocal&&!att.length&&text.length<90&&WQ.test(text.trim())){setBusy(true,"Wikipedia");const w=await Promise.race([wikiTry(text),new Promise(r=>setTimeout(()=>r(null),1600))]);setBusy(false);if(w){hist.push({role:"user",content:text},{role:"assistant",content:w.x,local:true,tier:"0w",src:{t:w.t,u:w.u}});bumpU("lc");save();refresh();return;}}
+  if(!opts.nolocal&&!att.length&&text.length<90&&WQ.test(text.trim())){setBusy(true,"Wikipedia");const w=await Promise.race([wikiTry(text),new Promise(r=>setTimeout(()=>r(null),900))]);setBusy(false);if(w){hist.push({role:"user",content:text},{role:"assistant",content:w.x,local:true,tier:"0w",src:{t:w.t,u:w.u}});bumpU("lc");save();refresh();return;}}
   if(!opts.nopatch&&!opts.nolocal&&!att.length){const pb=patchBase(text);if(pb)return patchFlow(pb,text);}
   if(!opts.nocache&&!att.length){const hit=libHint(text);if(hit&&await confirmBox("Das habe ich dir schon am "+new Date(hit.ts).toLocaleDateString(LOC(),{day:"2-digit",month:"2-digit"})+" erstellt: „"+hit.title+"“ ("+((LIBL[hit.t]||["",hit.t])[1])+"). Öffnen statt neu erzeugen?","Öffnen","Neu erzeugen")){libOpen(hit);hist.push({role:"user",content:text},{role:"assistant",content:"Geöffnet: "+hit.title+" (aus deinen Dateien).",local:true,tier:"0"});bumpU("lc");save();refresh();return;}}
   if(!opts.noproj&&PROJ_RE.test(text.trim())&&text.length>=25){return startProject(text);}
@@ -1181,7 +1180,7 @@ async function ask(text,opts){
   const st0=useStats(),eco=st0.pct!==null&&st0.pct>=90;
   if(eco){MAXT=Math.min(MAXT,350);if(!ECO_SHOWN){ECO_SHOWN=true;toast("Sparmodus: Budget fast aufgebraucht");}}
   if(planIntent){const e=estTokens(ctx(6,text),0)+1200,pc=st0.bud>0?e/st0.bud*100:null;if(!(await confirmBox("Mehrschritt-Plan: Das Erzeugen kostet etwa "+fmtN(e)+" Tokens"+(pc!=null?" (~"+pc.toFixed(1)+" % deines Monatsbudgets)":"")+", dazu eine kurze Rote-Team-Prüfung. Das Anlegen danach kostet nichts. Fortfahren?"))){$("in").value=text;return;}}
-  if(st0.bud>0&&!planIntent){const e=estTokens(ctx(eco?4:6,text),att.length*1200),pc=e/st0.bud*100;if(pc>=3&&!(await confirmBox("Das kostet etwa "+pc.toFixed(1)+" % deines Monatsbudgets (~"+fmtN(e)+" Tokens). Trotzdem?"))){$("in").value=text;return;}}
+  if(st0.bud>0&&!planIntent){const e=estTokens(ctx(eco?4:6,text),att.length*1200),pc=e/st0.bud*100;if(pc>=10&&!(await confirmBox("Das kostet etwa "+pc.toFixed(1)+" % deines Monatsbudgets (~"+fmtN(e)+" Tokens). Trotzdem?"))){$("in").value=text;return;}}
   hist.push({role:"user",content:(att.length?"[Anhang: "+att.map(a=>a.name).join(", ")+"] ":"")+text});save();refresh();resetTiers();habit(text);
   ATT=[];renderAtt();
   plog("Anfrage");setBusy(true,PH.busyMsg());
@@ -2867,6 +2866,8 @@ WV.settings=function(b,o){
    ["seitenbreite panel breite","Seitenbreite",rng(220,420,10,()=>UI.sw||270,v=>{UI.sw=v;saveUI();applyUI();if($("swR"))$("swR").value=v;})],
    ["layout editor bearbeiten verschieben größe panels","Layout-Editor",btn("Layout bearbeiten (Panels ziehen)",()=>{$("wl").hidden=true;setEdit(true);})],
    ["papierkorb gelöschte chats wiederherstellen","Papierkorb",btn("Papierkorb öffnen",()=>openWin({type:"trash",title:"Papierkorb"}))],
+   ["sicherung backup export import einstellungen personalisierung uebertragen","Sicherung & Übertragung (Einstellungen exportieren/importieren)",c=>{if(window.UltronVar)window.UltronVar.backupUI(c);}],
+   ["schrift groesse zoom text darstellung lesbarkeit handy","Schriftgröße / Zoom (90 bis 140 Prozent)",rng(.9,1.4,.05,()=>(UI.fs||1),v=>{if(window.UltronNav)window.UltronNav.setFontScale(v);})],
    ["poly pizza online 3d modelle katalog api schlüssel hologramm gesprächsmodus","Poly-Pizza-Schlüssel (Online-3D-Modelle im Gesprächsmodus)",c=>{const i=IN("password","API-Schlüssel von poly.pizza/settings/api",LS.get("ultron_pp_key")||"");i.autocomplete="off";i.onchange=()=>{LS.set("ultron_pp_key",i.value.trim());toast("Schlüssel gespeichert");};c.appendChild(i);}],
    ["export chat markdown pdf speichern","Chat exportieren",btns([["Markdown",()=>exportChat("md")],["PDF",()=>exportChat("pdf")]])],
    ["kalender import export ics","Kalender importieren / exportieren",btns([["Importieren (.ics)",()=>$("fileIn").click()],["Exportieren (.ics)",exportICS]])],
@@ -6078,6 +6079,12 @@ function handleUser(text){
   curSpoken="";thinking=true;
   var myId=turn.id,it=Intent.parse(text);turn.kind=it.kind;
   var fail=function(e){onFail(e,myId);};
+  /* Dashboard-Steuerung per Sprache (Universum öffnen, Panels, Zurück …): erst die Nav-Erweiterung fragen */
+  var nv=null;try{nv=(window.UltronNav&&window.UltronNav.route)?window.UltronNav.route(text,{voice:true}):null;}catch(e){nv=null;}
+  if(nv){
+    if(nv.leave){try{if(typeof window.say==="function")window.say(text,nv.reply);}catch(e){}thinking=false;fcClose();return;}   /* window.say = Chatverlauf des Dashboards (modul-eigenes say ist etwas anderes) */   /* Ziel liegt im Dashboard → Gesprächsmodus verlassen */
+    finishLocal(nv.reply);return;
+  }
   if(it.kind==="adjust"){applyAdjust(it.adj);finishLocal((it.adj&&it.adj.color&&it.adj.color.unsupported)?(isEn()?"Black does not work as a hologram.":"Schwarz geht im Hologramm nicht."):(isEn()?pick(["Done.","Sure."]):pick(["Erledigt.","Gern.","Bitte."])));return;}
   if((it.kind==="show"||it.kind==="both")&&(it.obj||it.cand)){showFlow(it,myId,text).catch(fail);return;}
   if(it.kind==="show"&&shape.name!=="core"&&!shape.text&&/\b(objekt|object|hologramm|hologram|es|it|this)\b/.test(fold(text))){turn.shown=true;turn.lock=true;finishLocal(confirmText(null));return;}
@@ -6251,6 +6258,7 @@ window.UltronMorph={
   register:function(name,fn,opts){opts=opts||{};SHAPES[String(name).toLowerCase()]={f:function(){var r=fn(N,VIEW);return r instanceof Float32Array&&r.length===N*3?r:fromCloud(r);},spin:opts.spin||0,face:!!opts.face,fx:opts.fx||""};},
   registerCloud:function(name,points){CLOUDS[String(name).toLowerCase()]=points;},
   morph:function(spec){if(on)applyMorph(spec);},
+  close:function(){if(on)fcClose();},isOpen:function(){return on;},
   registerModel:function(names,url,title){if(!isHttps(url))return false;[].concat(names).forEach(function(n){MODEL_LIB[fold(n).replace(/[^a-z0-9]/g,"")]={url:url,title:title||String(n)};});return true;},
   clearModels:clearModels,lastCredit:function(){return lastCredit;},
   registerProxy:function(prefix,hdr){if(isHttps(prefix)){PROXIES.unshift({p:prefix,hdr:hdr!==false});return true;}return false;},
@@ -6269,6 +6277,689 @@ if(btn){
 addEventListener("keydown",function(e){
   if(on&&e.key==="Escape"){e.preventDefault();e.stopImmediatePropagation();fcClose();}
 },true);
+})();
+</script>
+<script id="nav-ext">
+/* =====================================================================
+   NAV-EXT · Navigation & Dashboard-Steuerung (Phase 3)
+   - Befehlsrouter: „Öffne das Core-Universum“, „Zurück“, „Alles schließen“, Panels am Handy …
+   - Zurück-Verlauf für Fenster (Hub → Kalender → ← Hub), Zurück-Button im Fenster
+   - Handy: Panel-Sheet, damit alle Seitenpanels erreichbar sind
+   - Variabel: Schriftgröße/Zoom, Dichte per Sprache; neue layout-ops für das LLM (open/back/close/set)
+   Bindet sich über Wrapper an bestehende Funktionen (openWin, spotClose, layoutOp, localCmd). */
+(function(){
+"use strict";
+if(window.UltronNav)return;
+var _ow=window.openWin,_sc=window.spotClose,_lo=window.layoutOp,_lc=window.localCmd;
+if(typeof _ow!=="function"||typeof _sc!=="function"||typeof _lc!=="function"){console.warn("nav-ext: Hauptfunktionen nicht gefunden, deaktiviert");return;}
+var $=function(i){return document.getElementById(i);};
+function fold(s){s=String(s||"").toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue");try{s=s.normalize("NFD").replace(/[\u0300-\u036f]/g,"");}catch(e){}return s;}
+function mobile(){try{return window.matchMedia("(max-width:1000px)").matches;}catch(e){return false;}}
+
+/* ---------- Styles ---------- */
+var st=document.createElement("style");
+st.textContent="#spotBack[hidden]{display:none}#spotBack{margin-right:6px}"+
+"#mpBtn{display:none}@media(max-width:1000px){#mpBtn{display:inline-block}}"+
+"#mpSheet{position:fixed;left:0;right:0;bottom:0;z-index:40;max-height:80vh;display:flex;flex-direction:column;background:#0b0709;border-top:1px solid rgba(255,255,255,.16);border-radius:16px 16px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,.55);padding-bottom:env(safe-area-inset-bottom,0px);transform:translateY(105%);transition:transform .28s ease}"+
+"#mpSheet.on{transform:none}#mpSheet[hidden]{display:none}"+
+".mps-h{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.1)}"+
+".mps-tabs{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none}.mps-tabs::-webkit-scrollbar{display:none}.mps-tabs button{white-space:nowrap}"+
+".mps-b{overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch}.mps-b .pn{display:block!important;min-width:0;margin:0}"+
+"html.lt #mpSheet{background:#f5f6f7;border-top-color:rgba(16,24,40,.14)}html.lt .mps-h{border-bottom-color:rgba(16,24,40,.1)}"+
+"@media(prefers-reduced-motion:reduce){#mpSheet{transition:none}}";
+document.head.appendChild(st);
+
+/* ---------- Zurück-Verlauf für Fenster ---------- */
+var STACK=[],busy=false;
+function titleOf(o){if(!o)return"";var tl=(typeof TL!=="undefined"&&TL[o.type])||"",x=o.title||"";return(x&&x.toLowerCase()!==String(tl).toLowerCase())?x:(tl||x||"Fenster");}
+function sameWin(a,b){return a&&b&&a.type===b.type&&String(a.title||"")===String(b.title||"")&&String(a.city||"")===String(b.city||"");}
+function spotCur(){try{return(typeof SPOT!=="undefined"&&SPOT&&SPOT.o)?SPOT.o:null;}catch(e){return null;}}
+var bk=document.createElement("button");bk.id="spotBack";bk.className="mini";bk.hidden=true;bk.textContent="← Zurück";bk.title="Zum vorherigen Fenster (Alt + ←)";
+var sh0=document.querySelector("#spot .spot-h");if(sh0)sh0.insertBefore(bk,sh0.firstChild);
+function updateBack(){var p=STACK[STACK.length-1];bk.hidden=!(p&&spotCur());if(p)bk.textContent="← "+String(titleOf(p)).slice(0,18);}
+window.openWin=function(o){
+  try{if(!busy&&o&&!o._board&&!o._nav&&!o._lib&&spotCur()&&$("wl")&&$("wl").hidden&&!sameWin(spotCur(),o)){STACK.push(spotCur());if(STACK.length>12)STACK.shift();}}catch(e){}
+  var r=_ow.apply(this,arguments);updateBack();return r;
+};
+window.spotClose=function(){STACK.length=0;var r=_sc.apply(this,arguments);updateBack();return r;};
+function navBack(){
+  var p=STACK.pop();if(!p){updateBack();return false;}
+  busy=true;try{_ow(p);}finally{busy=false;}updateBack();return true;
+}
+bk.onclick=function(){navBack();};
+document.addEventListener("keydown",function(e){if(e.altKey&&e.key==="ArrowLeft"&&!/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||"")&&STACK.length){e.preventDefault();navBack();}});
+
+/* ---------- Universum, Fenster, Sheet ---------- */
+function uniOpen(){var u=$("uni");return !!(u&&u.classList.contains("on"));}
+function closeUniverse(){if(!uniOpen())return false;var x=$("uX");if(x)x.click();return true;}
+function openUniverse(){if(uniOpen())return true;var p=$("pnUni");if(!p)return false;p.click();return true;}
+var SH=null,tabs=null,body=null,moved=null,cur=null;
+function sheetOpen(){return !!(SH&&SH.classList.contains("on"));}
+function panelKeys(){var ks=["jobs","lib","chats","status","log","session","usage","agents","agenda","uni"];return ks.filter(function(k){return typeof PN!=="undefined"&&PN[k]&&$(PN[k]);});}
+function putBack(){if(!moved)return;try{if(moved.next&&moved.next.parentNode===moved.parent)moved.parent.insertBefore(moved.el,moved.next);else moved.parent.appendChild(moved.el);}catch(e){}moved=null;}
+function pickPanel(k){
+  var el=typeof PN!=="undefined"&&PN[k]?$(PN[k]):null;if(!el)return false;
+  putBack();moved={el:el,parent:el.parentNode,next:el.nextSibling};body.textContent="";body.appendChild(el);cur=k;
+  Array.prototype.forEach.call(tabs.querySelectorAll("button"),function(b){b.classList.toggle("on",b.dataset.k===k);});
+  body.scrollTop=0;return true;
+}
+function buildSheet(){
+  if(SH)return;
+  SH=document.createElement("div");SH.id="mpSheet";SH.hidden=true;SH.setAttribute("role","dialog");SH.setAttribute("aria-label","Panels");
+  var h=document.createElement("div");h.className="mps-h";tabs=document.createElement("div");tabs.className="mps-tabs";
+  var x=document.createElement("button");x.className="mini";x.textContent="×";x.setAttribute("aria-label","Schließen");x.onclick=closeSheet;
+  h.appendChild(tabs);h.appendChild(x);body=document.createElement("div");body.className="mps-b";SH.appendChild(h);SH.appendChild(body);document.body.appendChild(SH);
+  panelKeys().forEach(function(k){var b=document.createElement("button");b.className="mini";b.dataset.k=k;b.textContent=(typeof PNM!=="undefined"&&PNM[k])||k;b.onclick=function(){pickPanel(k);};tabs.appendChild(b);});
+}
+function openSheet(k){
+  buildSheet();var ks=panelKeys();if(!ks.length)return false;
+  SH.hidden=false;void SH.offsetWidth;SH.classList.add("on");
+  return pickPanel(k&&ks.indexOf(k)>=0?k:(cur&&ks.indexOf(cur)>=0?cur:ks[0]));
+}
+function closeSheet(){if(!SH)return false;var was=sheetOpen();putBack();SH.classList.remove("on");setTimeout(function(){if(!sheetOpen())SH.hidden=true;},300);return was;}
+function closeAll(){
+  var any=false;
+  if(uniOpen()){closeUniverse();any=true;}
+  if(closeSheet())any=true;
+  if(spotCur()){window.spotClose();any=true;}
+  var wl=$("wl");if(wl&&!wl.hidden){wl.hidden=true;any=true;}
+  STACK.length=0;updateBack();return any;
+}
+var wg=$("wgBtn");
+if(wg&&wg.parentNode){var mb=document.createElement("button");mb.id="mpBtn";mb.setAttribute("data-p","1");mb.textContent="Panels";mb.title="Seitenpanels (Aufträge, Dateien, Status …)";mb.onclick=function(){sheetOpen()?closeSheet():openSheet();};wg.parentNode.insertBefore(mb,wg.nextSibling);}
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&sheetOpen())closeSheet();});
+
+/* ---------- Variabel: Zoom/Schriftgröße ---------- */
+var FS=[.9,1,1.12,1.25,1.4];
+function applyFs(){try{var v=(typeof UI!=="undefined"&&UI&&+UI.fs)||1;document.body.style.zoom=(v!==1)?String(v):"";}catch(e){}}
+function setFs(v){try{v=Math.max(.9,Math.min(1.4,+v||1));UI.fs=v;saveUI();applyFs();return v;}catch(e){return 1;}}
+function stepFs(d){var v=(typeof UI!=="undefined"&&+UI.fs)||1,i=0,best=9;FS.forEach(function(x,n){var df=Math.abs(x-v);if(df<best){best=df;i=n;}});return setFs(FS[Math.max(0,Math.min(FS.length-1,i+d))]);}
+function setDens(d){try{UI.dn=d;saveUI();if(typeof applyUI==="function")applyUI();}catch(e){}}
+function setKey(k,v){
+  k=fold(k);v=fold(v);
+  if(/^(fontsize|schrift\w*|zoom)$/.test(k)){var m={s:.9,m:1,l:1.12,xl:1.25,xxl:1.4,klein:.9,normal:1,gross:1.12,groesser:1.25,riesig:1.4};return setFs(m[v]!=null?m[v]:parseFloat(v));}
+  if(/^(density|dichte)$/.test(k)){var d={compact:"compact",kompakt:"compact",normal:"normal",airy:"airy",luftig:"airy"}[v];if(d)setDens(d);return;}
+  if(k==="theme"){try{UI.lt=(v==="light"||v==="hell")?"light":"dark";saveUI();if(typeof applyUI==="function")applyUI();}catch(e){}}
+}
+
+/* ---------- Befehlsrouter ---------- */
+var UNI=/(core[- ]?universum|\buniversum|\buniverse|wissens-?universum)/;
+var OPEN=/\b(oeffne\w*|zeig\w*|starte\w*|aufmach\w*|auf|geh\w*|wechsel\w*|bring\w*|navigier\w*|sehen|anzeigen|aufrufen|ruf\w*)\b/;
+var CLOSE=/\b(schliess\w*|beend\w*|verlass\w*)\b|\bmach\w*\b.*\bzu\b/;
+var QW=/^(was|wer|wie|warum|wieso|weshalb|wann|wozu|woher)\b/;
+var FILL=/\b(bitte|mal|doch|eben|kurz|schnell|gerne|gern|mir|uns|mich|ultron|hallo|hey|einfach|jetzt|nun|noch)\b/g;
+var POLR=/^(?:(?:kannst|koenntest|wuerdest|magst|willst) du\s+|(?:ich\s+)?(?:moechte|will|wuerde gern|wuerde gerne|haette gern|haette gerne|brauche|braeuchte)\s+|darf ich\s+|kann ich\s+|lass uns\s+|lass\s+|wir\s+(?:moechten|wollen)\s+)+/;
+function clean(raw){var t=fold(raw).replace(/[.,!?;:()"„“]/g," ").replace(/\s+/g," ").trim().replace(/^ultron\s+/,"");return t.replace(POLR,"").replace(FILL," ").replace(/\s+/g," ").trim();}
+function openTarget(x){
+  var n=fold(x).replace(/[^a-z0-9 -]/g," ").replace(/\s+/g," ").trim();
+  if(UNI.test(n))return openUniverse();
+  if(/gespraech|conversation|voice/.test(n)){var f=$("fcBtn");if(f)f.click();return !!f;}
+  if(/^panels?$|seitenpanel/.test(n))return openSheet();
+  if(/^(widgets?|arbeitsflaeche)$/.test(n)){window.openWin({type:"widgets",title:"Dashboard"});return true;}
+  if(/^chats?$|^verlauf/.test(n)){window.openWin({type:"chats",title:"Verlauf"});return true;}
+  if(typeof WIN_T!=="undefined"){for(var i=0;i<WIN_T.length;i++){var e=WIN_T[i];if(e[0]===n||e[1].split(" ").indexOf(n)>=0){window.openWin({type:e[0],title:e[2]});return true;}}}
+  if(typeof PN!=="undefined"&&PN[n]&&mobile())return openSheet(n);
+  return false;
+}
+function R(reply,leave){return {reply:reply,leave:!!leave};}
+function route(raw,opts){
+  opts=opts||{};var voice=!!opts.voice,t=clean(raw);
+  if(!t||t.length>90)return null;
+  var words=t.split(" "),open=OPEN.test(t),close=CLOSE.test(t),q=QW.test(t);
+  /* Zurück / Dashboard */
+  if(/^(zurueck|geh zurueck|gehe zurueck|ein schritt zurueck|zurueck gehen|vorheriges fenster|vorherige ansicht|vorherige seite)$/.test(t)){
+    if(navBack())return R("Zurück.",voice);
+    if(closeAll())return R("Zurück zum Dashboard.",voice);
+    return null;
+  }
+  if(/^(zurueck zum dashboard|dashboard|startseite|home|alles schliessen|alle fenster schliessen|schliess\w* alles|schliess\w* (das |die |alle )?(fenster|ansicht)|fenster schliessen|alles zu)$/.test(t)){closeAll();return R("Dashboard.",voice);}
+  /* Core-Universum */
+  if(UNI.test(t)&&!q){
+    if(close&&!open){return closeUniverse()?R("Universum geschlossen.",false):R("Das Universum ist gar nicht offen.",false);}
+    if(open||/^(das |den |die )?(core[- ]?)?(universum|universe)$/.test(t)){return openUniverse()?R("Core-Universum geöffnet.",voice):null;}
+  }
+  /* Gesprächsmodus (nur aus dem Dashboard) */
+  if(!voice&&/(gespraechsmodus|hologramm-?modus|freier modus)/.test(t)&&(open||/^(den |das |der )?(gespraechsmodus|hologramm-?modus|freier modus)$/.test(t))&&!q){var f=$("fcBtn");if(f){f.click();return R("Gesprächsmodus gestartet.",false);}}
+  /* Panels (Handy-Sheet) */
+  if(/\b(panels?|seitenpanels?|seitenleiste|seitenwidgets?|seitenfenster)\b/.test(t)&&!q){
+    if(close&&!open)return closeSheet()?R("Panels geschlossen.",false):null;
+    if(open||/^(die |meine )?(panels?|seitenpanels?|seitenleiste)$/.test(t))return openSheet()?R("Hier sind deine Panels.",false):null;
+  }
+  if(mobile()&&!q&&words.length<=3&&(open||/^(chats?|verlauf|chatverlauf)$/.test(t))&&/\b(chats?|verlauf|chatverlauf)\b/.test(t)){window.openWin({type:"chats",title:"Verlauf"});return R("Dein Chatverlauf.",false);}
+  if(!q&&open&&words.length<=3&&/\b(arbeitsflaeche|widgets|widget-uebersicht)\b/.test(t)){window.openWin({type:"widgets",title:"Dashboard"});return R("Hier ist die Arbeitsfläche.",false);}
+  /* Panels/Widgets per Name: am Handy und im Gesprächsmodus (am Desktop übernehmen das die bestehenden Befehle) */
+  if((mobile()||voice)&&!q&&words.length<=7&&typeof tgt!=="undefined"){
+    var k=null;try{k=tgt(String(raw).toLowerCase());}catch(e){}
+    var hideV=/\b(entfern\w*|loesch\w*|verstecke\w*|ausblend\w*)\b|\bblende\b.*\baus\b/.test(t),addV=/\b(hinzu|dazu|fuege\w*|aktivier\w*|einblend\w*)\b|\bblende\b.*\bein\b/.test(t);
+    if(k&&typeof PN!=="undefined"&&PN[k]&&(open||addV)&&!hideV){
+      if(mobile()&&openSheet(k))return R(((typeof PNM!=="undefined"&&PNM[k])||k)+" geöffnet.",false);
+      if(voice&&typeof layoutOp==="function"){window.layoutOp({op:"show",target:k});return R(((typeof PNM!=="undefined"&&PNM[k])||k)+" eingeblendet.",false);}
+    }
+    if(voice&&k&&hideV&&typeof PN!=="undefined"&&PN[k]&&!(typeof KT!=="undefined"&&KT[k])){window.layoutOp({op:"hide",target:k});return R(((typeof PNM!=="undefined"&&PNM[k])||k)+" ausgeblendet.",false);}
+    if(voice&&k&&typeof KT!=="undefined"&&KT[k]&&(hideV||addV)){if(hideV&&typeof removeWidget==="function")removeWidget({widget:k});else if(typeof addWidget==="function")addWidget({widget:k});return R(KT[k]+(hideV?" entfernt.":" liegt jetzt auf dem Dashboard."),false);}
+  }
+  /* Darstellung: Schriftgröße, Dichte */
+  if(!q&&words.length<=6){
+    if(/\b(schrift\w*|text|zoom)\b/.test(t)&&/\b(groesser\w*|vergroesser\w*|kleiner\w*|verkleiner\w*|normal\w*|standard\w*|riesig\w*)\b/.test(t)){
+      var v=/\b(normal\w*|standard\w*)\b/.test(t)?setFs(1):/\briesig/.test(t)?setFs(1.4):/\b(kleiner\w*|verkleiner\w*)\b/.test(t)?stepFs(-1):stepFs(1);
+      return R("Schriftgröße "+Math.round(v*100)+" Prozent.",false);
+    }
+    if(/\b(ansicht|darstellung|dashboard|layout|modus)\b/.test(t)&&/\b(kompakt\w*|luftig\w*|geraeumig\w*)\b/.test(t)){var d=/kompakt/.test(t)?"compact":"airy";setDens(d);return R(d==="compact"?"Kompakte Ansicht.":"Luftige Ansicht.",false);}
+    if(/\b(ansicht|darstellung|dashboard|layout)\b/.test(t)&&/\bnormal\w*\b/.test(t)&&!/schrift/.test(t)){setDens("normal");return R("Normale Ansicht.",false);}
+  }
+  return null;
+}
+
+/* ---------- Anbindung ---------- */
+window.localCmd=function(raw,quiet){
+  var r=null;try{r=route(String(raw||""),{voice:false});}catch(e){console.warn("nav-ext:",e);}
+  if(r){try{if(!quiet&&typeof say==="function")say(raw,r.reply);}catch(e){}return true;}
+  return _lc.apply(this,arguments);
+};
+var NAVOPS={open:1,back:1,close:1,set:1};
+if(typeof _lo==="function")window.layoutOp=function(op,ns){
+  var a=String((op&&op.op)||"");
+  if(NAVOPS[a]){try{
+    if(a==="back"){if(!navBack())closeAll();}
+    else if(a==="close")closeAll();
+    else if(a==="open")openTarget(String(op.target||""));
+    else if(a==="set")setKey(String(op.key||""),op.value);
+  }catch(e){console.warn("nav-ext op:",e);}return;}
+  return _lo.apply(this,arguments);
+};
+window.UltronNav={route:route,back:navBack,closeAll:closeAll,openSheet:openSheet,closeSheet:closeSheet,openUniverse:openUniverse,setFontScale:setFs,applyFs:applyFs,stackSize:function(){return STACK.length;}};
+applyFs();
+})();
+</script>
+<script id="var-ext">
+/* =====================================================================
+   VAR-EXT · Variabilität & Personalisierung (Phase 4)
+   1) Tagesimpuls ohne Wiederholung: Basis-Pool + eigene Einträge + KI-Nachschub, Favoriten, „nicht mehr zeigen“
+   2) Farb-Bibliothek: eigene Paletten speichern/anwenden/löschen, Verlauf, Export/Import, Zurücksetzen
+   3) Szenen merken jetzt auch Farben, Schrift und Dichte (Zeitplan wechselt damit auch das Aussehen)
+   4) Sicherung: Einstellungen exportieren/importieren (ohne API-Schlüssel, ohne Chats)
+   5) Befehle (Chat + Sprache): Paletten, neues Zitat/Fakt, Sicherung */
+(function(){
+"use strict";
+if(window.UltronVar)return;
+if(typeof E==="undefined"||typeof IN==="undefined"||typeof MT==="undefined"||typeof UI==="undefined"||typeof LS==="undefined"||typeof jget==="undefined"||typeof DQ==="undefined"||typeof DF==="undefined"){console.warn("var-ext: Hauptskript nicht vollständig, deaktiviert");return;}
+
+/* ---------- Hilfen ---------- */
+function fold(s){s=String(s||"").toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue");try{s=s.normalize("NFD").replace(/[\u0300-\u036f]/g,"");}catch(e){}return s;}
+function norm(t){return String(t||"").toLowerCase().replace(/[^a-z0-9äöüß ]/g,"").replace(/\s+/g," ").trim();}
+function hash(t){var h=5381,s=norm(t);for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return(h>>>0).toString(36);}
+function rnd(n){return Math.floor(Math.random()*n);}
+function tt(m){try{if(typeof toast==="function")toast(m);}catch(e){}}
+var K={seen:"ultron_dseen",gen:"ultron_dgen",mine:"ultron_dmine",fav:"ultron_dfav",ban:"ultron_dban",pals:"ultron_pals",palh:"ultron_palh",palx:"ultron_palx",pre:"ultron_bak_pre"};
+function obj2(k){var o=jget(k,{q:[],f:[]});if(!o||typeof o!=="object"||Array.isArray(o))o={q:[],f:[]};if(!Array.isArray(o.q))o.q=[];if(!Array.isArray(o.f))o.f=[];return o;}
+function arr(k){var a=jget(k,[]);return Array.isArray(a)?a:[];}
+
+/* ---------- 1) Tagesimpuls ---------- */
+var XQ=[["Ich weiß, dass ich nichts weiß.","Sokrates (nach Platon)"],["Das Ganze ist mehr als die Summe seiner Teile.","Aristoteles"],["Die Grenzen meiner Sprache bedeuten die Grenzen meiner Welt.","Ludwig Wittgenstein"],["Wovon man nicht sprechen kann, darüber muss man schweigen.","Ludwig Wittgenstein"],["Es gibt nichts Praktischeres als eine gute Theorie.","Kurt Lewin"],["Ich denke, also bin ich.","René Descartes"],["Man kann nicht nicht kommunizieren.","Paul Watzlawick"],["Zwei Dinge erfüllen das Gemüt mit immer neuer Bewunderung: der bestirnte Himmel über mir und das moralische Gesetz in mir.","Immanuel Kant"],["Nichts im Leben ist zu fürchten, es ist nur zu verstehen.","Marie Curie"],["Der Mensch ist zur Freiheit verurteilt.","Jean-Paul Sartre"],["Wir leiden mehr in der Einbildung als in der Wirklichkeit.","Seneca"],["Es ist nicht wenig Zeit, die wir haben, sondern es ist viel, die wir nicht nutzen.","Seneca"],["Wissen ist Macht.","Francis Bacon"],["Probieren geht über Studieren.","Sprichwort"],["Das Einzige, was wir zu fürchten haben, ist die Furcht selbst.","Franklin D. Roosevelt"],["Wenn ich weiter gesehen habe, so deshalb, weil ich auf den Schultern von Riesen stehe.","Isaac Newton"],["Das Schönste, was wir erleben können, ist das Geheimnisvolle.","Albert Einstein"],["Ich habe keine besondere Begabung, sondern bin nur leidenschaftlich neugierig.","Albert Einstein"],["Das Leben kann nur rückwärts verstanden, muss aber vorwärts gelebt werden.","Søren Kierkegaard"],["Man muss das Unmögliche versuchen, um das Mögliche zu erreichen.","Hermann Hesse"],["Jedem Anfang wohnt ein Zauber inne.","Hermann Hesse"],["Ohne Musik wäre das Leben ein Irrtum.","Friedrich Nietzsche"],["Was mich nicht umbringt, macht mich stärker.","Friedrich Nietzsche"],["Mut steht am Anfang des Handelns, Glück am Ende.","Demokrit"],["Die Natur macht keine Sprünge.","Gottfried Wilhelm Leibniz"],["Aller Anfang ist schwer.","Sprichwort"],["Wer A sagt, muss nicht B sagen. Er kann auch erkennen, dass A falsch war.","Bertolt Brecht"],["Das Glück deines Lebens hängt von der Beschaffenheit deiner Gedanken ab.","Marc Aurel"]];
+var XF=["Eis schwimmt, weil Wasser beim Gefrieren Platz braucht und dadurch weniger dicht wird.","Der Olympus Mons auf dem Mars ist mit rund 22 Kilometern der höchste bekannte Vulkan im Sonnensystem.","Ein Jahr auf dem Merkur dauert nur etwa 88 Erdentage.","Das menschliche Herz schlägt im Laufe eines Lebens weit über zwei Milliarden Mal.","Ein erwachsenes Gehirn hat grob 86 Milliarden Nervenzellen.","Kraken haben blaues Blut, weil es Kupfer statt Eisen zum Sauerstofftransport nutzt.","Ein Teelöffel Neutronensternmaterie würde Milliarden Tonnen wiegen.","Die Sahara war vor einigen Tausend Jahren deutlich grüner, mit Seen und Grasland.","Der Mond entfernt sich jedes Jahr um etwa 3,8 Zentimeter von der Erde.","Das Wort „Roboter“ stammt aus dem Tschechischen und wurde 1920 durch Karel Čapek bekannt.","Eine einzelne Biene sammelt in ihrem ganzen Leben nur einen Bruchteil eines Teelöffels Honig.","Papier wird in China seit über 2000 Jahren hergestellt.","Die Erde ist leicht abgeplattet: Am Äquator ist ihr Durchmesser rund 43 Kilometer größer als von Pol zu Pol.","Die erste E-Mail zwischen zwei Rechnern verschickte Ray Tomlinson 1971 und führte dabei das @-Zeichen ein.","„Quarantäne“ kommt vom italienischen „quaranta giorni“, vierzig Tage.","Schall breitet sich in Wasser etwa viermal schneller aus als in Luft.","Ein Lichtjahr ist die Strecke, die Licht in einem Jahr zurücklegt: rund 9,46 Billionen Kilometer.","Kaffeebohnen sind die Samen der Kaffeekirsche.","Schmetterlinge schmecken mit ihren Füßen.","Der Mensch kann grob eine Million Farbnuancen unterscheiden.","Die Cheops-Pyramide war etwa 3800 Jahre lang das höchste Bauwerk der Welt.","Die Ozeane bedecken rund 71 Prozent der Erdoberfläche.","Einstein erhielt den Nobelpreis für den photoelektrischen Effekt, nicht für die Relativitätstheorie.","Marie Curie ist die einzige Person mit Nobelpreisen in zwei verschiedenen Naturwissenschaften.","Der Name „Bluetooth“ geht auf den dänischen König Harald Blåtand zurück.","Früher bezeichnete „Computer“ Menschen, die berufsmäßig rechneten.","Ada Lovelace veröffentlichte 1843 einen Algorithmus für Babbages Analytical Engine und gilt als erste Programmiererin.","Die erste Webseite ging 1991 am CERN online, Tim Berners-Lee hatte sie entworfen.","Die Programmiersprache Python ist nach der Komikergruppe Monty Python benannt.","Kaiserpinguine brüten mitten im antarktischen Winter, die Männchen wärmen dabei das Ei.","Ein Tag auf der Erde war vor etwa 400 Millionen Jahren nur rund 22 Stunden lang.","Die Ziffer Null als Zahl wurde in Indien entwickelt.","Spinnenseide ist im Verhältnis zu ihrem Gewicht sehr reißfest, vergleichbar mit Stahl.","Der Mount Everest wächst durch die Plattenbewegung noch immer um einige Millimeter pro Jahr.","Das Zeichen „@“ heißt in manchen Sprachen „Affenschwanz“."];
+var TOPICS=["mix","Wissenschaft","Natur","Geschichte","Technik","Kultur","Philosophie","Humor"];
+var LASTSHOWN=[],genFailAt=0;
+function isBanned(h,ban){return ban.indexOf(h)>=0;}
+function pool(kind,topic){
+  var out=[],seen={},ban=arr(K.ban);
+  function add(o){var h=hash(o.t);if(seen[h]||isBanned(h,ban))return;seen[h]=1;o.h=h;out.push(o);}
+  var mix=!topic||topic==="mix";
+  if(mix){(kind==="q"?DQ.concat(XQ):DF.concat(XF)).forEach(function(x){kind==="q"?add({t:x[0],a:x[1],src:"basis"}):add({t:x,src:"basis"});});}
+  (obj2(K.gen)[kind]||[]).forEach(function(x){if(x&&x.t&&(mix||x.topic===topic))add({t:x.t,a:x.a,src:"ki",topic:x.topic});});
+  (obj2(K.mine)[kind]||[]).forEach(function(x){if(x&&x.t)add({t:x.t,a:x.a,src:"eigen"});});
+  return out;
+}
+function seenSet(kind){var s={};((obj2(K.seen)[kind])||[]).forEach(function(h){s[h]=1;});return s;}
+function unseen(kind,topic){var s=seenSet(kind);return pool(kind,topic).filter(function(x){return !s[x.h];});}
+function markSeen(kind,h){var o=obj2(K.seen);if(o[kind].indexOf(h)<0)o[kind].push(h);if(o[kind].length>2000)o[kind].splice(0,o[kind].length-2000);jset(K.seen,o);}
+function resetSeen(kind){var o=obj2(K.seen);o[kind]=[];jset(K.seen,o);}
+/* KI-Nachschub: nur auf Knopfdruck bzw. wenn der Nutzer „automatisch nachladen“ aktiviert hat */
+async function refill(kind,topic){
+  if(typeof llm!=="function")throw {code:"no_llm"};
+  var tp=(topic&&topic!=="mix")?topic:"verschiedene Gebiete (Wissenschaft, Natur, Geschichte, Technik, Kultur, Alltag)";
+  var favs=arr(K.fav).filter(function(x){return x.k===kind;}).slice(-5).map(function(x){return String(x.t).slice(0,80);});
+  var avoid=LASTSHOWN.slice(-8).map(function(x){return x.slice(0,50);});
+  var steer=(favs.length?" Der Nutzer mag Inhalte wie: "+favs.join(" | ")+".":"")+(avoid.length?" Nicht wiederholen oder umformulieren: "+avoid.join(" | ")+".":"");
+  var p=kind==="f"?"Nenne 8 überraschende, gut belegte Fakten zum Thema: "+tp+". Nur Aussagen, die du sicher weißt; im Zweifel weglassen. Höchstens 150 Zeichen je Fakt, Deutsch."+steer+" Antworte NUR als JSON-Array von Strings."
+    :"Nenne 8 echte Zitate bekannter Persönlichkeiten zum Thema: "+tp+". Nur Zitate mit gesicherter Zuordnung; ist die Zuordnung unsicher, lass das Zitat weg. Höchstens 200 Zeichen, Deutsch (übersetzt ist in Ordnung)."+steer+" Antworte NUR als JSON-Array: [{\"t\":\"Zitat\",\"a\":\"Name\"}].";
+  var txt=await llm(p,"quick",900,"Du bist ein sorgfältiger Redakteur für Wissenswertes. Keine Erfindungen.");
+  var a=JSON.parse(txt.slice(txt.indexOf("["),txt.lastIndexOf("]")+1));
+  if(!Array.isArray(a))throw {code:"bad_json"};
+  var known={};pool(kind,"mix").forEach(function(x){known[x.h]=1;});
+  var g=obj2(K.gen),added=0;
+  a.slice(0,12).forEach(function(x){
+    var t=kind==="f"?x:(x&&x.t),au=kind==="q"&&x?String(x.a||"").trim().slice(0,60):"";
+    if(typeof t!=="string")return;t=t.trim();
+    if(t.length<12||t.length>240||/https?:|<|>/.test(t))return;
+    if(kind==="q"&&(!au||/^unbekannt/i.test(au)))return;
+    var h=hash(t);if(known[h])return;known[h]=1;
+    g[kind].push({t:t,a:au,topic:(topic&&topic!=="mix")?topic:"mix",ts:Date.now()});added++;
+  });
+  if(g[kind].length>150)g[kind].splice(0,g[kind].length-150);
+  jset(K.gen,g);return added;
+}
+async function nextItem(kind,topic,allowGen){
+  var u=unseen(kind,topic),note="";
+  if(u.length<=2&&allowGen&&Date.now()-genFailAt>6e5){try{await refill(kind,topic);}catch(e){genFailAt=Date.now();}u=unseen(kind,topic);}
+  if(!u.length){resetSeen(kind);u=unseen(kind,topic);note="Alles einmal gesehen, neue Runde.";}
+  if(!u.length)return null;
+  var x=u[rnd(u.length)];markSeen(kind,x.h);LASTSHOWN.push(x.t);if(LASTSHOWN.length>20)LASTSHOWN.shift();
+  return {k:kind,t:x.t,a:x.a,src:x.src,h:x.h,note:note};
+}
+function nextSync(kind){var u=unseen(kind,"mix");if(!u.length){resetSeen(kind);u=unseen(kind,"mix");}if(!u.length)return null;var x=u[rnd(u.length)];markSeen(kind,x.h);return x;}
+function favHas(h){return arr(K.fav).some(function(x){return hash(x.t)===h;});}
+function favToggle(c){var F=arr(K.fav),h=hash(c.t),i=F.findIndex(function(x){return hash(x.t)===h;});if(i>=0)F.splice(i,1);else F.push({k:c.k,t:c.t,a:c.a||"",ts:Date.now()});if(F.length>100)F.shift();jset(K.fav,F);return i<0;}
+function banAdd(h){var B=arr(K.ban);if(B.indexOf(h)<0)B.push(h);if(B.length>500)B.shift();jset(K.ban,B);}
+function addMine(kind,t,a){t=String(t||"").trim().slice(0,240);a=String(a||"").trim().slice(0,60);if(t.length<4)return false;var o=obj2(K.mine);if(o[kind].some(function(x){return hash(x.t)===hash(t);}))return false;o[kind].push({t:t,a:a,ts:Date.now()});if(o[kind].length>200)o[kind].shift();jset(K.mine,o);return true;}
+
+MT.daily=function(w,b){
+  var s=w.st;s.m=s.m||"auto";s.topic=s.topic||"mix";s.auto=!!s.auto;
+  var box=E("div"),info=E("div","wcap"),row=E("div","wrow"),row2=E("div","wrow"),form=E("div"),busy=false;
+  var today=function(){return new Date().toISOString().slice(0,10);};
+  var save=function(){try{if(typeof saveW==="function")saveW();}catch(e){}};
+  var draw=function(){
+    box.textContent="";var c=s.cur;
+    if(!c){box.appendChild(E("div","wu","…"));}
+    else{
+      if(c.k==="q"){box.appendChild(E("div","dq","„"+c.t+"“"));if(c.a)box.appendChild(E("div","wu","— "+c.a));}
+      else{box.appendChild(E("div","wu","FUN-FAKT"));box.appendChild(E("div","dq",c.t));}
+      if(c.src==="ki")box.appendChild(E("div","wcap","KI-generiert, bitte bei Wichtigem gegenprüfen."));
+      else if(c.src==="eigen")box.appendChild(E("div","wcap","Eigener Eintrag."));
+      if(c.note)box.appendChild(E("div","wcap",c.note));
+    }
+    var uq=unseen("q",s.topic).length,uf=unseen("f",s.topic).length,fv=arr(K.fav).length;
+    info.textContent="Noch ungesehen: "+uq+" Zitate · "+uf+" Fakten"+(fv?" · "+fv+" Favoriten":"");
+    fb.textContent=(c&&favHas(c.h))?"♥":"♡";
+  };
+  var go=async function(kind,opt){
+    if(busy)return;busy=true;
+    try{
+      if(s.m==="fav"&&!(opt&&opt.force)){var F=arr(K.fav).filter(function(x){return !s.cur||hash(x.t)!==s.cur.h;});if(F.length){var f=F[rnd(F.length)];s.cur={k:f.k,t:f.t,a:f.a,src:"fav",h:hash(f.t)};}else s.cur=s.cur||null;}
+      else{
+        var k=kind||(s.m==="quote"?"q":s.m==="fact"?"f":((s.cur&&s.cur.k==="q")?"f":"q"));
+        var it=await nextItem(k,s.topic,s.auto);
+        if(it)s.cur=it;else s.cur={k:k,t:"Zu diesem Thema habe ich noch nichts. „Neu (KI)“ holt frische Einträge.",a:"",src:"",h:"",note:""};
+      }
+      s.day=today();save();
+    }finally{busy=false;draw();}
+  };
+  var mk=function(label,fn,title){var x=E("button","mini",label);if(title)x.title=title;x.onclick=fn;return x;};
+  var bq=mk("Zitat",function(){s.m="quote";go("q");}),bf=mk("Fakt",function(){s.m="fact";go("f");}),bm=mk("Mix",function(){s.m="auto";go();}),bn=mk("Anderes",function(){go();});
+  var fb=mk("♡",function(){if(s.cur&&s.cur.t&&s.cur.h){var on=favToggle(s.cur);tt(on?"Zu den Favoriten":"Aus den Favoriten entfernt");draw();}},"Favorit (Ultron merkt sich deinen Geschmack)");
+  var fv=mk("Favoriten",function(){s.m="fav";go(null,{});save();},"Nur Favoriten zeigen");
+  var nx=mk("✕",function(){if(s.cur&&s.cur.h){banAdd(s.cur.h);tt("Wird nicht mehr gezeigt");go();}},"Nicht mehr zeigen");
+  var ai=mk("Neu (KI)",async function(){
+    ai.disabled=true;ai.textContent="Denke …";
+    try{var kd=(s.cur&&s.cur.k)||"f";var n=await refill(kd,s.topic);tt(n+" neue Einträge");await go(kd);}
+    catch(e){tt("Das hat nicht geklappt ("+((e&&(e.code||e.message))||"Fehler")+")");}
+    ai.disabled=false;ai.textContent="Neu (KI)";draw();
+  },"Frische Einträge per KI holen (kostet wenige Tokens)");
+  var sel=document.createElement("select");sel.title="Thema für KI-Einträge";TOPICS.forEach(function(t){var o=document.createElement("option");o.value=t;o.textContent=t==="mix"?"Thema: alle":t;sel.appendChild(o);});sel.value=s.topic;sel.onchange=function(){s.topic=sel.value;save();go();};
+  var au=document.createElement("label");au.className="wck";var ac=document.createElement("input");ac.type="checkbox";ac.checked=s.auto;ac.onchange=function(){s.auto=ac.checked;save();};au.appendChild(ac);au.appendChild(E("span",null,"automatisch nachladen (KI)"));
+  var mine=mk("+ Eigenes",function(){
+    form.textContent="";var t=IN("text","Zitat oder Fakt"),a=IN("text","Autor (nur bei Zitat)"),sv=E("button","mini","Speichern");t.style.flex="1";
+    sv.onclick=function(){var kd=a.value.trim()?"q":"f";if(addMine(kd,t.value,a.value)){tt("Gespeichert");form.textContent="";draw();}else tt("Zu kurz oder schon vorhanden");};
+    var r=E("div","wrow");r.appendChild(t);r.appendChild(a);r.appendChild(sv);form.appendChild(r);
+  });
+  [bq,bf,bm,bn,fb,nx].forEach(function(x){row.appendChild(x);});[fv,ai,mine,sel].forEach(function(x){row2.appendChild(x);});
+  b.appendChild(box);b.appendChild(row);b.appendChild(row2);b.appendChild(au);b.appendChild(form);b.appendChild(info);
+  if(!s.cur||(s.m==="auto"&&s.day!==today()))go();else draw();
+};
+
+/* ---------- 2) Farb-Bibliothek ---------- */
+function validRgb(a){return Array.isArray(a)&&a.length===3&&a.every(function(v){return typeof v==="number"&&isFinite(v)&&v>=0&&v<=255;});}
+function validPal(x){return !!x&&typeof x.n==="string"&&x.n.length>0&&validRgb(x.a)&&validRgb(x.b);}
+function pals(){return arr(K.pals).filter(validPal);}
+function curCols(){return(UI.th==="custom"&&UI.cc&&validRgb(UI.cc.a)&&validRgb(UI.cc.b))?UI.cc:(typeof THEMES!=="undefined"&&(THEMES[UI.th]||THEMES.yy))||{a:[143,208,255],b:[255,48,64]};}
+function savePal(n,a,b){
+  n=String(n).trim().slice(0,24);if(!n||!validRgb(a)||!validRgb(b))return null;
+  var P=pals(),i=P.findIndex(function(x){return x.n.toLowerCase()===n.toLowerCase();}),o={n:n,a:a.map(function(v){return Math.round(v);}),b:b.map(function(v){return Math.round(v);}),t:Date.now()};
+  if(i>=0)P[i]=o;else P.push(o);if(P.length>30)P.shift();jset(K.pals,P);return o;
+}
+function delPal(n){var P=pals(),i=P.findIndex(function(x){return x.n.toLowerCase()===String(n).toLowerCase();});if(i<0)return null;var d=P.splice(i,1)[0];jset(K.pals,P);jset(K.palx,d);return d;}
+function applyPal(p){UI.th="custom";UI.cc={a:p.a.slice(),b:p.b.slice()};UI.pre=p.n||"";saveUI();applyUI();}
+function builtin(){return(typeof PALETTE!=="undefined"&&Array.isArray(PALETTE))?PALETTE.map(function(x){return {n:x[0],a:hex2(x[1]),b:hex2(x[2]),built:true};}):[];}
+function findPal(name){
+  var n=fold(name).trim(),all=pals().concat(builtin());
+  return all.find(function(p){return fold(p.n)===n;})||all.find(function(p){return fold(p.n).indexOf(n)===0;})||null;
+}
+function resetColors(){UI.th="yy";delete UI.cc;UI.pre="";saveUI();applyUI();}
+/* Verlauf: zuletzt verwendete Farbpaare automatisch merken (entprellt) */
+var ht=0;
+function recHist(){try{if(UI.th!=="custom"||!UI.cc||!validRgb(UI.cc.a)||!validRgb(UI.cc.b))return;var c=UI.cc,key=JSON.stringify([c.a,c.b]),H=arr(K.palh);if(H.length&&JSON.stringify([H[0].a,H[0].b])===key)return;H=H.filter(function(x){return JSON.stringify([x.a,x.b])!==key;});H.unshift({a:c.a.slice(),b:c.b.slice(),t:Date.now()});jset(K.palh,H.slice(0,10));}catch(e){}}
+var _au=window.applyUI;
+if(typeof _au==="function")window.applyUI=function(){var r=_au.apply(this,arguments);clearTimeout(ht);ht=setTimeout(recHist,2500);return r;};
+function grad(a,b){return "linear-gradient(135deg,rgb("+a.join(",")+"),rgb("+b.join(",")+"))";}
+function palUI(h,refresh){
+  var P=pals(),H=arr(K.palh).filter(function(x){return validRgb(x.a)&&validRgb(x.b);});
+  h.appendChild(E("div","wk","Meine Paletten ("+P.length+" von 30)"));
+  var r1=E("div","wrow"),nm=IN("text","Name der Palette"),sv=E("button","mini","Aktuelle Farben speichern");nm.maxLength=24;nm.style.flex="1";
+  sv.onclick=function(){var c=curCols(),o=savePal(nm.value.trim()||("Palette "+(P.length+1)),c.a,c.b);if(o){tt("Gespeichert · "+o.n);refresh();}};
+  r1.appendChild(nm);r1.appendChild(sv);h.appendChild(r1);
+  var g=E("div","wrow");
+  if(!P.length)g.appendChild(E("span","wu","Noch keine eigene Palette. Stell Farben ein und speichere sie hier."));
+  P.forEach(function(p){
+    var w=E("div","wrow"),b=E("button","hsw");b.style.background=grad(p.a,p.b);b.title="Anwenden: "+p.n;b.appendChild(E("span",null,p.n));b.onclick=function(){applyPal(p);refresh();};
+    var x=E("button","mini","×");x.title="Löschen";var armed=false;
+    x.onclick=function(){if(!armed){armed=true;x.textContent="Löschen?";setTimeout(function(){armed=false;x.textContent="×";},3000);return;}delPal(p.n);tt("Gelöscht · "+p.n+" (Befehl: „Stelle die gelöschte Palette wieder her“)");refresh();};
+    w.appendChild(b);w.appendChild(x);g.appendChild(w);
+  });
+  h.appendChild(g);
+  if(H.length){
+    h.appendChild(E("div","wk","Zuletzt verwendet"));var hr=E("div","wrow");
+    H.slice(0,8).forEach(function(p){var w=E("div","wrow"),b=E("button","hsw");b.style.background=grad(p.a,p.b);b.title="Anwenden";b.appendChild(E("span",null,"↺"));b.onclick=function(){applyPal({n:"",a:p.a,b:p.b});refresh();};
+      var st=E("button","mini","★");st.title="Als Palette speichern";st.onclick=function(){var o=savePal("Palette "+(pals().length+1),p.a,p.b);if(o){tt("Gespeichert · "+o.n);refresh();}};w.appendChild(b);w.appendChild(st);hr.appendChild(w);});
+    h.appendChild(hr);
+  }
+  var r3=E("div","wrow"),rs=E("button","mini","Standardfarben wiederherstellen"),ex=E("button","mini","Paletten exportieren"),im=E("button","mini","Paletten importieren");
+  var ta=document.createElement("textarea");ta.rows=3;ta.style.cssText="width:100%;display:none;margin-top:6px";ta.placeholder="Paletten-JSON hier einfügen";
+  rs.onclick=function(){resetColors();tt("Standardfarben");refresh();};
+  ex.onclick=function(){ta.style.display="block";ta.value=JSON.stringify(pals());try{ta.select();if(navigator.clipboard)navigator.clipboard.writeText(ta.value);}catch(e){}tt("Paletten kopiert");};
+  im.onclick=function(){if(ta.style.display==="none"||!ta.value.trim()){ta.style.display="block";ta.value="";ta.focus();tt("JSON einfügen, dann erneut „importieren“");return;}
+    try{var L=JSON.parse(ta.value);if(!Array.isArray(L))throw 0;var n=0;L.slice(0,30).forEach(function(p){if(validPal(p)&&savePal(p.n,p.a,p.b))n++;});tt(n+" Paletten importiert");refresh();}catch(e){tt("Das ist keine gültige Paletten-Liste");}};
+  [rs,ex,im].forEach(function(x){r3.appendChild(x);});h.appendChild(r3);h.appendChild(ta);
+}
+var _ce=window.colorEditor;
+if(typeof _ce==="function")window.colorEditor=function(b){
+  var r=_ce.apply(this,arguments);
+  try{var host=E("div");b.appendChild(host);palUI(host,function(){b.textContent="";window.colorEditor(b);});}catch(e){console.warn("var-ext palUI:",e);}
+  return r;
+};
+
+/* ---------- 3) Szenen merken das Aussehen ---------- */
+function look(){return {th:UI.th,cc:(UI.cc&&validRgb(UI.cc.a)&&validRgb(UI.cc.b))?{a:UI.cc.a.slice(),b:UI.cc.b.slice()}:null,pre:UI.pre||"",fs:+UI.fs||1,dn:UI.dn};}
+function validLook(u){return !!u&&typeof u.th==="string"&&(u.cc===null||(u.cc&&validRgb(u.cc.a)&&validRgb(u.cc.b)))&&typeof u.fs==="number"&&u.fs>=.9&&u.fs<=1.4&&typeof u.dn==="string";}
+var _ss=window.sceneSave,_sa=window.sceneApply;
+if(typeof _ss==="function"&&typeof SC!=="undefined")window.sceneSave=function(n){
+  var r=_ss.apply(this,arguments);
+  try{var nn=String(n).trim().slice(0,24).toLowerCase(),sc=SC.find(function(x){return x.n.toLowerCase()===nn;});if(sc){sc.ux=look();if(typeof saveSC==="function")saveSC();}}catch(e){}
+  return r;
+};
+if(typeof _sa==="function"&&typeof SC!=="undefined")window.sceneApply=function(n){
+  var ok=_sa.apply(this,arguments);
+  if(ok){try{var nn=String(n).toLowerCase(),sc=SC.find(function(x){return x.n.toLowerCase()===nn;});
+    if(sc&&validLook(sc.ux)){var u=sc.ux;UI.th=u.th;if(u.cc)UI.cc={a:u.cc.a.slice(),b:u.cc.b.slice()};else delete UI.cc;UI.pre=u.pre||"";UI.dn=u.dn;UI.fs=u.fs;saveUI();applyUI();if(window.UltronNav&&window.UltronNav.applyFs)window.UltronNav.applyFs();}}catch(e){console.warn("var-ext scene:",e);}}
+  return ok;
+};
+
+/* ---------- 4) Sicherung ---------- */
+var BK={ultron_ui:"o",ultron_pref:"o",ultron_scenes:"a?",ultron_w:"a",ultron_pals:"a",ultron_palh:"a",ultron_dfav:"a",ultron_dban:"a",ultron_dmine:"o",ultron_dgen:"o",ultron_dseen:"o"};
+function typeOk(k,v){var t=BK[k];if(t==="o")return !!v&&typeof v==="object"&&!Array.isArray(v);if(t==="a")return Array.isArray(v);if(t==="a?")return v===null||Array.isArray(v);return false;}
+function exportAll(){var o={app:"ultron",v:1,t:new Date().toISOString(),d:{}};Object.keys(BK).forEach(function(k){var v=LS.get(k);if(v!=null){try{o.d[k]=JSON.parse(v);}catch(e){}}});return JSON.stringify(o,null,1);}
+function importAll(txt){
+  txt=String(txt||"");if(txt.length>1500000)return {ok:false,msg:"Die Datei ist zu groß."};
+  var o;try{o=JSON.parse(txt);}catch(e){return {ok:false,msg:"Das ist kein gültiges JSON."};}
+  if(!o||o.app!=="ultron"||!o.d||typeof o.d!=="object"||Array.isArray(o.d))return {ok:false,msg:"Das ist keine Ultron-Sicherung."};
+  var bad=Object.keys(o.d).filter(function(k){return BK[k]&&!typeOk(k,o.d[k]);});
+  if(bad.length)return {ok:false,msg:"Ungültige Daten in: "+bad.join(", ")};
+  LS.set(K.pre,exportAll());
+  var n=0;Object.keys(o.d).forEach(function(k){if(BK[k]){LS.set(k,JSON.stringify(o.d[k]));n++;}});
+  return {ok:true,n:n};
+}
+function backupUI(c){
+  c.appendChild(E("div","wcap","Sichert Layout, Farben, Paletten, Szenen, Widgets, Favoriten und eigene Einträge. API-Schlüssel und Chats sind nicht enthalten."));
+  var r=E("div","wrow"),ex=E("button","mini","Sicherung herunterladen"),im=E("button","mini","Sicherung einspielen"),un=E("button","mini","Letzten Import rückgängig");
+  var ta=document.createElement("textarea");ta.rows=3;ta.style.cssText="width:100%;display:none;margin-top:6px";ta.placeholder="Sicherungs-JSON einfügen oder Datei wählen";
+  var fi=document.createElement("input");fi.type="file";fi.accept=".json,application/json";fi.style.display="none";
+  ex.onclick=function(){var txt=exportAll(),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"application/json"}));a.download="ultron-sicherung-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},2000);tt("Sicherung heruntergeladen");};
+  var doImp=function(txt){var r=importAll(txt);if(!r.ok){tt(r.msg);return;}tt(r.n+" Bereiche eingespielt, lade neu …");setTimeout(function(){location.reload();},900);};
+  im.onclick=function(){if(ta.style.display==="none"||!ta.value.trim()){ta.style.display="block";fi.click();return;}doImp(ta.value);};
+  fi.onchange=function(){var f=fi.files&&fi.files[0];if(!f)return;if(f.size>1500000){tt("Die Datei ist zu groß.");return;}var rd=new FileReader();rd.onload=function(){ta.value=String(rd.result||"");ta.style.display="block";tt("Datei geladen, zum Einspielen erneut klicken");};rd.readAsText(f);};
+  un.onclick=function(){var p=LS.get(K.pre);if(!p){tt("Kein früherer Stand vorhanden");return;}doImp(p);};
+  [ex,im,un].forEach(function(x){r.appendChild(x);});c.appendChild(r);c.appendChild(ta);c.appendChild(fi);
+}
+
+/* ---------- 5) Befehle ---------- */
+function R(reply){return {reply:reply,leave:false};}
+function varRoute(raw,opts){
+  opts=opts||{};var t=String(raw||"").trim().replace(/[.!?]+$/,""),f=fold(t),m;
+  if(!t||t.length>120)return null;
+  if(/^(?:ein |noch ein |gib mir ein |zeig mir ein )?(?:neues|anderes|weiteres) zitat$/.test(f)){var q=nextSync("q");return R(q?"„"+q.t+"“ — "+q.a:"Ich habe keine Zitate mehr, öffne den Tagesimpuls und tippe auf „Neu (KI)“.");}
+  if(/^(?:ein |noch ein |gib mir ein |zeig mir ein )?(?:neuer|anderer|weiterer) (?:fun ?)?fakt$/.test(f)||/^(?:noch|ein) (?:ein )?(?:fun ?)?fakt$/.test(f)){var x=nextSync("f");return R(x?x.t:"Ich habe keine Fakten mehr, öffne den Tagesimpuls und tippe auf „Neu (KI)“.");}
+  if(m=/^(?:speichere|speicher|sichere)\s+(?:diese\s+|die aktuellen\s+|meine\s+|die\s+)?farben?\s+(?:als|unter)\s+(.+)$/i.exec(f)){var nm=t.replace(/^.*?\s(?:als|unter)\s+/i,"").trim(),c=curCols(),o=savePal(nm,c.a,c.b);return R(o?"Palette „"+o.n+"“ gespeichert.":"Das konnte ich nicht speichern.");}
+  if(m=/^(?:wende|nimm|nutze|aktiviere|setze|stelle)\s+(?:die\s+)?(?:farb)?palette\s+(.+?)(?:\s+(?:an|ein))?$/i.exec(f)){var p=findPal(m[1]);if(!p)return R("Eine Palette „"+m[1]+"“ kenne ich nicht. Sag „meine Paletten“.");applyPal(p);return R("Palette „"+p.n+"“ ist aktiv.");}
+  if(m=/^(?:l[oö]sche|loesche|entferne)\s+(?:die\s+)?(?:farb)?palette\s+(.+)$/i.exec(f)){var d=delPal(m[1].trim());return R(d?"Palette „"+d.n+"“ gelöscht. Mit „Stelle die gelöschte Palette wieder her“ kommt sie zurück.":"Eine eigene Palette „"+m[1]+"“ gibt es nicht.");}
+  if(/^stelle (?:die )?gel[oö]schte palette wieder her$/.test(f)||/^stelle (?:die )?geloeschte palette wieder her$/.test(f)){var lx=jget(K.palx,null);if(validPal(lx)){savePal(lx.n,lx.a,lx.b);return R("Palette „"+lx.n+"“ ist zurück.");}return R("Es gibt nichts wiederherzustellen.");}
+  if(/^(?:meine |zeig(?:e)? (?:mir )?(?:meine )?|welche )?(?:farb)?paletten(?: habe ich)?$/.test(f)){var P=pals();if(!opts.voice&&typeof openWin==="function")try{openWin({type:"settings",title:"Einstellungen",q:"farb"});}catch(e){}return R(P.length?"Deine Paletten: "+P.map(function(p){return p.n;}).join(", ")+".":"Du hast noch keine eigene Palette. Stell Farben ein und sag „Speichere diese Farben als …“.");}
+  if(/^(?:setze|stelle) (?:die )?farben zurueck$/.test(f)||/^standardfarben$/.test(f)){resetColors();return R("Standardfarben sind wieder aktiv.");}
+  if(!opts.voice&&/^(?:exportiere|sichere|speichere) (?:meine )?(?:einstellungen|personalisierung)$/.test(f)){try{var txt=exportAll(),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"application/json"}));a.download="ultron-sicherung-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},2000);return R("Sicherung heruntergeladen.");}catch(e){return R("Der Download ging nicht.");}}
+  return null;
+}
+var _lc=window.localCmd;
+if(typeof _lc==="function")window.localCmd=function(raw,quiet){
+  var r=null;try{r=varRoute(String(raw||""),{voice:false});}catch(e){console.warn("var-ext:",e);}
+  if(r){try{if(!quiet&&typeof say==="function")say(raw,r.reply);}catch(e){}return true;}
+  return _lc.apply(this,arguments);
+};
+if(window.UltronNav&&typeof window.UltronNav.route==="function"){var _rr=window.UltronNav.route;window.UltronNav.route=function(t,o){var r=_rr(t,o);if(r)return r;try{return varRoute(t,{voice:true});}catch(e){return null;}};}
+var _lo=window.layoutOp;
+if(typeof _lo==="function")window.layoutOp=function(op,ns){
+  if(op&&op.op==="set"&&fold(op.key)==="palette"){var p=findPal(String(op.value||""));if(p)applyPal(p);return;}
+  return _lo.apply(this,arguments);
+};
+
+window.UltronVar={pool:pool,unseen:unseen,nextItem:nextItem,refill:refill,pals:pals,savePal:savePal,delPal:delPal,applyPal:applyPal,findPal:findPal,exportAll:exportAll,importAll:importAll,backupUI:backupUI,route:varRoute,look:look,resetSeen:resetSeen};
+})();
+</script>
+<script id="iq-ext">
+/* =====================================================================
+   IQ-EXT · Absichten verstehen, Modell wählen, Dashboard kennen (Phase 5)
+   1) Absichts-Engine: natürliche Sätze → lokale Aktion (ohne LLM, ohne Credits)
+        a) Regeln mit hoher Genauigkeit (Dateien, Projekte, Notizen, Aufgaben)
+        b) Semantische Ähnlichkeit (bestehende embed()-Funktion) für Fenster, Layout, Theme, Schrift
+   2) Modellwahl: Kategorie der Anfrage + gelernte Erfahrung (Eskalationen) statt nur Wortlisten
+   3) Dashboard-Kontext für das LLM (sichtbare Panels, Widgets, Szenen, Layout) bei Dashboard-Fragen
+   Bindet sich über Wrapper ein (localCmd, complexity, ask, sysFor). */
+(function(){
+"use strict";
+if(window.UltronIQ)return;
+if(typeof localCmd!=="function"||typeof embed!=="function"||typeof cosv!=="function"||typeof openWin!=="function"||typeof WIN_T==="undefined"||typeof UI==="undefined"){console.warn("iq-ext: Hauptskript unvollständig, deaktiviert");return;}
+var _lc=window.localCmd,_cx=window.complexity,_ask=window.ask,_sf=window.sysFor;
+
+/* ---------- Hilfen ---------- */
+function fold(s){s=String(s||"").toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue");try{s=s.normalize("NFD").replace(/[\u0300-\u036f]/g,"");}catch(e){}return s;}
+var FILL=/\b(bitte|mal|doch|eben|kurz|schnell|einfach|ultron|hey|hallo|danke|gerne|gern|jetzt|nun|noch mal|nochmal)\b/g;
+var POL=/^(?:(?:kannst|koenntest|wuerdest|magst|willst) du\s+|(?:ich\s+)?(?:moechte|will|wuerde gern\w*|haette gern\w*|brauche|braeuchte)\s+|darf ich\s+|kann ich\s+|lass uns\s+|lass mich\s+)+/;
+function clean(raw){var t=fold(raw).replace(/[.,!?;:()"„“]/g," ").replace(/\s+/g," ").trim();t=t.replace(/^ultron\s+/,"").replace(POL,"").replace(FILL," ").replace(/\s+/g," ").trim();return t;}
+function nwords(t){return t?t.split(" ").length:0;}
+function reply(r,nav){return {reply:r,nav:!!nav};}
+function jg(k,d){try{return jget(k,d);}catch(e){return d;}}
+
+/* ---------- 1b) Semantische Absichten ---------- */
+var INT=[],cacheV=null;
+function def(id,ex,fn){INT.push({id:id,ex:ex,fn:fn});}
+/* Fenster: Schlüsselwörter und Titel aus WIN_T + natürliche Formulierungen */
+var NAT={
+  calendar:["was steht heute an","was habe ich heute vor","meine termine diese woche","wie sieht meine woche aus","habe ich morgen etwas vor","naechste termine"],
+  planner:["was muss ich noch erledigen","meine offenen aufgaben","was ist noch zu tun","tagesplan fuer heute","womit fange ich an"],
+  expenses:["wie viel geld habe ich ausgegeben","meine ausgaben diesen monat","wo geht mein geld hin"],
+  library:["wo ist meine datei","was habe ich schon erstellt","alle meine dokumente","meine gespeicherten sachen"],
+  projects:["an welchen projekten arbeite ich","meine laufenden projekte"],
+  settings:["ich will etwas einstellen","aendere die einstellungen","konfiguriere ultron"],
+  briefing:["gib mir einen ueberblick fuer heute","was ist heute wichtig","fass meinen tag zusammen"],
+  shopping:["was muss ich einkaufen","meine einkaufsliste anzeigen"],
+  hub:["was kannst du alles","welche funktionen gibt es","zeig mir was du kannst"],
+  review:["wie war meine woche","blick auf die vergangene woche"],
+  people:["wer steht in meinen kontakten","meine kontakte anzeigen"]
+};
+WIN_T.forEach(function(e){
+  var type=e[0],kws=String(e[1]).split(" ").filter(Boolean),title=e[2],ex=[title.toLowerCase(),"meine "+title.toLowerCase()].concat(kws,(NAT[type]||[]));
+  def("win:"+type,ex,function(){window.openWin({type:type,title:title});return reply(title+".",true);});
+});
+/* Layout */
+function layoutReset(){try{snap("Layout zurücksetzen");}catch(e){}UI.layout="auto";UI.core="auto";UI.hidden=[];try{saveUI();applyUI();}catch(e){}}
+def("layout:focus",["hier ist alles zu voll","das dashboard ist unuebersichtlich","ich will mich konzentrieren","weniger ablenkung","raeum das dashboard auf","mach es ruhiger","zeig nur das wichtigste","fokus ansicht","zu viele widgets","alles ist zu unruhig"],function(){window.layoutOp({op:"layout",mode:"focus"});return reply("Fokus-Ansicht. Mit „alles wieder normal“ ist es zurück.",false);});
+def("layout:reset",["zeig wieder alles","alles wieder normal","normale ansicht","standard layout","stell das layout zurueck","setz das dashboard zurueck","alles wieder anzeigen"],function(){layoutReset();return reply("Alles wieder normal.",false);});
+var RX=[
+  {id:"theme:dark",re:/\b(zu hell|blendet|blendend|augen\w* (?:tun|schmerz)\w*|dunkler|dunkelmodus|nachtmodus|dunkles design|dunkel schalten)\b/},
+  {id:"theme:light",re:/\b(zu dunkel|heller|helles design|hellmodus|tagmodus|lichtmodus|ich sehe nichts)\b/}
+];
+def("theme:dark",[],function(){window.layoutOp({op:"set",key:"theme",value:"dark"});return reply("Dunkel.",false);});
+def("theme:light",[],function(){window.layoutOp({op:"set",key:"theme",value:"light"});return reply("Hell.",false);});
+def("font:up",["ich kann das nicht lesen","die schrift ist zu klein","alles ist winzig","text ist zu klein","mach den text groesser"],function(){var r=window.UltronNav&&window.UltronNav.route("schrift groesser",{});return reply(r?r.reply:"Schrift größer.",false);});
+def("font:down",["die schrift ist zu gross","alles ist riesig","text ist zu gross","mach den text kleiner"],function(){var r=window.UltronNav&&window.UltronNav.route("schrift kleiner",{});return reply(r?r.reply:"Schrift kleiner.",false);});
+def("core:small",["der kern ist zu gross","mach den kern kleiner","kern verkleinern"],function(){window.layoutOp({op:"core",size:"s"});return reply("Kern kleiner.",false);});
+def("core:big",["der kern ist zu klein","mach den kern groesser","kern vergroessern"],function(){window.layoutOp({op:"core",size:"l"});return reply("Kern größer.",false);});
+var LLMTASK=/^(erklaer|schreib|verfass|erstell|uebersetz|fass|berechne|generier|entwirf|formulier|korrigier|analysier|vergleich|warum|wieso|weshalb|wie funktioniert|was bedeutet|erzaehl|gib mir (eine|ein|einen) (idee|tipp|zusammenfassung))/;
+var T_MIN=.60,T_MARGIN=.07;
+function vecs(){
+  if(cacheV)return cacheV;cacheV=[];
+  INT.forEach(function(it){it.ex.forEach(function(x){cacheV.push({id:it.id,v:embed(String(x)),tk:(typeof normQ==="function"?normQ(String(x)):String(x).split(" "))});});});
+  return cacheV;
+}
+var UIX=/\b(draussen|heute|gestern|morgen|dort|zimmer|raum|wohnung|buero|sonne|fenster|himmel|chef|bruder|schwester|mama|papa|freund\w*)\b/;
+function semantic(t){
+  if(!t||nwords(t)>10||LLMTASK.test(t))return null;
+  var i,j;
+  /* Muster-Absichten (eindeutige Wendungen, z. B. Theme): nur kurze Sätze ohne Orts-/Zeitbezug */
+  for(i=0;i<RX.length;i++)if(RX[i].re.test(t)&&nwords(t)<=6&&!UIX.test(t))return {id:RX[i].id,score:1,margin:1};
+  var v=embed(t),best={},bi={},V=vecs();
+  for(i=0;i<V.length;i++){var c=cosv(v,V[i].v);if(best[V[i].id]===undefined||c>best[V[i].id]){best[V[i].id]=c;bi[V[i].id]=i;}}
+  var ids=Object.keys(best).sort(function(a,b){return best[b]-best[a];});
+  if(!ids.length)return null;
+  var top=ids[0],s1=best[top],s2=ids[1]?best[ids[1]]:0;
+  if(s1<T_MIN||s1-s2<T_MARGIN)return null;
+  /* Abdeckung: die inhaltlichen Wörter des Satzes müssen größtenteils im passenden Beispiel vorkommen.
+     Verhindert, dass „Meine Aufgaben in der Schule sind schwer“ den Planer öffnet. */
+  var tk=typeof normQ==="function"?normQ(t):t.split(" "),ex=V[bi[top]].tk||[],hit=0;
+  for(j=0;j<tk.length;j++)if(ex.indexOf(tk[j])>=0)hit++;
+  if(tk.length&&hit/tk.length<.6)return null;
+  if(/^(font|layout|core):/.test(top)&&(nwords(t)>6||UIX.test(t)))return null;
+  return {id:top,score:s1,margin:s1-s2,cover:tk.length?hit/tk.length:0};
+}
+function runIntent(id){for(var i=0;i<INT.length;i++)if(INT[i].id===id)return INT[i].fn();return null;}
+
+/* ---------- 1a) Genaue Regeln ---------- */
+function libMatch(q){
+  var L;try{L=(typeof LIB!=="undefined"&&Array.isArray(LIB))?LIB:[];}catch(e){L=[];}
+  var qt=fold(q).replace(/[^a-z0-9 ]/g," ").split(" ").filter(function(w){return w.length>=3&&!/^(meine?n?|das|die|den|dem|der|ein|eine|datei|dokument|von|vom|zum|zur|und)$/.test(w);});
+  if(!qt.length)return null;
+  var best=null,bs=0;
+  L.forEach(function(e){
+    if(!e||!e.title)return;var tt=fold(e.title).replace(/[^a-z0-9 ]/g," ").split(" ").filter(Boolean),com=0;
+    qt.forEach(function(w){if(tt.some(function(x){return x===w||(w.length>=5&&(x.indexOf(w)===0||w.indexOf(x)===0&&x.length>=5));}))com++;});
+    var sc=com/qt.length;if(com>=1&&sc>bs){bs=sc;best=e;}
+  });
+  return(best&&bs>=.99)?best:null;     /* alle Suchwörter müssen im Titel vorkommen: lieber nachfragen als falsch öffnen */
+}
+function preRules(raw,t){
+  var m;
+  /* Dateien: „öffne den Reiseplan“, „wo ist mein Rezept“ – nur bei eindeutigem Treffer in deiner Bibliothek */
+  if(m=/^(?:oeffne|zeig|zeige|finde|such|suche|wo ist|wo finde ich|hol)\s+(?:mir\s+)?(?:meine?n?|das|die|den|dem)?\s*(.{3,50})$/.exec(t)){
+    var e=libMatch(m[1]);if(e&&typeof libOpen==="function"){libOpen(e);return reply("„"+String(e.title).slice(0,40)+"“ geöffnet.",true);}
+  }
+  /* Projekte */
+  m=/^(?:lege|leg|erstelle|erstell|starte|start|mach)\s+(?:ein\s+)?(?:neues\s+)?projekt\s+(?:namens\s+|fuer\s+|mit dem namen\s+)?(.{2,40}?)(?:\s+an)?$/.exec(t);
+  if(m&&!/:/.test(raw))return {canon:"projekt "+titleCase(m[1])};
+  if(m=/^(?:wechsel|wechsle|geh|gehe|arbeite|weiter)\s+(?:zu|zum|an|am|in|mit)\s+(?:dem\s+)?projekt\s+(.{2,40})$/.exec(t))return {canon:"projekt "+titleCase(projName(m[1]))};
+  if(/^(?:ich bin )?(?:fertig|durch) mit (?:dem )?projekt$/.test(t))return {canon:"projekt beenden"};
+  /* Aufgaben und Notizen (reversibel, kurz) */
+  if(!/\b(uhr|morgen|uebermorgen|heute abend|um \d|am \d|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/.test(t)){
+    m=/^(?:erinner mich (?:daran |an )|vergiss nicht |ich muss noch |ich muss )(.{4,80})$/.exec(t);
+    if(m&&nwords(t)<=12)return {canon:"aufgabe: "+rawTail(raw,m[1])};
+  }
+  if(m=/^(?:notier(?:e)?(?: dir)?|schreib auf|halte fest)\s+(?:dass\s+)?(.{4,120})$/.exec(t))return {canon:"notiz: "+rawTail(raw,m[1])};
+  return null;
+}
+function titleCase(s){s=String(s).trim();return s.replace(/(^|\s)(\S)/g,function(_,a,b){return a+b.toUpperCase();});}
+function projName(q){var f=fold(q).trim();try{var P=typeof PROJ!=="undefined"?PROJ:[];var hit=P.find(function(p){return fold(p.n)===f;})||P.find(function(p){return fold(p.n).indexOf(f)===0;});if(hit)return hit.n;}catch(e){}return q;}
+function rawTail(raw,folded){            /* Originalschreibweise (Umlaute, Groß/Klein) des Endstücks zurückholen */
+  var words=String(raw).trim().replace(/[.!?]+$/,"").split(/\s+/),n=String(folded).split(" ").length;
+  return words.slice(Math.max(0,words.length-n)).join(" ");
+}
+
+/* ---------- Haupteinstieg ---------- */
+function parse(raw,opts){
+  var t=clean(raw);if(!t||t.length>140)return null;
+  var pr=preRules(String(raw||""),t);if(pr)return {kind:"rule",rule:pr};
+  var sm=semantic(t);if(sm)return {kind:"sem",sem:sm};
+  return null;
+}
+function execute(p,quiet){
+  if(p.kind==="rule"){
+    if(p.rule.canon){var ok=_lc(p.rule.canon,quiet);return ok?{handled:true}:null;}
+    return {handled:true,res:p.rule};
+  }
+  var r=runIntent(p.sem.id);return r?{handled:true,res:r}:null;
+}
+window.localCmd=function(raw,quiet){
+  /* 1) bestehende Befehle (inkl. Navigation/Farben) haben Vorrang, außer bei eindeutigen Datei-/Projekt-Regeln */
+  var t0=clean(raw),pre=null;
+  try{if(t0&&t0.length<=140)pre=preRules(String(raw||""),t0);}catch(e){pre=null;}
+  if(pre){var ex=execute({kind:"rule",rule:pre},quiet);if(ex&&ex.handled){if(ex.res&&!quiet&&typeof say==="function")say(raw,ex.res.reply);return true;}}
+  if(_lc.apply(this,arguments))return true;
+  /* 2) Nichts passte: semantisch verstehen (nur kurze, eindeutige Sätze) */
+  try{var sm=t0?semantic(t0):null;if(sm){var r=runIntent(sm.id);if(r){if(!quiet&&typeof say==="function")say(raw,r.reply);return true;}}}catch(e){console.warn("iq-ext:",e);}
+  return false;
+};
+/* Sprachmodus: gleiche Absichten, Navigation verlässt den Gesprächsmodus */
+if(window.UltronNav&&typeof window.UltronNav.route==="function"){
+  var _rr=window.UltronNav.route;
+  window.UltronNav.route=function(t,o){
+    var r=_rr(t,o);if(r)return r;
+    try{var p=parse(t,o);if(p&&p.kind==="sem"){var x=runIntent(p.sem.id);if(x)return {reply:x.reply,leave:!!x.nav};}
+        if(p&&p.kind==="rule"&&!p.rule.canon){var libr=p.rule;return {reply:libr.reply,leave:!!libr.nav};}}catch(e){}
+    return null;
+  };
+}
+
+/* ---------- 2) Modellwahl ---------- */
+function cat(t){
+  var f=fold(t),w=nwords(f.replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim());
+  if(/```/.test(t)||/\b(code|programm\w*|funktion|bug|skript|script|html|css|javascript|python|sql|regex|api)\b/.test(f))return "code";
+  if(/\b(analysier\w*|vergleich\w*|bewert\w*|strategie|argumentier\w*|pro und contra|vor- und nachteile|auswert\w*|schlussfolger\w*|einschaetz\w*)\b/.test(f))return "analyse";
+  if(/\b(plan\w*|konzept|roadmap|ablauf|schritt fuer schritt)\b/.test(f))return "plan";
+  if(/\b(schreib\w*|verfass\w*|formulier\w*|entwurf|aufsatz|artikel|bericht|brief|e-?mail|rede)\b/.test(f)&&f.length>60)return "text";
+  if(/\b(uebersetz\w*|korrigier\w*|umformulier\w*|kuerz\w*|zusammenfass\w*)\b/.test(f))return "edit";
+  if(w<=3||/^(hallo|hi|hey|danke|ok|okay|ja|nein|gut|super|cool)\b/.test(f))return "chat";
+  if(/^(was|wer|wann|wo|wie viele?|wie lange|welche?r?s?)\b/.test(f)&&w<=12)return "fakt";
+  return "frage";
+}
+var RT=jg("ultron_rt",{});if(!RT||typeof RT!=="object"||Array.isArray(RT))RT={};
+function saveRT(){try{jset("ultron_rt",RT);}catch(e){}}
+function boost(c){var r=RT[c];if(!r||r.n<4)return 0;if(r.esc/r.n>=.3)return 2;if(r.n>=8&&r.esc===0&&(c==="frage"||c==="fakt"))return -1;return 0;}
+window.complexity=function(t){
+  var base=_cx?_cx(t):0,c=cat(t),v=base;
+  if(c==="chat"||c==="fakt")v=Math.min(v,1);                  /* Kleinkram bleibt beim schnellen Modell */
+  if(c==="code"||c==="analyse")v=Math.max(v,2);
+  if(c==="text"&&String(t).length>200)v=Math.max(v,2);
+  try{if(typeof ATT!=="undefined"&&ATT.length&&c!=="chat")v=Math.max(v,2);}catch(e){}   /* Dateiarbeit: starkes Modell */
+  return Math.max(0,v+boost(c));
+};
+window.ask=async function(text,opts){
+  var n0=0;try{n0=hist.length;}catch(e){}
+  var r=await _ask.apply(this,arguments);
+  try{
+    var last=hist[hist.length-1];
+    if(hist.length>n0&&last&&last.role==="assistant"&&/^[FSEB]$/.test(String(last.tier||""))){
+      var c=cat(text),o=RT[c]||(RT[c]={n:0,esc:0});o.n++;if(last.tier==="E"||last.tier==="B")o.esc++;
+      if(o.n>60){o.n=Math.round(o.n/2);o.esc=Math.round(o.esc/2);}
+      saveRT();
+    }
+  }catch(e){}
+  return r;
+};
+function explain(t){
+  var c=cat(t),v=window.complexity(t),b=boost(c),heavy=v>=2;
+  return {kategorie:c,stark:heavy,punkte:v,gelernt:b};
+}
+
+/* ---------- 3) Dashboard-Kontext fürs LLM ---------- */
+var DASH_RE=/(dashboard|widget|panel|layout|ansicht|oberfl[aä]che|farbe|farben|szene|fenster|blende|ausblend|einblend|aufr[aä]um|[uü]bersicht|anordn|verschieb|ordne|kern\b)/i;
+function dashState(){
+  try{
+    var hid=(UI.hidden||[]),PNm=(typeof PNM!=="undefined"?PNM:{}),KTm=(typeof KT!=="undefined"?KT:{});
+    var vis=(typeof PN!=="undefined"?Object.keys(PN):[]).filter(function(k){return hid.indexOf(k)<0;}).map(function(k){return PNm[k]||k;});
+    var wg=(typeof WG!=="undefined"&&Array.isArray(WG)?WG:[]).map(function(x){return KTm[x.type]||x.type;});
+    var sc=(typeof SC!=="undefined"&&Array.isArray(SC)?SC:[]).map(function(x){return x.n;});
+    return "[Dashboard jetzt: Layout "+(UI.layout||"auto")+", Kern "+(UI.core||"auto")+", Farben "+(UI.th||"?")+(UI.pre?" ("+UI.pre+")":"")+", Dichte "+(UI.dn||"normal")+
+      "; sichtbare Panels: "+(vis.join(", ")||"keine")+"; ausgeblendet: "+(hid.map(function(k){return PNm[k]||k;}).join(", ")||"keine")+
+      "; Widgets: "+(wg.join(", ")||"keine")+"; Szenen: "+(sc.join(", ")||"keine")+(UI.pj?"; aktives Projekt: "+UI.pj:"")+"]";
+  }catch(e){return "";}
+}
+if(typeof _sf==="function")window.sysFor=function(t){var r=_sf.apply(this,arguments);if(DASH_RE.test(String(t||"")))r+="\n"+dashState();return r;};
+
+window.UltronIQ={parse:parse,semantic:function(t){return semantic(clean(t));},clean:clean,cat:cat,explain:explain,dashState:dashState,RT:function(){return RT;},resetRouting:function(){RT={};saveRT();},intents:function(){return INT.map(function(i){return i.id;});},libMatch:libMatch};
 })();
 </script>
 </body>
