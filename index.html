@@ -152,7 +152,7 @@ main[data-scene="idle"] form{width:100%;max-width:680px;align-self:center}
 main:not([data-scene="idle"]) #qa{display:none}
 #qa button{text-transform:none;letter-spacing:.04em;font-size:11px;padding:8px 14px}
 .chip{margin-top:6px;text-transform:none;letter-spacing:.05em;font-size:11px}
-#lay{position:absolute;right:0;top:70px;z-index:30;padding:14px 16px;border-radius:14px;border:1px solid var(--ln);background:#0b0709;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+#lay{position:absolute;right:0;top:70px;z-index:35;max-height:calc(100vh - 90px);overflow:auto;padding:14px 16px;border-radius:14px;border:1px solid var(--ln);background:#0b0709;box-shadow:0 20px 50px rgba(0,0,0,.6)}
 #lay[hidden]{display:none}
 .lr{display:flex;align-items:center;gap:14px;justify-content:space-between;margin:6px 0}
 .sg{display:flex;gap:6px}.sg button{padding:6px 11px;font-size:10px}
@@ -564,6 +564,7 @@ header.hs .sub{display:none}header.hi .hl{display:none}header.hm .mark{display:n
 header.hs .nm{margin:0}
 #hmenu{position:absolute;right:0;top:56px;z-index:31;display:flex;flex-direction:column;gap:4px;min-width:170px;padding:8px;border-radius:14px;border:1px solid var(--ln);background:#0b0709;box-shadow:0 20px 50px rgba(0,0,0,.6)}
 #hmenu[hidden]{display:none}#hmenu button{width:100%;justify-content:flex-start;height:36px}
+#acBtn{display:flex;align-items:center;gap:10px;padding:4px 8px}#hmenu #acBtn{height:46px;border-radius:12px}#acBtn .avc{width:32px;height:32px;flex:none;aspect-ratio:1}#acBtn .avn{max-width:132px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .thm{display:inline-block;vertical-align:middle;border-radius:50%;overflow:hidden;background:rgba(var(--c1r),.12);opacity:0;transition:opacity .45s;flex:none}.thm.ld{opacity:1}.thm img{width:100%;height:100%;object-fit:cover;display:block}.thm.fr{float:right;margin-left:12px;border-radius:12px}
 .ntl .nim{float:right;width:64px;height:64px;border-radius:12px;object-fit:cover;margin:0 0 6px 12px;opacity:0;transition:opacity .45s}.ntl .nim.ld{opacity:.95}
 .ntl.hero .nim{float:none;display:block;width:100%;height:150px;margin:0 0 12px;border-radius:14px}
@@ -919,7 +920,7 @@ html.lt form #in{background:transparent}
     <button id="setBtn" data-p="6" title="Einstellungen">⚙</button>
     <button id="cfgBtn" data-p="8">API</button>
     <button id="clear" data-p="9">Reset</button>
-    <button id="acBtn" class="av" data-p="3" title="Konto">?</button>
+    <button id="acBtn" data-p="3" title="Konto"><span class="av avc">?</span><span class="avn">Konto</span></button>
     <button id="hmoreBtn" hidden title="Menü">⋯</button>
   </div>
   <div id="hmenu" hidden></div>
@@ -1209,6 +1210,10 @@ async function ask(text,opts){
         setBusy(true,"Stärkeres Modell");toast("Unsicher → das stärkere Modell antwortet nochmal");
         final=(await s(turns,{modelTier:"default",cache:false,onText:stream})).text;tcode="E";bumpU("te");
       }
+      if(!opts.noRepair&&FMT.test(text)&&/\{[\s\S]*"type"\s*:/.test(final)&&!parseCards(final)){   /* Format kaputt: einmal automatisch korrigieren lassen */
+        setBusy(true,"Korrigiere Format");
+        final=(await s(turns.concat([{role:"assistant",content:final},{role:"user",content:"Das war kein gültiges JSON. Gib die Antwort erneut aus, NUR als gültiges JSON im geforderten Format, ohne Text davor oder danach."}]),{modelTier:"default",cache:false,onText:stream})).text;tcode="E";bumpU("te");
+      }
       const dt=useStats().t-tk0;if(tcode!=="F")sqBump();bumpU(tcode==="F"?"tf":"ts");bumpU(tcode==="F"?"tfT":"tsT",dt);
       if(s!==extSample)recUse("viewer",0,0);
     }
@@ -1229,6 +1234,7 @@ async function ask(text,opts){
     out.textContent=c==="not_granted"?"Zugriff verweigert. Erlaube Ultron die Nutzung von Claude, um zu antworten.":c==="rate_limited"?"Zu viele Anfragen. Warte kurz und versuch es erneut.":c==="no_keys"?"Hinterlege zuerst mindestens einen API-Key (Button „API“ oben rechts).":c==="att_viewer"?"Anhänge brauchen einen eigenen API-Key (Datei-Version).":c==="att_pdf"?"Dieses PDF kann der gewählte Anbieter nicht lesen. Nutze Claude oder Gemini.":c==="net_freellm"?"FreeLLMAPI ist nicht erreichbar. Prüfe, ob der Server läuft und die Adresse unter „API“ stimmt. Ultron nutzt sonst deine anderen Anbieter."
 :c==="network"?"Keine Verbindung zum Anbieter (Netzwerk oder CORS). Prüfe Internet und Key.":c==="http_429"?"Limit oder Guthaben beim Anbieter ist aufgebraucht (429). Lade Guthaben auf oder hinterlege unter „API“ einen weiteren Anbieter, dann weicht Ultron automatisch aus."+(e.message?" "+e.message:""):(typeof c==="string"&&c.indexOf("http_")===0)?"Der Anbieter hat die Anfrage abgelehnt ("+c.slice(5)+"). Prüfe Key und Modellname unter „API“."+(e.message?" "+e.message:""):"Verbindung zum Core unterbrochen. Versuch es erneut.";
     if(c)out.textContent+=" ["+c+"]";
+    try{window.UltronErr&&window.UltronErr.decorate(out,c,e,text);}catch(x){}
     $("in").value=text;hist.pop();save();plog("Fehler: "+(c||"unbekannt"));jst="fehler";
   }
   ABORT=null;jobEnd(jb,jst);ATTNOW=[];setBusy(false);refresh();
@@ -1521,7 +1527,7 @@ function applyUI(){
   $("main").style.setProperty("--sh",UI.core==="s"?"150px":UI.core==="l"?(scene==="idle"?"62%":"46%"):base);
   document.querySelectorAll("#lay .sg").forEach(g=>g.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.v===UI[g.dataset.k])));
 }
-$("layBtn").onclick=e=>{e.stopPropagation();$("lay").hidden=!$("lay").hidden;};
+$("layBtn").onclick=e=>{e.stopPropagation();$("hmenu").hidden=true;$("lay").hidden=!$("lay").hidden;};
 $("lay").addEventListener("click",e=>{const b=e.target.closest("button");if(!b||!b.parentNode.dataset.k)return;UI[b.parentNode.dataset.k]=b.dataset.v;try{LS.set("ultron_ui",JSON.stringify(UI));}catch(x){}applyUI();});
 document.addEventListener("click",e=>{if(!e.target.closest("#lay,#layBtn"))$("lay").hidden=true;});
 $("qa").addEventListener("click",e=>{const b=e.target.closest("button");if(b&&!busy)ask(b.textContent);});
@@ -1800,7 +1806,7 @@ function accountView(b){
   const ins=E("button",null,"App installieren");ins.onclick=installApp;[out,ex,im,del,ins].forEach(x=>row.appendChild(x));b.appendChild(row);b.appendChild(fi);
   b.appendChild(E("div","wcap","Lokales Profil: Chats, Termine, Widgets und Einstellungen liegen in diesem Browser. Für ein anderes Gerät exportieren und dort importieren. Der Export enthält auch deine API-Keys, bewahre die Datei sicher auf."));
 }
-$("acBtn").textContent=(SES||"?").slice(0,1).toUpperCase();$("acBtn").title=SES||"Konto";$("acBtn").onclick=()=>openWin({type:"account",title:SES||"Gast"});
+$("acBtn").querySelector(".avc").textContent=(SES||"?").slice(0,1).toUpperCase();$("acBtn").querySelector(".avn").textContent=SES||"Konto";$("acBtn").title=SES||"Konto";$("acBtn").onclick=()=>openWin({type:"account",title:SES||"Gast"});
 /* ERWEITERUNG 8: Palette, Szenen, Undo, Gedächtnis, Skills, lokale Skills, Cache */
 let MUT=false,lastCmd=null,UH=[],ECO_SHOWN=false,ATT=[],ATTNOW=[];
 const jget=(k,d)=>{try{const v=JSON.parse(LS.get(k)||"null");return v==null?d:v;}catch(e){return d;}};
@@ -3338,7 +3344,10 @@ WV.planner=function(b,o){
   };draw();
 };
 MT.heute=function(w,b){
-  const box=E("div");b.appendChild(box);
+  const qa=E("div","wrow"),qi=IN("text","Neue Aufgabe oder Termin …"),box=E("div");qi.style.flex="1";qa.appendChild(qi);b.appendChild(qa);b.appendChild(box);
+  /* Eingabe mit Uhrzeit/Datum → Termin über Ultron, sonst direkt als Aufgabe */
+  qi.onkeydown=e=>{if(e.key!=="Enter"||!qi.value.trim())return;const t=qi.value.trim();qi.value="";
+    if(/\b(\d{1,2}[:.]\d{2}|uhr|morgen|übermorgen|heute abend|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|am \d{1,2}\.)/i.test(t))ask("Neuer Termin: "+t);else{addTasks(t);draw();}};
   const row=(l,r,ok)=>{const x=E("div","srow"),t=E("span",null,l);t.style.flex="1";x.appendChild(t);if(r)x.appendChild(E("span","wu",r));if(ok)x.appendChild(ok);box.appendChild(x);};
   const draw=()=>{box.textContent="";const now=new Date(),td=ymd(now),tm=ymd(new Date(Date.now()+864e5));
     try{wx();if(WXC&&WXC.c===wxCity())row(WXC.c,Math.round(WXC.t)+"°"+(WXC.d?" · "+WXC.d:""));}catch(e){}   /* Wetter-Cache ist beim allerersten Rendern evtl. noch nicht bereit */
@@ -3484,14 +3493,17 @@ function featRun(f,how){
   if(f.win)openWin({type:f.win,title:f.n});else if(f.fn)f.fn();
 }
 WV.hub=function(b,o){
+  let PINS=jget("ultron_fpin",[]);if(!Array.isArray(PINS))PINS=[];
   const q=IN("text","Funktion suchen …"),box=E("div");q.value=(o&&o.q)||"";b.appendChild(q);b.appendChild(box);
   const draw=()=>{box.textContent="";const qq=q.value.trim().toLowerCase();
+    if(!qq&&PINS.length){box.appendChild(E("div","wk","Angepinnt"));const r=E("div","wrow");PINS.forEach(n=>{const f=FEATS.find(x=>x.n===n);if(!f)return;const c=E("button","mini",f.ic+" "+f.n);c.onclick=()=>featRun(f,f.win||f.fn?"open":f.w?"widget":"ex");r.appendChild(c);});box.appendChild(r);}
     if(!qq&&FREC.length){box.appendChild(E("div","wk","Zuletzt genutzt"));const r=E("div","wrow");FREC.forEach(n=>{const f=FEATS.find(x=>x.n===n);if(!f)return;const c=E("button","mini",f.ic+" "+f.n);c.onclick=()=>featRun(f,f.win||f.fn?"open":f.w?"widget":"ex");r.appendChild(c);});box.appendChild(r);}
     let any=false;
     FCATS.forEach((cat,ci)=>{const L=FEATS.filter(f=>f.cat===cat&&(!qq||(f.n+" "+f.d+" "+(f.ex||"")).toLowerCase().indexOf(qq)>=0));if(!L.length)return;any=true;
       const d=document.createElement("details");d.open=!!qq||ci<2;const sm=document.createElement("summary");sm.textContent=cat+" ("+L.length+")";d.appendChild(sm);
       L.forEach(f=>{const r=E("div","fte"),ic=E("span","fic",f.ic),tx=E("div","ftx");tx.appendChild(E("div","ftn",f.n));tx.appendChild(E("div","wcap",f.d));if(f.ex){const e=E("div","fex","„"+f.ex+"“");e.title="Ausprobieren";e.onclick=()=>featRun(f,"ex");tx.appendChild(e);}
         const bt=E("div","fbt");if(f.win||f.fn){const ob=E("button","mini","Öffnen");ob.onclick=()=>featRun(f,"open");bt.appendChild(ob);}if(f.w){const wb=E("button","mini","Aufs Dashboard");wb.onclick=()=>featRun(f,"widget");bt.appendChild(wb);}if(!f.win&&!f.fn&&!f.w&&f.ex){const eb=E("button","mini","Ausprobieren");eb.onclick=()=>featRun(f,"ex");bt.appendChild(eb);}
+        const sb=E("button","mini",PINS.indexOf(f.n)>=0?"★":"☆");sb.title=PINS.indexOf(f.n)>=0?"Nicht mehr anpinnen":"Anpinnen";sb.onclick=()=>{const i=PINS.indexOf(f.n);if(i>=0)PINS.splice(i,1);else PINS.push(f.n);jset("ultron_fpin",PINS);draw();};bt.appendChild(sb);
         r.appendChild(ic);r.appendChild(tx);r.appendChild(bt);d.appendChild(r);});box.appendChild(d);});
     if(!any)box.appendChild(E("div","wcap","Nichts gefunden. Versuch es mit einem anderen Stichwort."));};
   q.oninput=draw;draw();
@@ -7171,6 +7183,167 @@ if(window.UltronNav&&typeof window.UltronNav.route==="function"){var _rr=window.
 
 window.UltronUX={applyPreset:applyPreset,presetUI:presetUI,cleanUI:cleanUI,openSys:openSys,sysTab:showTab,isSys:function(k){return SYSK.indexOf(k)>=0;},openPop:openPop,ratio:ratio,fixColor:fixColor,contrastInfo:contrastInfo,applyCalm:applyCalm,idleDays:idleDays,presets:PRE};
 showTab(sysTab);
+})();
+</script>
+<script id="ux2-ext">
+/* =====================================================================
+   UX2-EXT · Verlässlichkeit & Bedienung (Phase 7)
+   - Ein Popover zur Zeit: Menü, Layout, Weltuhr schließen einander; Menü schließt nach jedem Eintrag
+   - Handy: größere Tippflächen, Wischen vom linken Rand = Zurück
+   - Barrierefreiheit: Fokusring, Beschriftungen, aria-expanded, live-Region für Meldungen
+   - „Rückgängig“ direkt im Toast nach Änderungen
+   - Fehler: Erklärung mit Ursache, Stand der Anbieter und Aktionen; automatischer zweiter Versuch; Fehlerjournal
+   - Schnellerer Start der Verbindung (preconnect zu den aktiven Anbietern) */
+(function(){
+"use strict";
+if(window.UltronErr)return;
+var $=function(i){return document.getElementById(i);};
+function tt(m){try{toast(m);}catch(e){}}
+var st=document.createElement("style");
+st.textContent=":where(button,a,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid rgb(var(--c2r,143,208,255));outline-offset:2px}"+
+"#toast .tst{display:flex;gap:10px;align-items:center}#toast .tst .tu{margin-left:auto;flex:none}"+
+".errx{margin-top:10px;font-size:12px;opacity:.9}.errx .wrow{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}.errx ul{margin:6px 0 0 16px;padding:0}"+
+"@media(pointer:coarse){.mini,header button,#hmenu button,#lay button,.mps-tabs button,.sysT button,#qa button,summary,#spot button{min-height:44px}.mini{padding-inline:14px}}";
+document.head.appendChild(st);
+
+/* ---------- Ein Popover zur Zeit ---------- */
+function hide(id){var e=$(id);if(e)e.hidden=true;}
+document.addEventListener("click",function(e){
+  var t=e.target;if(!t||!t.closest)return;
+  if(t.closest("#hmenu button"))setTimeout(function(){hide("hmenu");},0);                 /* jeder Menüeintrag schließt das Menü */
+  if(t.closest("#hmoreBtn")){hide("lay");hide("wcPop");}
+  else if(t.closest("#layBtn")){hide("hmenu");hide("wcPop");}
+  else if(t.closest("#clock")){hide("hmenu");hide("lay");}
+},true);
+document.addEventListener("keydown",function(e){if(e.key==="Escape"){hide("hmenu");hide("lay");}});
+function sync(){
+  [["hmenu","hmoreBtn"],["lay","layBtn"]].forEach(function(p){var el=$(p[0]),bt=$(p[1]);if(el&&bt)bt.setAttribute("aria-expanded",String(!el.hidden));});
+}
+["hmenu","lay"].forEach(function(id){var el=$(id);if(el)new MutationObserver(sync).observe(el,{attributes:true,attributeFilter:["hidden"]});});
+sync();
+
+/* ---------- Handy: Wischen vom linken Rand = Zurück ---------- */
+var sx=0,sy=0,sT=0;
+document.addEventListener("touchstart",function(e){var t=e.touches&&e.touches[0];if(!t)return;sx=t.clientX;sy=t.clientY;sT=Date.now();},{passive:true});
+document.addEventListener("touchend",function(e){
+  var t=e.changedTouches&&e.changedTouches[0];if(!t)return;
+  var dx=t.clientX-sx,dy=Math.abs(t.clientY-sy);
+  if(sx<28&&dx>80&&dy<50&&Date.now()-sT<600&&window.UltronNav){if(!window.UltronNav.back())window.UltronNav.closeAll();}
+},{passive:true});
+
+/* ---------- Barrierefreiheit ---------- */
+function labelAll(){
+  Array.prototype.forEach.call(document.querySelectorAll("button,input,select,textarea"),function(el){
+    if(el.getAttribute("aria-label")||el.getAttribute("aria-labelledby"))return;
+    var txt=(el.textContent||"").trim(),ti=el.getAttribute("title")||el.getAttribute("placeholder");
+    if((!txt||txt.length<2)&&ti)el.setAttribute("aria-label",ti);
+  });
+}
+var lt=0;new MutationObserver(function(){clearTimeout(lt);lt=setTimeout(labelAll,400);}).observe(document.body,{childList:true,subtree:true});
+labelAll();
+(function roles(){
+  var m=$("hmenu");if(m){m.setAttribute("role","group");m.setAttribute("aria-label","Menü");}
+  var l=$("lay");if(l){l.setAttribute("role","dialog");l.setAttribute("aria-label","Layout");}
+  var s=$("spot");if(s){s.setAttribute("role","dialog");s.setAttribute("aria-label","Fenster");}
+  var t=$("toast");if(t){t.setAttribute("role","status");t.setAttribute("aria-live","polite");}
+  var mb=$("hmoreBtn");if(mb){mb.setAttribute("aria-haspopup","true");}
+  var lb=$("layBtn");if(lb){lb.setAttribute("aria-haspopup","dialog");}
+})();
+
+/* ---------- „Rückgängig“ im Toast ---------- */
+var lastSnap=0,_snap=window.snap,_toast=window.toast;
+if(typeof _snap==="function")window.snap=function(){lastSnap=Date.now();return _snap.apply(this,arguments);};
+if(typeof _toast==="function")window.toast=function(msg){
+  var r=_toast.apply(this,arguments);
+  try{
+    if(Date.now()-lastSnap<1500&&typeof UH!=="undefined"&&UH.length&&!/^Rückgängig/.test(String(msg))){
+      var c=$("toast"),t=c&&c.lastElementChild;
+      if(t&&!t.querySelector(".tu")){var b=document.createElement("button");b.className="mini tu";b.textContent="Rückgängig";b.onclick=function(){try{undo();}catch(e){}t.remove();};t.appendChild(b);}
+    }
+  }catch(e){}
+  return r;
+};
+
+/* ---------- Fehler verstehen ---------- */
+var ERR=[];try{ERR=jget("ultron_err",[]);if(!Array.isArray(ERR))ERR=[];}catch(e){ERR=[];}
+function note(code,msg){ERR.unshift({t:Date.now(),c:String(code||"?"),m:String(msg||"").slice(0,140)});ERR=ERR.slice(0,30);try{jset("ultron_err",ERR);}catch(e){}}
+var _plog=window.plog;
+if(typeof _plog==="function")window.plog=function(t){try{var m=/^Fehler:\s*(.*)$/.exec(String(t));if(m)note(m[1],"");}catch(e){}return _plog.apply(this,arguments);};
+var WHY={
+  network:["Keine Verbindung zum Anbieter.","Internet prüfen; läuft die Seite als Datei, blockiert der Browser manche Anbieter (CORS). Über https oder mit eigenem Proxy geht es meist."],
+  http_401:["Der Key wurde abgelehnt.","Key unter „API“ neu einfügen; häufige Ursachen sind ein Leerzeichen am Ende oder ein abgelaufener Key."],
+  http_403:["Der Key hat keine Berechtigung.","Beim Anbieter prüfen, ob das Modell für den Key freigeschaltet ist."],
+  http_402:["Das Guthaben ist aufgebraucht.","Guthaben aufladen oder einen zweiten Anbieter hinterlegen, dann weicht Ultron automatisch aus."],
+  http_429:["Limit erreicht (zu viele Anfragen oder leeres Kontingent).","Kurz warten oder einen zweiten Anbieter unter „API“ hinterlegen."],
+  rate_limited:["Zu viele Anfragen in kurzer Zeit.","Etwa eine Minute warten, dann erneut versuchen."],
+  http_400:["Der Anbieter hat die Anfrage nicht verstanden.","Oft ist der Chat zu lang oder der Modellname falsch. Neuer Chat oder Modellname unter „API“ prüfen."],
+  http_404:["Modell oder Adresse nicht gefunden.","Modellname unter „API“ prüfen; Ultron probiert eigentlich passende Modelle selbst."],
+  no_keys:["Es ist noch kein Key hinterlegt.","Unter „API“ einen Key eintragen."]
+};
+function why(code){
+  if(WHY[code])return WHY[code];
+  if(/^http_5\d\d$/.test(code))return["Der Anbieter hat gerade ein Problem ("+code.slice(5)+").","Meist vorübergehend: erneut versuchen oder einen zweiten Anbieter hinterlegen."];
+  return["Unerwarteter Fehler.","Erneut versuchen; wenn es bleibt, hilft der Befehl „Was ist schiefgelaufen?“."];
+}
+function providers(){
+  var out=[];
+  try{activeP().forEach(function(p){var nm=(typeof DEF!=="undefined"&&DEF[p]&&DEF[p].n)||p,cd=(typeof COOL!=="undefined"&&COOL[p]>Date.now());out.push(nm+(cd?" (pausiert "+Math.ceil((COOL[p]-Date.now())/1000)+" s)":""));});}catch(e){}
+  return out;
+}
+function decorate(out,code,e,text){
+  if(!out||!out.appendChild)return;
+  var c=String(code||""),w=why(c),box=document.createElement("div");box.className="errx";
+  var p=document.createElement("div");p.textContent="Ursache: "+w[0]+" "+w[1];box.appendChild(p);
+  var pr=providers();
+  if(pr.length){var q=document.createElement("div");q.textContent="Anbieter, die Ultron probiert hat: "+pr.join(", ")+(isTransient(e)?". Ein zweiter Versuch lief automatisch.":".");box.appendChild(q);}
+  var row=document.createElement("div");row.className="wrow";
+  var again=document.createElement("button");again.className="mini";again.textContent="Erneut versuchen";
+  again.onclick=function(){try{out.remove();}catch(x){}try{ask(text,{nolocal:true});}catch(x){}};row.appendChild(again);
+  if(/^(http_(400|401|402|403|404|429)|no_keys|rate_limited)$/.test(c)||c==="network"){var api=document.createElement("button");api.className="mini";api.textContent="API prüfen";api.onclick=function(){var b=$("cfgBtn");if(b)b.click();};row.appendChild(api);}
+  if(c==="http_400"){var nc=document.createElement("button");nc.className="mini";nc.textContent="Neuer Chat";nc.onclick=function(){var b=$("newChat");if(b)b.click();};row.appendChild(nc);}
+  box.appendChild(row);out.appendChild(box);
+}
+function isTransient(e){
+  if(!e||e.name==="AbortError")return false;
+  var c=String(e.code||(e instanceof TypeError?"network":""));
+  return c==="network"||c==="timeout"||/^http_(408|5\d\d)$/.test(c)||c==="net_freellm";
+}
+/* automatischer zweiter Versuch bei vorübergehenden Fehlern (Netz, 5xx), wirkt auch im Gesprächsmodus */
+async function withRetry(fn){
+  try{return await fn();}
+  catch(e){
+    if(!isTransient(e))throw e;
+    try{tier("quick","run","NEUER VERSUCH");}catch(x){}
+    await new Promise(function(r){setTimeout(r,1200+Math.random()*400);});
+    try{return await fn();}catch(e2){throw e2;}
+  }
+}
+var _es=window.extSample;
+if(typeof _es==="function")window.extSample=function(input,opts){var self=this;return withRetry(function(){return _es.call(self,input,opts);});};
+function explainLast(){
+  if(!ERR.length)return "Es ist nichts schiefgelaufen, soweit ich weiß.";
+  var e=ERR[0],w=why(e.c),mins=Math.max(0,Math.round((Date.now()-e.t)/60000));
+  var more=ERR.slice(1,4).filter(function(x){return x.c!==e.c;});
+  return "Zuletzt "+(mins?"vor "+mins+" Minuten":"gerade eben")+": "+w[0]+" "+w[1]+(more.length?" Davor: "+more.map(function(x){return why(x.c)[0];}).join(" "):"");
+}
+/* ---------- Schnellerer Start der Verbindung ---------- */
+var HOST={anthropic:"https://api.anthropic.com",openai:"https://api.openai.com",gemini:"https://generativelanguage.googleapis.com",google:"https://generativelanguage.googleapis.com",openrouter:"https://openrouter.ai",groq:"https://api.groq.com"};
+function preconnect(list){
+  try{(list||activeP()).forEach(function(p){var o=HOST[p];if(!o&&typeof baseU==="function"){try{o=new URL(baseU(p)).origin;}catch(e){}}
+    if(o&&/^https:\/\//.test(o)&&!document.querySelector('link[rel="preconnect"][href="'+o+'"]')){var l=document.createElement("link");l.rel="preconnect";l.href=o;l.crossOrigin="anonymous";document.head.appendChild(l);}});}catch(e){}
+}
+preconnect();
+
+/* ---------- Befehl ---------- */
+var _lc=window.localCmd;
+if(typeof _lc==="function")window.localCmd=function(raw,quiet){
+  var f=String(raw||"").toLowerCase().replace(/[.,!?]+/g," ").replace(/\s+/g," ").trim();
+  if(/^(was ist (gerade )?(schief ?gelaufen|kaputt)|was war (das )?(für )?(ein )?fehler|warum (hat das )?nicht (geklappt|funktioniert)|fehler(journal)?)$/.test(f)){try{if(!quiet&&typeof say==="function")say(raw,explainLast());}catch(e){}return true;}
+  return _lc.apply(this,arguments);
+};
+if(window.UltronNav&&typeof window.UltronNav.route==="function"){var _rr=window.UltronNav.route;window.UltronNav.route=function(t,o){var r=_rr(t,o);if(r)return r;var f=String(t||"").toLowerCase().replace(/[.,!?]+/g," ").replace(/\s+/g," ").trim();if(/^(was ist (gerade )?(schief ?gelaufen|kaputt))$/.test(f))return{reply:explainLast(),leave:false};return null;};}
+
+window.UltronErr={decorate:decorate,why:why,isTransient:isTransient,withRetry:withRetry,explainLast:explainLast,note:note,log:function(){return ERR.slice();},preconnect:preconnect,labelAll:labelAll};
 })();
 </script>
 </body>
