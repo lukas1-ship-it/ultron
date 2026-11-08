@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ULTRON</title>
+<title>ULTRON V3</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap">
 <style>
 :root{--bg:#040405;--red:rgb(var(--c2r));--red2:rgb(var(--c2r));--dim:#d8d1d5;--tx:#f6f2f3;--ln:rgba(255,255,255,.07);
@@ -7345,6 +7345,201 @@ if(window.UltronNav&&typeof window.UltronNav.route==="function"){var _rr=window.
 
 window.UltronErr={decorate:decorate,why:why,isTransient:isTransient,withRetry:withRetry,explainLast:explainLast,note:note,log:function(){return ERR.slice();},preconnect:preconnect,labelAll:labelAll};
 })();
+</script>
+<script id="v3-engine">
+/* ULTRON V3 · Task Engine: Planner, Executor, Checker, Memory Manager, Tool Manager, Watcher */
+(function(){"use strict";
+if(window.UltronV2)return;
+const CF={stallMs:45000,stepTimeout:60000,maxAttempts:3,maxCalls:8,maxSteps:6,backoff:700,conc:3};
+const KEY="ultron_v2_tasks",CK="ultron_v2_cfg",MAXT=30;
+const jg=(k,d)=>{try{return jget(k,d);}catch(e){return d;}},js=(k,v)=>{try{jset(k,v);}catch(e){}};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms)),uid=()=>"t"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const msg=e=>String(e&&(e.message||e.code||e)).slice(0,240);
+class VE extends Error{constructor(kind,m){super(m);this.kind=kind;}}
+let SET=Object.assign({auto:"low"},jg(CK,{})),TASKS=jg(KEY,[]),DROPPED=0;if(!Array.isArray(TASKS))TASKS=[];
+const okT=t=>t&&typeof t==="object"&&typeof t.id==="string"&&typeof t.goal==="string"&&Array.isArray(t.steps)&&t.steps.every(s=>s&&typeof s.id==="string"&&typeof s.tool==="string"&&typeof s.st==="string"&&s.args&&typeof s.args==="object"&&Array.isArray(s.deps));
+{const n=TASKS.length;TASKS=TASKS.filter(okT);DROPPED=n-TASKS.length;}
+const AG={planner:{st:"bereit",n:""},executor:{st:"bereit",n:""},checker:{st:"bereit",n:""},memory:{st:"bereit",n:""},tools:{st:"bereit",n:""},watcher:{st:"ruhig",n:""}};
+const setAg=(a,st,n)=>{AG[a].st=st;AG[a].n=n||"";if(a==="checker"){AG.checker.ts=Date.now();setTimeout(syncCore,800);}render();syncCore();};
+const ST={};let WARN=0;
+
+/* ---------- Tool Manager: Registry (Risiko ist fest im Code, nicht planbar) ---------- */
+const T={};
+const nrm=s=>String(s).toLowerCase().replace(/[\s.,;:!?"„“]+/g," ").trim();
+const okDate=d=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(d))return false;const t=new Date(d+"T12:00:00");return t.getFullYear()==+d.slice(0,4)&&t.getMonth()==+d.slice(5,7)-1&&t.getDate()==+d.slice(8,10);};
+function reg(n,o){T[n]=Object.freeze(Object.assign({n},o));ST[n]={calls:0,errs:0,lastErr:""};}
+reg("memory.search",{d:"Durchsucht Gedächtnis, Wissensspeicher und Bibliothek",risk:"low",rev:true,args:{q:"s"},
+ run:async a=>({items:kRetrieve(a.q).ctx.slice(0,5).map(c=>String(c.txt).slice(0,200))}),
+ verify:r=>({ok:Array.isArray(r.items),note:r.items.length+" Treffer"})});
+reg("memory.add",{d:"Speichert eine Information dauerhaft im Gedächtnis (ohne Duplikate)",risk:"low",rev:true,args:{text:"s"},
+ run:async a=>{const t=a.text.trim().slice(0,160);if(MEM.some(m=>nrm(m)===nrm(t)))return{text:t,dup:true};MEM.push(t);saveMem();return{text:t,dup:false};},
+ verify:r=>({ok:MEM.includes(r.text),note:r.dup?"war schon gespeichert":"im Gedächtnis gefunden"})});
+reg("calendar.list",{d:"Listet Termine ab heute",risk:"low",rev:true,args:{},
+ run:async()=>{const n=new Date().toISOString().slice(0,10);return{items:EV.filter(e=>!e.date||e.date>=n).slice(0,20).map(e=>e.date+" "+(e.time||"")+" "+e.title)};},
+ verify:r=>({ok:Array.isArray(r.items),note:r.items.length+" Termine"})});
+reg("calendar.add",{d:"Legt einen Termin an (title, date YYYY-MM-DD, time HH:MM optional)",risk:"medium",rev:true,args:{title:"s",date:"s",time:"s?"},
+ run:async a=>{if(!okDate(a.date))throw new VE("invalid","Ungültiges Datum: "+a.date);if(a.time&&!/^\d{1,2}:\d{2}$/.test(a.time))throw new VE("invalid","Ungültige Zeit");
+  const t=a.title.trim().slice(0,120);if(!EV.some(e=>e.title===t&&e.date===a.date&&(e.time||"")===(a.time||"")))addEvent({title:t,date:a.date,time:a.time||""});return{title:t,date:a.date,time:a.time||""};},
+ verify:r=>({ok:EV.some(e=>e.title===r.title&&e.date===r.date),note:"Termin im Kalender gefunden"})});
+reg("calendar.delete",{d:"Löscht einen Termin anhand des Titels (nicht rückgängig)",risk:"high",rev:false,args:{title:"s"},
+ run:async a=>{const n=EV.length;EV=EV.filter(e=>e.title!==a.title);if(EV.length===n)throw new VE("perm","Kein Termin mit diesem Titel");saveEv();renderAgenda();return{title:a.title,removed:n-EV.length};},
+ verify:r=>({ok:!EV.some(e=>e.title===r.title),note:r.removed+" Termin(e) entfernt, Kalender geprüft"})});
+reg("text.write",{d:"Verfasst oder analysiert Text mit dem KI-Modell (prompt)",risk:"low",rev:true,args:{prompt:"s"},
+ run:async(a,cx)=>{if(++cx.task.calls>CF.maxCalls)throw new VE("budget","KI-Aufruf-Limit der Aufgabe erreicht");return{text:String(await llm(a.prompt,"quick",900,"Du bist Ultron: präzise, trocken, ohne Floskeln. Deutsch.")).trim()};},
+ verify:r=>({ok:r.text.length>20,note:r.text.length+" Zeichen"})});
+
+const validate=(t,a)=>{if(!a||typeof a!=="object"||Array.isArray(a))return"Argumente fehlen";for(const k in a)if(!(k in t.args))return"Unbekanntes Argument: "+k;
+ for(const k in t.args){const opt=t.args[k].endsWith("?"),v=a[k];if(v==null||v===""){if(!opt)return"Argument fehlt: "+k;continue;}if(typeof v!=="string"||v.length>4000)return"Ungültiges Argument: "+k;}return null;};
+let gq=Promise.resolve();
+const confirmSeq=m=>{const p=gq.then(()=>confirmBox(m,"Erlauben","Ablehnen"));gq=p.catch(()=>{});return p;};
+async function gate(t,a){if(t.risk==="low"||(t.risk==="medium"&&SET.auto==="medium"))return;setAg("tools","wartet auf Bestätigung",t.n);
+ const ok=await confirmSeq((t.risk==="high"?"Hohes Risiko · ":"Bestätigung · ")+t.n+": "+t.d+"\n"+JSON.stringify(a).slice(0,300)+(t.rev?"":"\nNicht rückgängig zu machen."));
+ setAg("tools","bereit");if(!ok)throw new VE("denied","Vom Nutzer abgelehnt");}
+const withTO=(p,ms)=>{let h;return Promise.race([p,new Promise((_,j)=>{h=setTimeout(()=>j(new VE("transient","Zeitüberschreitung")),ms);})]).finally(()=>clearTimeout(h));};
+async function callTool(task,s,args){const t=T[s.tool];if(!t)throw new VE("invalid","Unbekanntes Werkzeug: "+s.tool);const v=validate(t,args);if(v)throw new VE("invalid",v);
+ await gate(t,args);ST[t.n].calls++;try{return await withTO(t.run(args,{task}),CF.stepTimeout);}catch(e){ST[t.n].errs++;ST[t.n].lastErr=msg(e);throw e;}}
+const classify=e=>e&&e.kind?e.kind:(e&&e.code==="no_keys")?"perm":/network|fetch|timeout|timed out|429|50\d|overload|rate/i.test(msg(e))?"transient":"perm";
+
+/* ---------- Memory Manager ---------- */
+function memCtx(goal){try{const c=kRetrieve(goal).ctx.slice(0,3).map(x=>"- "+String(x.txt).slice(0,160));setAg("memory","lieferte "+c.length+" Einträge");return c.join("\n");}catch(e){setAg("memory","nicht verfügbar");return"";}}
+
+/* ---------- Planner ---------- */
+function validPlan(o){if(!o||!Array.isArray(o.steps)||!o.steps.length)throw"Plan ohne Schritte";if(o.steps.length>CF.maxSteps)throw"Zu viele Schritte";const ids=[];
+ return o.steps.map(s=>{if(!s||typeof s.id!=="string"||!/^s\d{1,2}$/.test(s.id)||ids.includes(s.id))throw"Ungültige Schritt-ID";const t=T[s.tool];if(!t)throw"Unbekanntes Werkzeug: "+s.tool;
+  const deps=Array.isArray(s.deps)?s.deps:[];if(deps.some(d=>!ids.includes(d)))throw"Ungültige Abhängigkeit in "+s.id;const args=s.args&&typeof s.args==="object"?s.args:{};const v=validate(t,args);if(v)throw s.id+": "+v;
+  for(const k in args){(String(args[k]).match(/\{\{(\w+)\.\w+\}\}/g)||[]).forEach(r=>{if(!deps.includes(r.slice(2,r.indexOf("."))))throw s.id+": Referenz ohne Abhängigkeit";});}
+  ids.push(s.id);return{id:s.id,tool:s.tool,args,deps,expect:String(s.expect||"").slice(0,160),st:"pending",att:0};});}
+const isSimple=g=>g.length<70&&!/\b(und|dann|danach|anschließend|außerdem)\b|[,;]/i.test(g)&&!/(termin|kalender|merk)/i.test(g);
+async function planTask(task){setAg("planner","plant",task.goal.slice(0,50));
+ if(isSimple(task.goal)){task.steps=[{id:"s1",tool:"text.write",args:{prompt:task.goal},deps:[],expect:"Antwort",st:"pending",att:0}];task.plan="direkt (kein Planer-Aufruf)";task.status="ready";setAg("planner","bereit","einfache Aufgabe, ohne KI-Planung");return;}
+ const d=new Date(),today=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+" ("+["So","Mo","Di","Mi","Do","Fr","Sa"][d.getDay()]+")";
+ const cat=Object.values(T).map(t=>t.n+"("+Object.keys(t.args).join(",")+"): "+t.d).join("\n");
+ const base="Zerlege das Ziel in 1-"+CF.maxSteps+" ausführbare Schritte. Antworte NUR mit JSON: {\"steps\":[{\"id\":\"s1\",\"tool\":\"name\",\"args\":{},\"deps\":[],\"expect\":\"erwartetes Ergebnis\"}]}. Heute: "+today+". Datenfluss: {{s1.text}} nur, wenn s1 in deps steht. Nur diese Werkzeuge:\n"+cat+"\nKontext:\n"+memCtx(task.goal)+"\nZiel: "+task.goal;
+ let err=null;for(let i=0;i<2;i++){
+  if(++task.calls>CF.maxCalls)break;
+  const raw=await llm(base+(err?"\nDein letzter Plan war ungültig ("+err+"). Korrigiere ihn.":""),"quick",900,"Du bist der Planer. Nur gültiges JSON.");
+  try{const m=/\{[\s\S]*\}/.exec(raw);task.steps=validPlan(JSON.parse(m?m[0]:raw));task.plan="KI-Plan, validiert"+(i?" (nach Korrektur)":"");task.status="ready";setAg("planner","bereit",task.steps.length+" Schritte");return;}catch(e){err=String(e&&e.message||e).slice(0,120);}}
+ task.steps=[{id:"s1",tool:"text.write",args:{prompt:task.goal},deps:[],expect:"Antwort",st:"pending",att:0}];task.plan="Fallback: Plan war ungültig ("+err+")";task.status="ready";setAg("planner","bereit","Fallback auf Einzelschritt");}
+
+/* ---------- Executor ---------- */
+const slim=r=>{const o={};for(const k in r){const v=r[k];o[k]=typeof v==="string"?v.slice(0,6000):Array.isArray(v)?v.slice(0,20):v;}return o;};
+function resolve(args,task,s){const o={};for(const k in args){o[k]=typeof args[k]!=="string"?args[k]:args[k].replace(/\{\{(\w+)\.(\w+)\}\}/g,(_,id,key)=>{const d=task.steps.find(x=>x.id===id);const v=d&&s.deps.includes(id)&&d.st==="done"&&d.res?d.res[key]:undefined;if(typeof v!=="string"&&typeof v!=="number")throw new VE("invalid","Ungültige Referenz "+id+"."+key);return String(v);});}return o;}
+async function runStep(task,s){s.st="running";s.t0=Date.now();s.err=null;s.stalled=0;persist(task);syncCore();
+ for(let a=1;a<=CF.maxAttempts;a++){
+  if(task.abort){s.st="skipped";s.err="Abgebrochen";return;}
+  s.att=a;
+  try{const args=resolve(s.args,task,s),res=await callTool(task,s,args),t=T[s.tool];
+   setAg("checker","prüft",s.id+" · "+s.tool);
+   const v=t.verify(res,args);
+   if(!v.ok){if(!s.vf){s.vf=1;throw new VE("verify",v.note);}s.st="failed";s.err="Prüfung fehlgeschlagen: "+v.note;s.verified=false;setAg("checker","Fehler gefunden",s.id);return;}
+   s.verified=true;s.note=v.note;s.res=slim(res);s.st="done";s.t1=Date.now();setAg("checker","bestätigt",s.id+": "+v.note);return;}
+  catch(e){const k=classify(e);s.err=msg(e);s.kind=k;
+   if((k==="transient"||k==="verify")&&a<CF.maxAttempts){await sleep(CF.backoff*Math.pow(2,a-1));continue;}
+   s.st=k==="denied"?"denied":"failed";return;}}}
+async function exec(task){task.status="running";task.abort=false;task.warn="";persist(task);watch();setAg("executor","läuft",task.goal.slice(0,50));
+ const by=id=>task.steps.find(s=>s.id===id);
+ try{for(;;){
+  task.steps.filter(s=>s.st==="pending"&&s.deps.some(d=>["failed","denied","skipped"].includes(by(d).st))).forEach(s=>{s.st="skipped";s.err="Abhängigkeit nicht erfüllt";});
+  if(task.abort)task.steps.filter(s=>s.st==="pending").forEach(s=>{s.st="skipped";s.err="Abgebrochen";});
+  const ready=task.steps.filter(s=>s.st==="pending"&&s.deps.every(d=>by(d).st==="done")).slice(0,CF.conc);
+  if(!ready.length)break;
+  await Promise.all(ready.map(s=>runStep(task,s).then(()=>{persist(task);render();})));}}
+ finally{finalize(task);persist(task);watch();setAg("executor",TASKS.some(t=>t.status==="running")?"läuft":"bereit");}}
+
+/* ---------- Checker (Aufgabenebene, rein deterministisch) ---------- */
+function finalize(task){const st=task.steps,d=st.filter(s=>s.st==="done"),v=d.filter(s=>s.verified);
+ task.status=task.abort?"cancelled":d.length===st.length?"done":d.length?"partial":"failed";
+ task.summary=d.length+"/"+st.length+" Schritte erledigt, "+v.length+" davon am Ergebnis geprüft"+(d.length>v.length?", "+(d.length-v.length)+" nicht verifizierbar":"")+".";
+ const last=st[st.length-1];if(task.status==="done"&&last&&last.tool==="text.write"&&last.res)task.answer=last.res.text;task.t1=Date.now();LASTEND=task.status==="cancelled"?null:{id:task.id,status:task.status==="done"?"done":"failed",ts:Date.now()};}
+
+/* ---------- Watcher: läuft nur, solange Aufgaben laufen ---------- */
+let wt=null;
+function watch(){const run=TASKS.some(t=>t.status==="running");if(run&&!wt){wt=setInterval(tick,CF.stallMs>5000?2000:50);setAg("watcher","aktiv");}else if(!run&&wt){clearInterval(wt);wt=null;setAg("watcher","ruhig");}}
+function tick(){const now=Date.now();TASKS.forEach(t=>{if(t.status!=="running")return;
+ t.steps.forEach(s=>{if(s.st==="running"&&now-s.t0>CF.stallMs&&!s.stalled){s.stalled=1;WARN++;t.warn="Schritt "+s.id+" läuft ungewöhnlich lange";try{toast("Ultron: "+t.warn);}catch(e){}}});
+ const errs=t.steps.map(s=>s.err).filter(Boolean);if(errs.length>1&&new Set(errs).size===1&&!t.warnRep){t.warnRep=1;WARN++;t.warn="Wiederholtes Problem: "+errs[0];}});
+ setAg("watcher","aktiv",WARN?WARN+" Warnung(en)":"");}
+
+/* ---------- Steuerung ---------- */
+function persist(){js(KEY,TASKS);}
+async function create(goal){goal=String(goal||"").trim().slice(0,1200);if(!goal)return null;
+ const task={id:uid(),goal,status:"planning",steps:[],calls:0,ts:Date.now()};TASKS.unshift(task);TASKS=TASKS.slice(0,MAXT);persist();render();
+ try{await planTask(task);}catch(e){task.status="failed";task.summary="Planung fehlgeschlagen: "+msg(e);setAg("planner","Fehler",msg(e));persist();render();return task;}
+ await exec(task);render();return task;}
+async function resume(task){if(!task||task.status==="running")return;
+ if(!task.steps.length){task.status="planning";task.calls=0;try{await planTask(task);}catch(e){task.status="failed";task.summary=msg(e);persist();render();return;}}
+ task.steps.forEach(s=>{if(s.st!=="done"){s.st="pending";s.err=null;s.vf=0;s.att=0;}});task.answer=null;await exec(task);render();}
+function cancel(task){task.abort=true;if(task.status!=="running"){task.status="cancelled";task.steps.filter(s=>s.st==="pending").forEach(s=>{s.st="skipped";s.err="Abgebrochen";});}persist();render();}
+TASKS.forEach(t=>{if(t.status==="running"||t.status==="planning"||t.status==="ready"){t.status="interrupted";t.steps.forEach(s=>{if(s.st==="running")s.st="pending";});}});persist();
+
+/* ---------- Migration (additiv: bestehende Schlüssel werden nie verändert) ---------- */
+function migrate(){let m=jg("ultron_v2_meta",null);if(m&&m.v===2)return m;m={v:2,ts:Date.now(),bak:{}};
+ try{[["mem",MEM],["ev",EV]].forEach(([k,v])=>{const s=JSON.stringify(v);if(s.length>200000){m.bak[k]="zu groß, kein Backup";return;}js("ultron_v2_bak_"+k,v);const b=jg("ultron_v2_bak_"+k,null);m.bak[k]=Array.isArray(b)&&b.length===v.length?"verifiziert ("+v.length+")":"FEHLGESCHLAGEN";});}catch(e){m.err=msg(e);}
+ js("ultron_v2_meta",m);return m;}
+const META=migrate();
+
+/* ---------- V3: Core-Zustand, abgeleitet aus dem echten Engine-Status ---------- */
+let LASTEND=null,STXT=false,CORE_SET=false,CUR="idle",doneT=0,VIS=true,SHEET=false,TAB="tasks",SRCH="",S=null,SH=null;
+const $i=id=>document.getElementById(id);
+function coreState(){if(TASKS.some(t=>t.status==="planning"))return"planning";
+ if(TASKS.some(t=>t.status==="running")){if(AG.tools.st.indexOf("wartet")===0)return"waiting";if(AG.checker.ts&&Date.now()-AG.checker.ts<700&&!TASKS.some(t=>t.steps.some(s=>s.st==="running"&&s.t0>=AG.checker.ts)))return"checking";return"executing";}
+ if(LASTEND&&Date.now()-LASTEND.ts<(LASTEND.status==="failed"?8000:3000))return LASTEND.status==="failed"?"error":"done";return"idle";}
+const act=()=>TASKS.find(t=>t.status==="running"||t.status==="planning")||(LASTEND&&TASKS.find(t=>t.id===LASTEND.id))||TASKS[0];
+function label(s){const t=act();if(!t)return"";const n=t.steps.length,d=t.steps.filter(x=>x.st==="done").length,c=t.steps.find(x=>x.st==="running");
+ return{planning:"Plant",executing:"Schritt "+Math.min(d+1,n)+"/"+n+(c?" · "+c.tool:""),checking:"Prüft Ergebnis",waiting:"Wartet auf deine Entscheidung",error:"Fehlgeschlagen",done:"Erledigt · "+t.steps.filter(x=>x.verified).length+"/"+n+" geprüft"}[s]||"";}
+function syncCore(){const s=coreState(),M={planning:.014,executing:.028,checking:.022,waiting:.006,error:.008,done:.018};CUR=s;
+ const st=$i("stage");if(st)st.dataset.core=s;let bz=false;try{bz=!!busy;}catch(e){}
+ try{if(M[s]!=null&&!bz)target=M[s];else if(s==="idle"&&CORE_SET)target=bz?.03:.004;}catch(e){}CORE_SET=s!=="idle";
+ const sx=$i("st");if(sx&&!bz){if(s!=="idle"){sx.textContent=label(s);STXT=true;}else if(STXT){let h=1;try{h=hist.length;}catch(e){}sx.textContent=h?"":"Core aktiv · Sprich mit Ultron";STXT=false;}}
+ clearTimeout(doneT);if((s==="done"||s==="error")&&LASTEND)doneT=setTimeout(syncCore,Math.max(30,LASTEND.ts+(s==="error"?8000:3000)-Date.now()+30));
+ if(s!=="idle")VIS=true;drawStrip();return s;}
+
+/* ---------- Statusleiste + Sheet, direkt über der Eingabe ---------- */
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;};
+const SL={pending:"offen",running:"läuft",done:"erledigt",failed:"fehlgeschlagen",denied:"abgelehnt",skipped:"übersprungen"};
+let rq=0;const render=()=>{if(rq)return;rq=setTimeout(()=>{rq=0;drawStrip();if(SHEET)drawSheet();},100);};
+function btn(t,f,c){const b=el("button",c||"v3b",t);b.type="button";b.onclick=f;return b;}
+function drawStrip(){if(!S)return;const t=act(),show=!!t&&VIS&&(CUR!=="idle"||(LASTEND&&t.id===LASTEND.id)||SHEET);S.hidden=!show;S.dataset.s=CUR;if(!show)return;
+ const bar=S.querySelector(".v3seg");bar.textContent="";const n=t.steps.length||1;(t.steps.length?t.steps:[{st:"pending"}]).forEach(s=>{const i=el("i","v3i "+s.st);bar.append(i);});
+ S.querySelector(".v3g").textContent=t.goal.slice(0,70)+(CUR!=="idle"?"  ·  "+label(CUR):"  ·  "+(t.summary||""));
+ const x=S.querySelector(".v3x");x.textContent=CUR==="idle"?"×":"Stopp";x.onclick=()=>{if(CUR==="idle"){VIS=false;SHEET=false;SH.hidden=true;drawStrip();}else cancel(t);};}
+function taskView(b){const r=el("div","v3r"),i=el("input","v3in");i.placeholder="Neues Ziel für Ultron …";i.dataset.k="new";const go=()=>{if(i.value.trim()){create(i.value);i.value="";}};i.onkeydown=e=>{if(e.key==="Enter")go();};r.append(i,btn("Start",go));b.append(r);
+ if(!TASKS.length)b.append(el("p","v3m","Noch keine Aufgaben. Im Chat: /aufgabe <Ziel>"));
+ TASKS.slice(0,8).forEach(t=>{const c=el("div","v3k");c.append(el("b",null,t.goal.slice(0,90)));
+  t.steps.forEach(s=>{const r=el("div","v3l "+s.st);r.append(el("span",null,s.id+" · "+s.tool+(s.att>1?" · Versuch "+s.att:"")),el("span",null,(SL[s.st]||s.st)+(s.st==="done"?(s.verified?" ✓":" · unverifiziert"):"")));c.append(r);if(s.err&&s.st!=="done")c.append(el("div","v3e",s.err));});
+  if(t.warn)c.append(el("div","v3e","Watcher: "+t.warn));if(t.summary)c.append(el("div","v3m",t.summary));if(t.answer)c.append(el("pre","v3a",t.answer));
+  const ac=el("div","v3r");if(t.status==="running"||t.status==="planning")ac.append(btn("Abbrechen",()=>cancel(t)));else{if(t.status!=="done"&&t.status!=="cancelled")ac.append(btn("Fortsetzen",()=>resume(t)));ac.append(btn("Entfernen",()=>{TASKS=TASKS.filter(x=>x!==t);persist();render();}));}c.append(ac);b.append(c);});}
+function toolView(b){Object.values(T).forEach(t=>{const need=t.risk==="high"||(t.risk==="medium"&&SET.auto!=="medium"),c=el("div","v3k");c.append(el("b",null,t.n+" · Risiko "+{low:"niedrig",medium:"mittel",high:"hoch"}[t.risk]),el("div","v3m",t.d),el("div","v3m",(need?"Bestätigung nötig":"automatisch")+" · "+(t.rev?"reversibel":"nicht reversibel")+" · Aufrufe "+ST[t.n].calls+" · Fehler "+ST[t.n].errs));if(ST[t.n].lastErr)c.append(el("div","v3e",ST[t.n].lastErr));b.append(c);});
+ const s=el("select","v3in");[["low","Mittleres Risiko: immer fragen"],["medium","Mittleres Risiko: automatisch"]].forEach(o=>{const op=el("option",null,o[1]);op.value=o[0];op.selected=SET.auto===o[0];s.append(op);});s.onchange=()=>{SET.auto=s.value;js(CK,SET);render();};
+ const lb=el("label","v3m"),cb=el("input");cb.type="checkbox";cb.checked=!!SET.calm;cb.onchange=()=>{SET.calm=cb.checked;js(CK,SET);document.body.classList.toggle("v3calm",SET.calm);};lb.append(cb," Ruhemodus: keine Animationen");
+ b.append(s,lb,el("p","v3m","Hohes Risiko verlangt immer eine Bestätigung, fest im Code. Migration: V3 verändert bestehende Daten nicht. Backup Gedächtnis: "+(META.bak.mem||"–")+", Termine: "+(META.bak.ev||"–")+". Grenze: Läuft im Browser, API-Schlüssel liegen im localStorage. Abbruch stoppt keine bereits laufende KI-Anfrage. Nicht vorhanden: Dateisystem, Browser-/Computersteuerung, E-Mail."));}
+function memView(b){const i=el("input","v3in");i.value=SRCH;i.placeholder="Gedächtnis durchsuchen …";i.oninput=()=>{SRCH=i.value;const p=i.selectionStart;drawSheet();const n=SH.querySelector(".v3in");n.focus();n.setSelectionRange(p,p);};b.append(i,el("p","v3m",MEM.length+" gemerkte Einträge"));
+ const q=SRCH.trim().toLowerCase();let it=MEM.map((m,ix)=>({m:String(m),ix}));if(q)it=it.filter(x=>x.m.toLowerCase().includes(q));
+ it.slice(0,40).forEach(x=>{const r=el("div","v3l");r.append(el("span",null,x.m.slice(0,160)),btn("×",()=>{MEM.splice(x.ix,1);saveMem();render();}));b.append(r);});}
+function drawSheet(){if(!SH)return;const a=document.activeElement;if(a&&a.dataset&&a.dataset.k==="new"&&a.value)return;const b=SH.querySelector(".v3c");b.textContent="";
+ SH.querySelectorAll(".v3tabs button").forEach(x=>x.classList.toggle("on",x.dataset.t===TAB));({tasks:taskView,tools:toolView,mem:memView}[TAB])(b);}
+function openSheet(t){if(t)TAB=t;SHEET=true;VIS=true;SH.hidden=false;drawSheet();drawStrip();}
+function closeSheet(){SHEET=false;SH.hidden=true;drawStrip();}
+function init(){const css=el("style");css.textContent="#stage{transition:filter .6s ease}#stage[data-core=error]{filter:hue-rotate(-18deg) saturate(1.25)}#stage[data-core=done]{filter:brightness(1.15)}#stage[data-core=waiting]{filter:saturate(.7)}.v3s{max-width:760px;margin:0 auto 6px;padding:6px 10px;font:12px/1.4 var(--mono,monospace);color:var(--tx)}.v3s[hidden],.v3sh[hidden]{display:none}.v3seg{display:flex;gap:3px;height:3px;margin-bottom:6px}.v3i{flex:1;border-radius:3px;background:var(--ln);transition:background .35s}.v3i.done{background:rgb(var(--c1r,143,208,255))}.v3i.running{background:rgb(var(--c2r,255,74,74));animation:v3p 1.6s ease-in-out infinite}.v3i.failed,.v3i.denied{background:#e5484d}.v3i.skipped{opacity:.35}@keyframes v3p{50%{opacity:.45}}.v3row{display:flex;gap:8px;align-items:center}.v3g{flex:1;text-align:left;background:none;border:0;color:var(--dim);font:inherit;cursor:pointer;padding:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.v3b,.v3x{background:none;border:1px solid var(--ln);border-radius:8px;color:var(--tx);padding:3px 10px;font:inherit;cursor:pointer}.v3sh{max-width:760px;margin:0 auto 6px;border:1px solid var(--ln);border-radius:12px;background:var(--bg);color:var(--tx);font:13px/1.45 system-ui;max-height:42vh;display:flex;flex-direction:column}.v3tabs{display:flex;gap:2px;padding:6px;border-bottom:1px solid var(--ln)}.v3tabs button{background:none;border:0;color:var(--dim);padding:5px 10px;border-radius:8px;cursor:pointer;font:inherit}.v3tabs button.on{color:var(--tx);background:var(--ln)}.v3c{overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}.v3k{border:1px solid var(--ln);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:4px}.v3l,.v3r{display:flex;gap:8px;justify-content:space-between;align-items:center}.v3l.failed,.v3l.denied,.v3e{color:#e5484d}.v3l.done{color:rgb(var(--c1r,143,208,255))}.v3m{color:var(--dim);font-size:12px;margin:0}.v3e{font-size:12px}.v3in{flex:1;background:transparent;border:1px solid var(--ln);border-radius:8px;padding:6px 10px;color:var(--tx);font:inherit}.v3a{white-space:pre-wrap;margin:0;font:inherit;max-height:200px;overflow:auto}body.v3calm .v3s *,body.v3calm #stage{animation:none!important;transition:none!important}@media (prefers-reduced-motion:reduce){.v3s *,#stage{animation:none!important;transition:none!important}}";document.head.append(css);
+ document.body.classList.toggle("v3calm",!!SET.calm);
+ S=el("div","v3s");S.hidden=true;const bar=el("div","v3seg"),row=el("div","v3row"),g=btn("",()=>{SHEET?closeSheet():openSheet();},"v3g"),x=el("button","v3x","×");x.type="button";row.append(g,x);S.append(bar,row);
+ SH=el("div","v3sh");SH.hidden=true;SH.setAttribute("role","region");SH.setAttribute("aria-label","Aufgaben");const tb=el("div","v3tabs");[["tasks","Aufgaben"],["tools","Tools & Einstellungen"],["mem","Gedächtnis"]].forEach(a=>{const k=el("button",null,a[1]);k.type="button";k.dataset.t=a[0];k.onclick=()=>{TAB=a[0];drawSheet();};tb.append(k);});
+ const cl=el("button",null,"×");cl.type="button";cl.setAttribute("aria-label","Schließen");cl.style.marginLeft="auto";cl.onclick=closeSheet;tb.append(cl);SH.append(tb,el("div","v3c"));
+ const f=$i("f");if(f){f.before(SH);f.before(S);}else document.body.append(SH,S);
+ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&SHEET)closeSheet();});}
+init();
+/* ---------- Chat-Anbindung ---------- */
+const MULTI=t=>t.length<400&&/(merk|speicher|notier)/i.test(t)&&/(termin|kalender)/i.test(t);
+function viaChat(t,auto){const p=create(t);if(auto)p.then(k=>{try{if(k){hist.push({role:"user",content:t},{role:"assistant",content:(k.answer||k.summary||"")+"",local:true,tier:"0"});save();refresh();}}catch(e){}});return p;}
+if(typeof ask==="function"){const o0=ask;ask=function(t,opts){const s=String(t);let m;
+ if(/^\s*\/aufgaben\s*$/i.test(s)){openSheet("tasks");return Promise.resolve();}
+ if((m=/^\s*\/(?:task|aufgabe)\s+([\s\S]+)/i.exec(s))){viaChat(m[1],false);return Promise.resolve();}
+ if(!(opts&&opts.nolocal)&&MULTI(s)&&!(typeof ATT!=="undefined"&&ATT.length)){try{toast("Ultron: als Aufgabe ausgeführt");}catch(e){}viaChat(s,true);return Promise.resolve();}
+ return o0.apply(this,arguments);};}
+if(TASKS.length&&TASKS.some(t=>t.status==="interrupted"))VIS=true;
+window.UltronV2=Object.freeze({create,resume,cancel,open:openSheet,tasks:()=>TASKS,tools:()=>Object.keys(T),cfg:CF,agents:AG,core:()=>CUR,version:3});
+})();
+
 </script>
 </body>
 </html>
