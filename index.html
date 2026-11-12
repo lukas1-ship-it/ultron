@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ULTRON V5</title>
+<title>ULTRON V6</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap">
 <style>
 :root{--bg:#040405;--red:rgb(var(--c2r));--red2:rgb(var(--c2r));--dim:#d8d1d5;--tx:#f6f2f3;--ln:rgba(255,255,255,.07);
@@ -907,7 +907,7 @@ html.lt form #in{background:transparent}
   </div>
   <div id="clock"></div>
   <div class="hact" id="hact">
-    <button id="fcBtn" data-p="1" title="Freier Gesprächsmodus (nur Sprache, Partikel-Hologramm)"><span>◉</span><span class="hl"> Gesprächsmodus</span></button>
+    <button id="fcBtn" data-p="1" title="Particle World: Partikel-Hologramme per Sprache oder Tippen"><span>◉</span><span class="hl"> Particle World</span></button>
     <button id="hubBtn" data-p="1" title="Alle Funktionen nach Kategorien"><span>⊞</span><span class="hl"> Funktionen</span></button>
     <button id="wnBtn" data-p="2" hidden title="Geöffnete Fenster"></button>
     <button id="pjBtn" data-p="2" hidden title="Aktives Projekt"></button>
@@ -1973,7 +1973,7 @@ function palItems(q){
   [["calendar","Kalender"],["kanban","Kanban-Board"],["briefing","Tagesbriefing"],["tasks","Missionen"],["memory","Gedächtnis & Skills"],["scenes","Szenen verwalten"],["history","Umbau-Verlauf"],["expenses","Ausgaben"],["shopping","Einkaufsliste"],["tzplan","Zeitzonen-Planer"],["holidays","Feiertage & Ferien"],["account","Konto"]].forEach(x=>add("Fenster",x[1],()=>openWin({type:x[0],title:x[1]}),"öffnen"));
   add("Aktionen","Neuer Chat",newChat,"chat");add("Aktionen","Rückgängig (letzte Dashboard-Änderung)",()=>{if(!smartUndo())toast("Nichts zum Rückgängigmachen");},"undo");
   add("Aktionen","Modus wechseln (Schnell / Auto / Gründlich)",()=>$("mode").click(),"speed");add("Aktionen","Einstellungen (API-Keys & Budget)",openCfg,"api key budget");
-  add("Aktionen","Freier Gesprächsmodus (Partikel-Hologramm, nur Sprache)",()=>{if(typeof fcOpen==="function")fcOpen();},"sprache gespräch voice hologramm partikel invisible freier modus");add("Aktionen","Datei hochladen",()=>{const f=$("fileIn");if(f)f.click();},"anhang bild pdf csv");add("Aktionen","App installieren",installApp,"pwa");add("Aktionen","Schnell erfassen (Alt+N)",()=>qcOpen(),"eingang notiz idee inbox");add("Wissen & Dateien","Eingang",()=>openWin({type:"inbox",title:"Eingang"}),"inbox erfassen");add("Wissen & Dateien","Wissenskarte",()=>openWin({type:"brain",title:"Wissenskarte"}),"graph gehirn netz");add("Wissen & Dateien","Obsidian-Vault",()=>openWin({type:"vault",title:"Obsidian"}),"notizen");add("Wissen & Dateien","Personen",()=>openWin({type:"people",title:"Personen"}),"kontakte");add("Wissen & Dateien","Was Ultron über dich weiß",()=>openWin({type:"me",title:"Gedächtnis"}),"profil gedächtnis");add("Planen & Organisieren","Wochenreview",()=>openWin({type:"review",title:"Wochenreview"}),"rückblick");add("System & Einstellungen","Alle Funktionen (Übersicht)",()=>openWin({type:"hub",title:"Funktionen"}),"katalog kategorien hilfe");add("Fenster","Tagesplaner",()=>openWin({type:"planner",title:"Tagesplaner"}),"aufgaben planer tag");add("Fenster","Wissensspeicher",()=>openWin({type:"knowledge",title:"Wissen"}),"wissen gelernt");add("Fenster","Auftragszentrale",()=>openWin({type:"jobs",title:"Aufträge"}),"jobs aufträge");add("Fenster","Einstellungen (mit Suche)",()=>openWin({type:"settings",title:"Einstellungen"}),"optionen settings");add("Fenster","Farben anpassen",()=>openWin({type:"settings",title:"Einstellungen",q:"farb"}),"theme farbe design");add("Aktionen","Layout bearbeiten (Panels ziehen)",()=>setEdit(true),"editor verschieben");add("Aktionen","Einführung erneut zeigen",showOnb,"tour hilfe");add("Aktionen","Chat exportieren (Markdown)",()=>exportChat("md"),"export speichern");add("Aktionen","Chat exportieren (PDF)",()=>exportChat("pdf"),"export drucken");add("Aktionen","Kalender exportieren (.ics)",exportICS,"export");add("Aktionen","Kalender importieren (.ics)",()=>$("fileIn").click(),"import");add("Aktionen","Antwort vorlesen",()=>{const la=hist.slice().reverse().find(m=>m.role==="assistant");if(la)speak(la.content);},"stimme tts");add("Aktionen","Diktieren",dictate,"mikrofon sprache");add("Fenster","Papierkorb",()=>openWin({type:"trash",title:"Papierkorb"}),"gelöscht");add("Fenster","Geburtstage",()=>openWin({type:"birthdays",title:"Geburtstage"}),"geburtstag");add("Fenster","Nutzungs-Dashboard",()=>openWin({type:"usage",title:"Nutzung"}),"verbrauch credits statistik");
+  add("Aktionen","Particle World öffnen (zuletzt genutzter Modus)",()=>{if(typeof fcOpen==="function")fcOpen();},"particle world partikel hologramm 3d modell gesprächsmodus freier modus");add("Aktionen","Particle World: Tippmodus (Modell per Eingabe erschaffen)",()=>{if(typeof fcOpen==="function")fcOpen("type");},"particle world tippen eingabe modell wunsch ohne mikrofon 3d partikel");add("Aktionen","Particle World: Gesprächsmodus (Sprache)",()=>{if(typeof fcOpen==="function")fcOpen("talk");},"particle world sprache gespräch voice mikrofon hologramm");add("Aktionen","Datei hochladen",()=>{const f=$("fileIn");if(f)f.click();},"anhang bild pdf csv");add("Aktionen","App installieren",installApp,"pwa");add("Aktionen","Schnell erfassen (Alt+N)",()=>qcOpen(),"eingang notiz idee inbox");add("Wissen & Dateien","Eingang",()=>openWin({type:"inbox",title:"Eingang"}),"inbox erfassen");add("Wissen & Dateien","Wissenskarte",()=>openWin({type:"brain",title:"Wissenskarte"}),"graph gehirn netz");add("Wissen & Dateien","Obsidian-Vault",()=>openWin({type:"vault",title:"Obsidian"}),"notizen");add("Wissen & Dateien","Personen",()=>openWin({type:"people",title:"Personen"}),"kontakte");add("Wissen & Dateien","Was Ultron über dich weiß",()=>openWin({type:"me",title:"Gedächtnis"}),"profil gedächtnis");add("Planen & Organisieren","Wochenreview",()=>openWin({type:"review",title:"Wochenreview"}),"rückblick");add("System & Einstellungen","Alle Funktionen (Übersicht)",()=>openWin({type:"hub",title:"Funktionen"}),"katalog kategorien hilfe");add("Fenster","Tagesplaner",()=>openWin({type:"planner",title:"Tagesplaner"}),"aufgaben planer tag");add("Fenster","Wissensspeicher",()=>openWin({type:"knowledge",title:"Wissen"}),"wissen gelernt");add("Fenster","Auftragszentrale",()=>openWin({type:"jobs",title:"Aufträge"}),"jobs aufträge");add("Fenster","Einstellungen (mit Suche)",()=>openWin({type:"settings",title:"Einstellungen"}),"optionen settings");add("Fenster","Farben anpassen",()=>openWin({type:"settings",title:"Einstellungen",q:"farb"}),"theme farbe design");add("Aktionen","Layout bearbeiten (Panels ziehen)",()=>setEdit(true),"editor verschieben");add("Aktionen","Einführung erneut zeigen",showOnb,"tour hilfe");add("Aktionen","Chat exportieren (Markdown)",()=>exportChat("md"),"export speichern");add("Aktionen","Chat exportieren (PDF)",()=>exportChat("pdf"),"export drucken");add("Aktionen","Kalender exportieren (.ics)",exportICS,"export");add("Aktionen","Kalender importieren (.ics)",()=>$("fileIn").click(),"import");add("Aktionen","Antwort vorlesen",()=>{const la=hist.slice().reverse().find(m=>m.role==="assistant");if(la)speak(la.content);},"stimme tts");add("Aktionen","Diktieren",dictate,"mikrofon sprache");add("Fenster","Papierkorb",()=>openWin({type:"trash",title:"Papierkorb"}),"gelöscht");add("Fenster","Geburtstage",()=>openWin({type:"birthdays",title:"Geburtstage"}),"geburtstag");add("Fenster","Nutzungs-Dashboard",()=>openWin({type:"usage",title:"Nutzung"}),"verbrauch credits statistik");
   CH.list.forEach(c=>add("Chats","Chat: "+(c.title||"Chat"),()=>switchChat(c.id),"verlauf"));
   PROJ.forEach(p=>add("Projekte","Projekt: "+p.n,()=>{projActivate(p.n);toast("Aktives Projekt: "+p.n);},"projekt"));if(UI.pj)add("Projekte","Projekt beenden",()=>projActivate(""),"projekt");add("Aktionen","Wiederholen",smartRedo,"redo");
   LIB.slice(0,30).forEach(e=>add("Dateien",((LIBL[e.t]||["",e.t])[1])+": "+e.title,()=>libOpen(e),"datei bibliothek"));add("Fenster","Alle Dateien",()=>openWin({type:"library",title:"Dateien"}),"bibliothek erstellt");add("Fenster","Letztes Fenster erneut öffnen",()=>{if(LASTWIN)openWin(LASTWIN);else toast("Noch nichts geöffnet");},"nochmal");
@@ -2888,7 +2888,7 @@ WV.settings=function(b,o){
    ["aufraeumen aufräumen nutzung ungenutzt widgets panels ausblenden","Aufräumen",c=>{if(window.UltronUX)window.UltronUX.cleanUI(c);}],
    ["sicherung backup export import einstellungen personalisierung uebertragen","Sicherung & Übertragung (Einstellungen exportieren/importieren)",c=>{if(window.UltronVar)window.UltronVar.backupUI(c);}],
    ["schrift groesse zoom text darstellung lesbarkeit handy","Schriftgröße / Zoom (90 bis 140 Prozent)",rng(.9,1.4,.05,()=>(UI.fs||1),v=>{if(window.UltronNav)window.UltronNav.setFontScale(v);})],
-   ["poly pizza online 3d modelle katalog api schlüssel hologramm gesprächsmodus","Poly-Pizza-Schlüssel (Online-3D-Modelle im Gesprächsmodus)",c=>{const i=IN("password","API-Schlüssel von poly.pizza/settings/api",LS.get("ultron_pp_key")||"");i.autocomplete="off";i.onchange=()=>{LS.set("ultron_pp_key",i.value.trim());toast("Schlüssel gespeichert");};c.appendChild(i);}],
+   ["poly pizza online 3d modelle katalog api schlüssel hologramm gesprächsmodus","Poly-Pizza-Schlüssel (Online-3D-Modelle in Particle World)",c=>{const i=IN("password","API-Schlüssel von poly.pizza/settings/api",LS.get("ultron_pp_key")||"");i.autocomplete="off";i.onchange=()=>{LS.set("ultron_pp_key",i.value.trim());toast("Schlüssel gespeichert");};c.appendChild(i);}],
    ["export chat markdown pdf speichern","Chat exportieren",btns([["Markdown",()=>exportChat("md")],["PDF",()=>exportChat("pdf")]])],
    ["kalender import export ics","Kalender importieren / exportieren",btns([["Importieren (.ics)",()=>$("fileIn").click()],["Exportieren (.ics)",exportICS]])],
    ["einführung hilfe tour start","Einführung",btn("Einführung erneut zeigen",()=>{$("wl").hidden=true;showOnb();})],
@@ -5872,9 +5872,9 @@ function loop(ts){
   attr.needsUpdate=true;
   /* Rotation: Text/Flächen bleiben lesbar, 3D-Formen drehen sich */
   var ry=points.rotation.y;
-  if(shape.face&&!userSpin){ry=((ry+PI)%TAU+TAU)%TAU-PI;ry+=(Math.sin(t*.35)*.1-ry)*Math.min(1,dt*3);}
-  else ry+=dt*((shape.spin||0)*spinDir+userSpin+thinkV*.5+lvl*.3);
-  points.rotation.y=ry;
+  if(shape.face&&!userSpin&&pwMode!=="type"){ry=((ry+PI)%TAU+TAU)%TAU-PI;ry+=(Math.sin(t*.35)*.1-ry)*Math.min(1,dt*3);}
+  else ry+=dt*pwSpinK*((shape.spin||0)*spinDir+userSpin+thinkV*.5+lvl*.3);
+  points.rotation.y=ry;if(pwMode!=="type")points.rotation.x+=(0-points.rotation.x)*Math.min(1,dt*6);
   var sc=points.scale.x;sc+=(objScale-sc)*Math.min(1,dt*5);points.scale.set(sc,sc,sc);
   renderer.render(scene,camera);
 }
@@ -6192,14 +6192,14 @@ function recStart(){
   };
   r.onerror=function(e){
     var c=e&&e.error;
-    if(c==="not-allowed"||c==="service-not-allowed"){micDenied=true;if(on){fcClose();say("Mikrofon nicht freigegeben. Erlaube den Zugriff in der Adressleiste und starte den Gesprächsmodus neu.");}}
+    if(c==="not-allowed"||c==="service-not-allowed"){micDenied=true;if(on){pwSetMode("type");say("Mikrofon nicht freigegeben. Particle World wechselt in den Tippmodus. Den Zugriff kannst du in der Adressleiste erlauben.");}}
     else if(c!=="no-speech"&&c!=="aborted")recFails++;
   };
   r.onend=function(){
     rec=null;recOn=false;
     if(on&&userBuf)flushUser();
     if(!on||micDenied)return;
-    if(recFails>8){fcClose();say("Spracherkennung dauerhaft gestört (Netzwerk?). Gesprächsmodus beendet.");return;}
+    if(recFails>8){pwSetMode("type");say("Spracherkennung dauerhaft gestört. Particle World wechselt in den Tippmodus.");return;}
     setTimeout(recStart,Math.min(5000,250*Math.pow(2,recFails)));
   };
   try{r.start();}catch(e){rec=null;}
@@ -6236,15 +6236,17 @@ function ensureOverlay(){
   cvs=document.createElement("canvas");ov.appendChild(cvs);document.body.appendChild(ov);
   ov.addEventListener("click",function(e){
     if(!on||performance.now()-tOpen<500)return;
-    if(e.target.closest&&e.target.closest("#fcDev"))return;
+    if(pwMode==="type")return;
+    if(e.target.closest&&e.target.closest("#fcDev,#pwUi"))return;
     fcClose();
   });
   addEventListener("resize",function(){if(running)fit();});
 }
-async function fcOpen(){
+async function fcOpen(m){
   if(on||starting)return;starting=true;
   try{
-    if(!SR&&!(typeof PREF!=="undefined"&&PREF.dev)){say("Der Gesprächsmodus braucht Spracherkennung. Chrome oder Edge funktionieren am besten.");return;}
+    var wantMode=(m==="type"||m==="talk")?m:pwPref();
+    if(wantMode==="talk"&&!SR&&!(typeof PREF!=="undefined"&&PREF.dev)){wantMode="type";say("Dieser Browser kann keine Sprache erkennen. Particle World öffnet im Tippmodus.");}
     try{await loadThree();}catch(e){say("Three.js konnte nicht geladen werden. Prüfe deine Internetverbindung.");return;}
     ensureOverlay();
     if(!renderer){try{setupEngine();}catch(e){console.warn(e);renderer=null;say("WebGL wird in diesem Browser nicht unterstützt.");return;}}
@@ -6258,12 +6260,12 @@ async function fcOpen(){
     buildDev();
     document.body.classList.remove("fcIn");document.body.classList.add("fcOn");ov.classList.add("on");
     if(!running){running=true;lastTs=performance.now();raf=requestAnimationFrame(loop);}
-    setTimeout(function(){if(on)recStart();},700);
+    pwBuild();pwSetMode(wantMode,true);pwWake();
   }finally{starting=false;}
 }
 function fcClose(){
   if(!on)return;
-  on=false;clearTimeout(holdTimer);clearTimeout(sendTimer);userBuf="";userConf=1;
+  on=false;pwOnClose();clearTimeout(holdTimer);clearTimeout(sendTimer);userBuf="";userConf=1;
   vizCancel();try{if(ABORT)ABORT.abort();}catch(e){}
   recStop();stopSpeech();thinking=false;
   if(turn&&!turn.committed)commit(turn.spoken);
@@ -6277,6 +6279,98 @@ function fcClose(){
     if(devBar&&!on){devBar.remove();devBar=null;}
   },800);
 }
+/* ===== Particle World: Tippmodus (gleiche Engine, gleicher Resolver, kein Mikrofon, keine Spracherkennung) ===== */
+var pwMode="talk",pwSpinK=1,pwPitch=0,pwAuto=true,pwPtr={},pwBusy=0,pwLast=null,pwUiEl=null,pwFade=0,pwPinch=0;
+function pwPref(){var v=lsGet("ultron_pw_mode");if(v==="type"||v==="talk")return v;return SR?"talk":"type";}
+function pwSafe(s){return String(s||"modell").toLowerCase().replace(/[^a-z0-9äöüß]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40)||"modell";}
+function pwOne(s){return String(s||"").replace(/[\r\n]+/g," ").slice(0,300);}
+function pwDownload(blob,name){var u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},1500);}
+function pwPoints(){var o=[];if(!tgt)return new Float32Array(0);for(var i=0;i<N;i++){var x=tgt[i*3],y=tgt[i*3+1],z=tgt[i*3+2];if(isFinite(x)&&isFinite(y)&&isFinite(z))o.push(x,y,z);}return new Float32Array(o);}
+function pwCredit(){var c=pwLast&&pwLast.credit;if(!c)return "Eingebaute Form, keine fremde Quelle";return pwOne([c.title,c.by&&("von "+c.by),c.license,c.provider,c.url].filter(Boolean).join(" · "));}
+function pwPly(){var p=pwPoints(),h="ply\nformat binary_little_endian 1.0\ncomment Ultron Particle World: "+pwOne(pwLast&&pwLast.label)+"\ncomment Quelle: "+pwCredit()+"\nelement vertex "+(p.length/3)+"\nproperty float x\nproperty float y\nproperty float z\nend_header\n";return new Blob([h,p.buffer],{type:"application/octet-stream"});}
+function pwGlb(){var p=pwPoints(),n=p.length/3,mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9],i,k;for(i=0;i<n;i++)for(k=0;k<3;k++){var v=p[i*3+k];if(v<mn[k])mn[k]=v;if(v>mx[k])mx[k]=v;}
+  var j={asset:{version:"2.0",generator:"Ultron Particle World",copyright:pwCredit()},scene:0,scenes:[{nodes:[0]}],nodes:[{mesh:0,name:pwSafe(pwLast&&pwLast.label)}],meshes:[{primitives:[{attributes:{POSITION:0},mode:0}]}],accessors:[{bufferView:0,componentType:5126,count:n,type:"VEC3",min:mn,max:mx}],bufferViews:[{buffer:0,byteOffset:0,byteLength:p.byteLength}],buffers:[{byteLength:p.byteLength}]};
+  var js=new TextEncoder().encode(JSON.stringify(j)),pad=(4-js.length%4)%4,jb=new Uint8Array(js.length+pad);jb.set(js);for(i=js.length;i<jb.length;i++)jb[i]=32;
+  var total=12+8+jb.length+8+p.byteLength,buf=new ArrayBuffer(total),dv=new DataView(buf),o=20+jb.length;
+  dv.setUint32(0,0x46546C67,true);dv.setUint32(4,2,true);dv.setUint32(8,total,true);dv.setUint32(12,jb.length,true);dv.setUint32(16,0x4E4F534A,true);new Uint8Array(buf,20,jb.length).set(jb);
+  dv.setUint32(o,p.byteLength,true);dv.setUint32(o+4,0x004E4942,true);new Uint8Array(buf,o+8,p.byteLength).set(new Uint8Array(p.buffer));return new Blob([buf],{type:"model/gltf-binary"});}
+function pwPng(cb){try{renderer.render(scene,camera);var c=document.createElement("canvas");c.width=cvs.width;c.height=cvs.height;var g=c.getContext("2d");g.fillStyle="#000";g.fillRect(0,0,c.width,c.height);g.drawImage(cvs,0,0);c.toBlob(cb,"image/png");}catch(e){cb(null);}}
+function pwSave(f){if(!pwLast||!pwPoints().length){pwStatus("Zuerst ein Modell erschaffen.");return;}var nm="particle-world-"+pwSafe(pwLast.label)+"."+f;
+  var done=function(b){if(!b){pwStatus("Speichern fehlgeschlagen.");return;}pwDownload(b,nm);pwStatus("Gespeichert: "+nm+(pwLast.credit?" · Quelle und Lizenz sind in der Datei vermerkt":""));};
+  if(f==="ply")done(pwPly());else if(f==="glb")done(pwGlb());else pwPng(done);}
+function pwStatus(t,busy){var s=pwUiEl&&pwUiEl.querySelector("#pwSt");if(!s)return;s.textContent=t||"";s.classList.toggle("busy",!!busy);}
+function pwMsg(st,label,c){var cr=c?(" · "+[c.title,c.by&&("von "+c.by),c.license].filter(Boolean).join(" · ")):"";
+  return({success:"Fertig: "+label+(c?cr:" (eingebaute Form)"),generic:"Ähnliches Modell für „"+label+"“"+cr,approx:"Keine passende 3D-Vorlage gefunden. Ich zeige eine angenäherte Form oder das Wort.",failed:"Das Modell ließ sich nicht laden. Versuch einen anderen Begriff.",nokey:"Ohne Poly-Pizza-Schlüssel zeige ich das Wort als Partikelschrift. Für Online-Modelle den Schlüssel in den Einstellungen eintragen.",auth:"Der Poly-Pizza-Schlüssel wurde abgelehnt. Bitte in den Einstellungen prüfen.",offline:"Keine Verbindung zum Modellkatalog. Ich zeige das Wort als Partikelschrift."})[st]||("Fertig: "+label);}
+function pwTools(){var t=pwUiEl&&pwUiEl.querySelector("#pwTools");if(t)t.classList.toggle("on",!!pwLast);}
+function pwZoom(f){objScale=Math.max(.3,Math.min(4,objScale*f));}
+var pwBase=.8;
+function pwFit(){var p=pwPoints(),r=0.01;for(var i=0;i<p.length;i+=3){var d=Math.sqrt(p[i]*p[i]+p[i+1]*p[i+1]+p[i+2]*p[i+2]);if(d>r)r=d;}pwBase=Math.max(.3,Math.min(.85,1.15/r));}
+function pwReset(){objScale=pwBase;pwPitch=0;if(points){points.rotation.x=0;points.position.y=.3;}}
+async function pwWish(text){
+  text=String(text||"").trim().slice(0,100);if(!text||!on||pwMode!=="type")return;
+  var id=++pwBusy;vizCancel();clearTimeout(holdTimer);forced.think=true;pwStatus("Ich forme „"+text+"“ …",true);
+  try{
+    var it=Intent.parse((isEn()?"show me ":"zeig mir ")+text);
+    var q={shape:it.obj?it.obj.shape:null,ap:!!(it.obj&&it.obj.ap),label:it.obj?it.obj.label:(it.cand||capWord(text)),g:it.obj?it.obj.g:null,color:it.color};
+    if(!q.shape&&q.label&&!libLookup(q.label)&&!refGet("r:"+fold(q.label))&&!dictHit(q.label)&&PolyPizza.enabled()){
+      var en=await translateTerm(q.label);if(id!==pwBusy||!on)return;if(en){if(SHAPES[en])q.shape=en;else q.en=en;}}
+    var before=lastCredit,r=await vizShow(q);
+    if(id!==pwBusy||!on||r.state==="stale")return;
+    objColor=(q.color&&q.color.c)?q.color.c:null;pwFit();pwReset();
+    var cr=((r.state==="success"||r.state==="generic")&&lastCredit!==before)?lastCredit:null;
+    pwLast={label:q.label||text,state:r.state,credit:cr,ts:Date.now()};pwStatus(pwMsg(r.state,pwLast.label,cr));
+  }catch(e){if(id===pwBusy)pwStatus("Das hat nicht geklappt. Versuch es noch einmal.");}
+  finally{if(id===pwBusy){forced.think=false;pwTools();}}
+}
+function pwSetMode(m,silent){var warned=false;
+  if(m==="talk"&&!SR&&!(typeof PREF!=="undefined"&&PREF.dev)){m="type";warned=!silent;}
+  pwMode=m;lsSet("ultron_pw_mode",m);pwBusy++;
+  if(!ov)return;ov.classList.toggle("pwType",m==="type");if(m==="type")pwReset();else{objScale=1;if(points)points.position.y=0;}ov.classList.toggle("pwDevOn",!!devBar);
+  if(pwUiEl)pwUiEl.querySelectorAll(".pwTop [data-m]").forEach(function(b){b.setAttribute("aria-selected",b.dataset.m===m?"true":"false");});
+  if(m==="type"){
+    clearTimeout(sendTimer);userBuf="";recStop();stopSpeech();thinking=false;forced.listen=false;turn=null;curSpoken="";pwSpinK=pwAuto?1:0;
+    pwStatus(warned?"Dieser Browser kann keine Sprache erkennen. Der Tippmodus bleibt verfügbar.":(pwLast?"":"Beschreibe, was du sehen möchtest."));pwTools();
+    setTimeout(function(){var i=pwUiEl&&pwUiEl.querySelector("#pwIn");if(i&&on&&pwMode==="type")i.focus({preventScroll:true});},80);
+  }else{
+    forced.think=false;pwSpinK=1;pwPitch=0;if(points)points.rotation.x=0;micDenied=false;recFails=0;pwWake();
+    setTimeout(function(){if(on&&pwMode==="talk")recStart();},500);
+  }
+}
+function pwWake(){if(!ov)return;ov.classList.remove("pwIdle");clearTimeout(pwFade);pwFade=setTimeout(function(){if(ov)ov.classList.add("pwIdle");},3500);}
+function pwOnClose(){pwBusy++;forced.think=false;if(ov)ov.classList.remove("pwType","pwIdle","drag");pwPtr={};pwPinch=0;pwPitch=0;pwSpinK=1;if(points){points.rotation.x=0;points.position.y=0;}var m=pwUiEl&&pwUiEl.querySelector(".pwMenu");if(m)m.hidden=true;}
+function pwBuild(){
+  if(pwUiEl)return;
+  var css=document.createElement("style");css.id="pwStyle";css.textContent="#pwUi{position:absolute;inset:0;pointer-events:none;font:11px/1.4 var(--mono,ui-monospace,monospace);letter-spacing:.12em;text-transform:uppercase;color:var(--tx,#ece8e9);cursor:default}#pwUi button{pointer-events:auto;font:inherit;letter-spacing:inherit;color:inherit;cursor:pointer}.pwTop{position:absolute;top:max(14px,env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);display:flex;gap:4px;padding:4px;border:1px solid var(--ln,rgba(255,255,255,.14));border-radius:999px;background:rgba(10,8,10,.55);backdrop-filter:blur(8px);pointer-events:auto;transition:opacity .5s}.pwTop button{background:none;border:0;padding:7px 14px;border-radius:999px;opacity:.65}.pwTop button[aria-selected=true]{opacity:1;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(var(--c2r,255,74,74),.6)}#fcm.pwIdle:not(.pwType) .pwTop{opacity:0}.pwBot{position:absolute;left:50%;bottom:max(18px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(640px,calc(100vw - 24px));display:none;flex-direction:column;gap:10px}#fcm.pwType .pwBot{display:flex}#fcm.pwDevOn .pwBot{bottom:84px}.pwSt{min-height:1.4em;text-align:center;text-transform:none;letter-spacing:.02em;font-size:12px;color:var(--dim,#b9a9ae);padding:0 8px}.pwSt.busy{animation:pwb 1.4s ease-in-out infinite}@keyframes pwb{50%{opacity:.45}}.pwTools{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;opacity:0;pointer-events:none;transition:opacity .4s}.pwTools.on{opacity:1}.pwTools.on button{pointer-events:auto}.pwTools button,.pwMenu button{background:rgba(10,8,10,.6);border:1px solid var(--ln,rgba(255,255,255,.14));border-radius:999px;padding:7px 12px}.pwTools button[aria-pressed=true]{box-shadow:inset 0 0 0 1px rgba(var(--c2r,255,74,74),.6)}.pwSave{position:relative}.pwMenu{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;white-space:nowrap}.pwMenu[hidden]{display:none}.pwForm{display:flex;gap:8px;border:1px solid var(--ln,rgba(255,255,255,.14));border-radius:999px;padding:6px 6px 6px 18px;background:rgba(10,8,10,.6);backdrop-filter:blur(8px);pointer-events:auto}.pwForm input{flex:1;min-width:0;background:none;border:0;outline:none;color:inherit;font:inherit;text-transform:none;letter-spacing:.02em;font-size:15px;cursor:text;-webkit-user-select:text;user-select:text}.pwForm button{border:1px solid rgba(var(--c2r,255,74,74),.6);background:rgba(var(--c2r,255,74,74),.12);border-radius:999px;padding:9px 16px}.pwForm:focus-within{box-shadow:0 0 0 1px rgba(var(--c2r,255,74,74),.55)}#fcm.pwType{cursor:grab}#fcm.pwType.drag{cursor:grabbing}@media (prefers-reduced-motion:reduce){.pwSt.busy{animation:none}.pwTop,.pwTools{transition:none}}";
+  document.head.appendChild(css);
+  var d=document.createElement("div");d.id="pwUi";
+  d.innerHTML='<div class="pwTop" role="tablist" aria-label="Particle World Modus"><button type="button" role="tab" data-m="talk">Gespräch</button><button type="button" role="tab" data-m="type">Tippen</button><button type="button" data-x="1" aria-label="Particle World schließen">×</button></div>'+
+   '<div class="pwBot"><div class="pwSt" id="pwSt" aria-live="polite"></div><div class="pwTools" id="pwTools"><button type="button" data-t="spin" aria-pressed="true">Drehen</button><button type="button" data-t="out" aria-label="Verkleinern">−</button><button type="button" data-t="in" aria-label="Vergrößern">+</button><button type="button" data-t="reset">Zurücksetzen</button><span class="pwSave"><button type="button" data-t="save" aria-haspopup="true">Speichern</button><span class="pwMenu" hidden><button type="button" data-f="ply">.ply Punktwolke</button><button type="button" data-f="glb">.glb 3D-Datei</button><button type="button" data-f="png">.png Bild</button></span></span></div>'+
+   '<form class="pwForm" id="pwForm"><input id="pwIn" type="text" maxlength="100" placeholder="Was soll ich erschaffen? z. B. ein Segelschiff" autocomplete="off" spellcheck="false" aria-label="Wunsch eingeben"><button type="submit">Erschaffen</button></form></div>';
+  ov.appendChild(d);pwUiEl=d;
+  d.addEventListener("click",function(e){e.stopPropagation();var b=e.target.closest("button");if(!b)return;var menu=d.querySelector(".pwMenu");
+    if(b.dataset.m){pwSetMode(b.dataset.m);}else if(b.dataset.x){fcClose();}
+    else if(b.dataset.t==="spin"){pwAuto=!pwAuto;pwSpinK=pwAuto?1:0;b.setAttribute("aria-pressed",pwAuto?"true":"false");}
+    else if(b.dataset.t==="in")pwZoom(1.25);else if(b.dataset.t==="out")pwZoom(.8);else if(b.dataset.t==="reset")pwReset();
+    else if(b.dataset.t==="save"){menu.hidden=!menu.hidden;}
+    else if(b.dataset.f){menu.hidden=true;pwSave(b.dataset.f);}
+    if(b.dataset.t!=="save"&&!b.dataset.f)menu.hidden=true;});
+  d.querySelector("#pwForm").addEventListener("submit",function(e){e.preventDefault();e.stopPropagation();var i=d.querySelector("#pwIn"),v=i.value;if(v.trim()){pwWish(v);i.select();}});
+  ["keydown","keyup","keypress","input"].forEach(function(n){d.addEventListener(n,function(e){e.stopPropagation();});});
+  ["pointerdown","pointerup","touchstart"].forEach(function(n){d.addEventListener(n,function(e){e.stopPropagation();});});
+  ov.addEventListener("pointermove",pwWake);
+  cvs.addEventListener("pointerdown",function(e){if(pwMode!=="type")return;pwPtr[e.pointerId]={x:e.clientX,y:e.clientY};try{cvs.setPointerCapture(e.pointerId);}catch(x){}pwSpinK=0;pwPinch=0;ov.classList.add("drag");});
+  cvs.addEventListener("pointermove",function(e){var p=pwPtr[e.pointerId];if(!p||pwMode!=="type")return;var dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;var ids=Object.keys(pwPtr);
+    if(ids.length>=2){var a=pwPtr[ids[0]],b=pwPtr[ids[1]],dd=Math.hypot(a.x-b.x,a.y-b.y);if(pwPinch)pwZoom(dd/pwPinch);pwPinch=dd;}
+    else if(points){points.rotation.y+=dx*.008;pwPitch=Math.max(-1.3,Math.min(1.3,pwPitch+dy*.008));points.rotation.x=pwPitch;}});
+  var up=function(e){delete pwPtr[e.pointerId];pwPinch=0;if(!Object.keys(pwPtr).length){ov.classList.remove("drag");pwSpinK=pwAuto?1:0;}};
+  cvs.addEventListener("pointerup",up);cvs.addEventListener("pointercancel",up);
+  cvs.addEventListener("wheel",function(e){if(pwMode!=="type")return;e.preventDefault();pwZoom(e.deltaY<0?1.1:.9);},{passive:false});
+  cvs.addEventListener("dblclick",function(){if(pwMode==="type")pwReset();});
+  document.addEventListener("keydown",function(e){if(!on)return;if(e.key==="Escape"){fcClose();return;}if(pwMode!=="type"||/INPUT|TEXTAREA/.test((e.target&&e.target.tagName)||""))return;
+    if(e.key==="+"||e.key==="=")pwZoom(1.15);else if(e.key==="-")pwZoom(.87);else if(e.key==="ArrowLeft"&&points)points.rotation.y-=.12;else if(e.key==="ArrowRight"&&points)points.rotation.y+=.12;else if(e.key==="ArrowUp")pwPitch=Math.max(-1.3,pwPitch-.1);else if(e.key==="ArrowDown")pwPitch=Math.min(1.3,pwPitch+.1);});
+}
+window.pwOpen=function(m){return fcOpen(m);};
+
 window.fcOpen=fcOpen;window.fcClose=fcClose;
 
 /* ---------- Öffentliche Erweiterungs-API ---------- */
@@ -6446,7 +6540,7 @@ function route(raw,opts){
     if(open||/^(das |den |die )?(core[- ]?)?(universum|universe)$/.test(t)){return openUniverse()?R("Core-Universum geöffnet.",voice):null;}
   }
   /* Gesprächsmodus (nur aus dem Dashboard) */
-  if(!voice&&/(gespraechsmodus|hologramm-?modus|freier modus)/.test(t)&&(open||/^(den |das |der )?(gespraechsmodus|hologramm-?modus|freier modus)$/.test(t))&&!q){var f=$("fcBtn");if(f){f.click();return R("Gesprächsmodus gestartet.",false);}}
+  if(!voice&&/(gespraechsmodus|hologramm-?modus|freier modus|particle ?world)/.test(t)&&(open||/^(den |das |der )?(gespraechsmodus|hologramm-?modus|freier modus|particle ?world)$/.test(t))&&!q){var f=$("fcBtn");if(f){f.click();return R("Gesprächsmodus gestartet.",false);}}
   /* Panels (Handy-Sheet) */
   if(/\b(panels?|seitenpanels?|seitenleiste|seitenwidgets?|seitenfenster)\b/.test(t)&&!q){
     if(close&&!open)return closeSheet()?R("Panels geschlossen.",false):null;
